@@ -12,8 +12,10 @@ namespace EventSourcing.Cosmos.Tests
       new CosmosOptions {
         ConnectionString = "",
         Database = "Events",
-        Container = "Events"
-    });
+        
+        EventContainer = "Events",
+        AggregateContainer = "Aggregates"
+      });
 
     [Fact]
     public async Task Can_Append_And_Get_Events()

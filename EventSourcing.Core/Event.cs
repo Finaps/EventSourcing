@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace EventSourcing.Core
 {
-  public class Event
+  public class Event : ITyped
   {
     [JsonPropertyName("id")] // To Make CosmosDB Happy
     public Guid Id { get; init; }

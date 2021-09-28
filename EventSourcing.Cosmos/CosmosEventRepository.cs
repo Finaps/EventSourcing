@@ -21,7 +21,7 @@ namespace EventSourcing.Cosmos
     {
       Serializer = new CosmosEventSerializer(new JsonSerializerOptions
       {
-        Converters = { new EventConverter() }
+        Converters = { new TypedConverter<Event>(), new TypedConverter<Aggregate>() }
       })
     };
 
@@ -35,26 +35,29 @@ namespace EventSourcing.Cosmos
       EnableContentResponseOnWrite = false
     };
 
-    private readonly Container _container;
+    private readonly Container _events;
+    private readonly Container _aggregates;
     
     public CosmosEventRepository(IOptions<CosmosOptions> options)
     {
-      _container = new CosmosClient(options.Value.ConnectionString, ClientOptions)
-        .GetDatabase(options.Value.Database)
-        .GetContainer(options.Value.Container);
+      var database = new CosmosClient(options.Value.ConnectionString, ClientOptions)
+        .GetDatabase(options.Value.Database);
+
+      _events = database.GetContainer(options.Value.EventContainer);
+      _aggregates = database.GetContainer(options.Value.AggregateContainer);
     }
 
-    public IQueryable<TEvent> Events => _container.GetItemLinqQueryable<TEvent>();
+    public IQueryable<TEvent> Events => _events.GetItemLinqQueryable<TEvent>();
 
     public async Task AppendAsync(Event @event, CancellationToken cancellationToken = default)
     {
       var key = new PartitionKey(@event.AggregateId.ToString());
-      await _container.CreateItemAsync(@event, key, ItemRequestOptions, cancellationToken);
+      await _events.CreateItemAsync(@event, key, ItemRequestOptions, cancellationToken);
     }
 
     public async Task AppendAsync(Guid aggregateId, IEnumerable<Event> events, CancellationToken cancellationToken = default)
     {
-      var batch = _container.CreateTransactionalBatch(new PartitionKey(aggregateId.ToString()));
+      var batch = _events.CreateTransactionalBatch(new PartitionKey(aggregateId.ToString()));
       foreach (var @event in events) batch.CreateItem(@event, BatchItemRequestOptions);
       await batch.ExecuteAsync(cancellationToken);
     }
@@ -85,8 +88,11 @@ namespace EventSourcing.Cosmos
         .OrderByDescending(x => x.AggregateVersion)
         .Select(x => x.AggregateVersion + 1)
         .FirstOrDefaultAsync(cancellationToken);
-
+      
       await AppendAsync(aggregate.Id, aggregate.Events.Skip(version), cancellationToken);
+      
+      // Update View
+      await _aggregates.UpsertItemAsync(aggregate, new PartitionKey(aggregate.Id.ToString()), ItemRequestOptions, cancellationToken);
     }
   }
 }
