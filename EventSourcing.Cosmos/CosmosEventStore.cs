@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EventSourcing.Core;
 using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Options;
 
 namespace EventSourcing.Cosmos
@@ -52,10 +53,16 @@ namespace EventSourcing.Cosmos
           }}
         });
     }
-    
-    public IAsyncEnumerable<T> Query<T>(Func<IQueryable<TEvent>, IQueryable<T>> func) => 
-      func(_container.GetItemLinqQueryable<TEvent>()).ToAsyncEnumerable();
 
+    public async IAsyncEnumerable<T> Query<T>(Func<IQueryable<TEvent>, IQueryable<T>> func)
+    {
+      var iterator = func(_container.GetItemLinqQueryable<TEvent>()).ToFeedIterator();
+      
+      while (iterator.HasMoreResults)
+        foreach (var item in await iterator.ReadNextAsync())
+          yield return item;
+    }
+    
     public async Task AddAsync(IList<Event> events, CancellationToken cancellationToken = default)
     {
       var partition = new PartitionKey(events.Select(x => x.AggregateId).Distinct().Single().ToString());

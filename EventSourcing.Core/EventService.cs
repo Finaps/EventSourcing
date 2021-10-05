@@ -48,7 +48,7 @@ namespace EventSourcing.Core
       return aggregate;
     }
     
-    private async Task<TAggregate> RehydrateAsync<TAggregate>(Guid aggregateId, Func<IQueryable<TEvent>, IQueryable<TEvent>> query,
+    public async Task<TAggregate> RehydrateAsync<TAggregate>(Guid aggregateId, Func<IQueryable<TEvent>, IQueryable<TEvent>> query,
       CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
     {
       var aggregate = new TAggregate { Id = aggregateId };
