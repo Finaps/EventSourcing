@@ -8,8 +8,5 @@ namespace EventSourcing.Cosmos.Tests.Mocks
     public int MockInteger { get; set; }
     public double MockDouble { get; set; }
     public string MockString { get; set; }
-    
-    public MockEvent() : base() { }
-    public MockEvent(MockAggregate aggregate) : base(aggregate) { }
   }
 }

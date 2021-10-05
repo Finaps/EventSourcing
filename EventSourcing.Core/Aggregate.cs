@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Reflection;
+using System.Text.Json.Serialization;
 
 namespace EventSourcing.Core
 {
@@ -9,39 +11,60 @@ namespace EventSourcing.Core
   {
     public Guid Id { get; init; }
     public int Version => _events.Count;
-    public ImmutableArray<Event> Events => _events.ToImmutableArray();
+    
+    [JsonIgnore] public ImmutableArray<Event> Events => _events.ToImmutableArray();
     private readonly List<Event> _events = new();
 
     public Aggregate()
     {
       Id = Guid.NewGuid();
     }
-    
-    public void Add(Event @event)
+
+    public TEvent Add<TEvent>(object data) where TEvent : Event, new()
     {
-      if (@event.AggregateId != Id)
-        throw new InvalidOperationException($"Event.AggregateId ({@event.AggregateId}) does not correspond with Aggregate.Id ({Id})");
-
-      if (@event.AggregateType != GetType().Name)
-        throw new InvalidOperationException($"Event.AggregateType ({@event.AggregateType}) does not correspond with typeof(Aggregate) ({GetType().Name})");
-
-      if (@event.AggregateVersion != Version)
-        throw new InvalidOperationException($"Event.AggregateVersion ({@event.AggregateVersion}) does not correspond with Aggregate.Version ({Version})");
+      var e = new TEvent
+      {
+        Id = Guid.NewGuid(),
+        Type = typeof(TEvent).Name,
+        AggregateType = GetType().Name,
+        AggregateId = Id,
+        AggregateVersion = Version,
+        Timestamp = DateTimeOffset.Now
+      };
       
-      _events.Add(@event);
-      Apply(@event);
+      Map(data, e);
+
+      return Add(e);
+    }
+  
+    public TEvent Add<TEvent>(TEvent e) where TEvent : Event
+    {
+      if (e.AggregateId != Id)
+        throw new InvalidOperationException($"Event.AggregateId ({e.AggregateId}) does not correspond with Aggregate.Id ({Id})");
+
+      if (e.AggregateType != GetType().Name)
+        throw new InvalidOperationException($"Event.AggregateType ({e.AggregateType}) does not correspond with typeof(Aggregate) ({GetType().Name})");
+
+      if (e.AggregateVersion != Version)
+        throw new InvalidOperationException($"Event.AggregateVersion ({e.AggregateVersion}) does not correspond with Aggregate.Version ({Version})");
+      
+      _events.Add(e);
+      Apply(e);
+
+      return e;
     }
 
-    protected virtual void Apply(Event @event) => Map(@event);
+    protected virtual void Apply(Event e) => Map(e);
     
-    protected void Map(Event @event)
+    protected void Map(Event e) => Map(e, this);
+
+    private static void Map(object source, object target)
     {
-      // For all properties declared directly in the inheriting class
-      foreach (var property in GetType().GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
-        // If this property is listed on the Event
-        if (@event.GetType().GetProperty(property.Name) != null)
-          // Set property to the value in the event
-          property.SetValue(this, @event.GetType().GetProperty(property.Name)?.GetValue(@event));
+      var sourceType = source.GetType();
+      foreach (var property in target.GetType()
+        .GetProperties(BindingFlags.Instance | BindingFlags.Public)
+        .Where(property => sourceType.GetProperty(property.Name) != null && property.Name != nameof(Id)))
+        property.SetValue(target, sourceType.GetProperty(property.Name)?.GetValue(source));
     }
   }
 }
