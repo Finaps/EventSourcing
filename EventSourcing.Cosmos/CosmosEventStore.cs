@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Linq;
 using System.Threading;
@@ -51,56 +52,16 @@ namespace EventSourcing.Cosmos
           }}
         });
     }
-
-    public IQueryable<TEvent> Events => _container.GetItemLinqQueryable<TEvent>();
-
-    public async Task<TAggregate> RehydrateAsync<TAggregate>(Guid aggregateId,
-      CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
-    {
-      var aggregate = new TAggregate { Id = aggregateId };
-
-      var events = Events
-        .Where(x => x.AggregateId == aggregateId)
-        .OrderBy(x => x.AggregateVersion)
-        .ToAsyncEnumerable()
-        .WithCancellation(cancellationToken);
-
-      await foreach (var @event in events)
-        aggregate.Add(@event);
-
-      return aggregate;
-    }
     
-    public async Task<TAggregate> RehydrateAsync<TAggregate>(Guid aggregateId, DateTimeOffset date, 
-      CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
+    public IAsyncEnumerable<T> Query<T>(Func<IQueryable<TEvent>, IQueryable<T>> func) => 
+      func(_container.GetItemLinqQueryable<TEvent>()).ToAsyncEnumerable();
+
+    public async Task AddAsync(IList<Event> events, CancellationToken cancellationToken = default)
     {
-      var aggregate = new TAggregate { Id = aggregateId };
-
-      var events = Events
-        .Where(x => x.AggregateId == aggregateId && x.Timestamp <= date)
-        .OrderBy(x => x.AggregateVersion)
-        .ToAsyncEnumerable()
-        .WithCancellation(cancellationToken);
-
-      await foreach (var @event in events)
-        aggregate.Add(@event);
-
-      return aggregate;
-    }
-
-    public async Task<TAggregate> PersistAsync<TAggregate>(TAggregate aggregate, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
-    {
-      var version = await Events
-        .Where(x => x.AggregateId == aggregate.Id)
-        .OrderByDescending(x => x.AggregateVersion)
-        .Select(x => x.AggregateVersion + 1)
-        .FirstOrDefaultAsync(cancellationToken);
-
-      var batch = _container.CreateTransactionalBatch(new PartitionKey(aggregate.Id.ToString()));
-      foreach (var @event in aggregate.Events.Skip(version)) batch.CreateItem(@event, _batchItemRequestOptions);
+      var partition = new PartitionKey(events.Select(x => x.AggregateId).Distinct().Single().ToString());
+      var batch = _container.CreateTransactionalBatch(partition);
+      foreach (var @event in events) batch.CreateItem(@event, _batchItemRequestOptions);
       await batch.ExecuteAsync(cancellationToken);
-
-      return aggregate;
     }
   }
 }

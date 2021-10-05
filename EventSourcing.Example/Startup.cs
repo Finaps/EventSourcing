@@ -30,6 +30,7 @@ namespace EventSourcing.Example
       // Configure Cosmos EventStore
       services.Configure<ComosEventStoreOptions>(Configuration.GetSection("Cosmos"));
       services.AddScoped<IEventStore, CosmosEventStore>();
+      services.AddScoped<IEventService, EventService>();
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

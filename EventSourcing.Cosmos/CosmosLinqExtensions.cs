@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos.Linq;
@@ -27,6 +28,11 @@ namespace EventSourcing.Cosmos
       while (iterator.HasMoreResults)
         foreach (var item in await iterator.ReadNextAsync())
           yield return item;
+    }
+    
+    public static ConfiguredCancelableAsyncEnumerable<T> ToAsyncEnumerable<T>(this IQueryable<T> queryable, CancellationToken cancellationToken)
+    {
+      return ToAsyncEnumerable(queryable).WithCancellation(cancellationToken);
     }
 
     public static async Task<T> FirstOrDefaultAsync<T>(this IQueryable<T> queryable, CancellationToken cancellationToken = default)
