@@ -1,6 +1,6 @@
 namespace EventSourcing.Cosmos
 {
-  public class ComosEventStoreOptions
+  public class CosmosEventStoreOptions
   {
     public string ConnectionString { get; set; }
     public string Database { get; set; }

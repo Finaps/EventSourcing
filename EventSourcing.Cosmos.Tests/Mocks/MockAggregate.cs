@@ -4,10 +4,9 @@ namespace EventSourcing.Cosmos.Tests.Mocks
 {
   public class MockAggregate : Aggregate
   {
-    public bool MockBoolean { get; set; }
-    public int MockInteger { get; set; }
-    public double MockDouble { get; set; }
-    public string MockString { get; set; }
-    protected override void Apply(Event e) => Map(e);
+    protected override void Apply(Event e)
+    {
+      throw new System.NotImplementedException();
+    }
   }
 }
