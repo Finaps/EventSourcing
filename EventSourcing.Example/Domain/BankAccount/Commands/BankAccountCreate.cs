@@ -5,6 +5,7 @@ namespace EventSourcing.Example.Domain.BankAccount.Commands
 {
   public class BankAccountCreate : IBankAccountCreate
   {
+    public string Iban { get; init; }
     public Guid Owner { get; init; }
   }
 }

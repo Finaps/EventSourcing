@@ -4,6 +4,7 @@ namespace EventSourcing.Example.Domain.BankAccount.Interfaces
 {
   public interface IBankAccountCreate
   {
-    Guid Owner { get; init; }
+    string Iban { get; }
+    Guid Owner { get; }
   }
 }

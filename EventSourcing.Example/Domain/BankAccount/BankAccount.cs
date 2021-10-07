@@ -1,34 +1,35 @@
 using System;
 using EventSourcing.Core;
-using EventSourcing.Example.Domain.BankAccount.Commands;
 using EventSourcing.Example.Domain.BankAccount.Events;
+using EventSourcing.Example.Domain.BankAccount.Interfaces;
 
 namespace EventSourcing.Example.Domain.BankAccount
 {
-  public class BankAccount : Aggregate
+  public class BankAccount : Aggregate, IBankAccountCreate
   {
+    public string Iban { get; private set;  }
     public Guid Owner { get; private set; }
     public decimal Balance { get; private set; }
     
-    public void Create(BankAccountCreate request)
+    public void Create(IBankAccountCreate request)
     {
       if (Version != 0) throw new InvalidOperationException("Cannot create existing bank account");
-      
-      Add<BankAccountCreateEvent>(request);
+
+      Add(Event.Create<BankAccountCreateEvent, IBankAccountCreate>(this, request));
     }
 
-    public void Deposit(BankAccountDeposit request)
+    public void Deposit(IBankAccountDeposit request)
     {
       if (Version == 0) throw new InvalidOperationException("Cannot deposit to a nonexistent bank account");
-      
-      Add<BankAccountDepositEvent>(request);
+
+      Add(Event.Create<BankAccountDepositEvent, IBankAccountDeposit>(this, request));
     }
 
-    public void Withdraw(BankAccountWithdraw request)
+    public void Withdraw(IBankAccountWithdraw request)
     {
       if (Version == 0) throw new InvalidOperationException("Cannot withdraw from a nonexistent bank account");
 
-      var e = Add<BankAccountWithdrawEvent>(request);
+      var e = Add(Event.Create<BankAccountWithdrawEvent, IBankAccountWithdraw>(this, request));
 
       if (Balance < 0) throw new InvalidOperationException(
         $"Not enough money on bank account to withdraw €{e.Amount}");

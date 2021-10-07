@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Reflection;
 using System.Text.Json.Serialization;
 
 namespace EventSourcing.Core
@@ -22,23 +20,6 @@ namespace EventSourcing.Core
     
     protected abstract void Apply(Event e);
 
-    public TEvent Add<TEvent>(object data) where TEvent : Event, new()
-    {
-      var e = new TEvent
-      {
-        Id = Guid.NewGuid(),
-        Type = typeof(TEvent).Name,
-        AggregateType = GetType().Name,
-        AggregateId = Id,
-        AggregateVersion = Version,
-        Timestamp = DateTimeOffset.Now
-      };
-      
-      Map(data, e);
-
-      return Add(e);
-    }
-  
     public TEvent Add<TEvent>(TEvent e) where TEvent : Event
     {
       if (e.Id == Guid.Empty)
@@ -58,16 +39,12 @@ namespace EventSourcing.Core
 
       return e;
     }
+    
+    protected Aggregate Map(Event e) => Mapper.Map(e, this, MapperExclude);
 
-    protected void Map(Event e) => Map(e, this);
-
-    private static void Map(object source, object target)
+    private static readonly HashSet<string> MapperExclude = new(new[]
     {
-      var sourceType = source.GetType();
-      foreach (var property in target.GetType()
-        .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-        .Where(property => sourceType.GetProperty(property.Name) != null && property.Name != nameof(Id)))
-        property.SetValue(target, sourceType.GetProperty(property.Name)?.GetValue(source));
-    }
+      nameof(Id), nameof(Version), nameof(Events)
+    });
   }
 }
