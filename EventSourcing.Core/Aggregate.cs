@@ -5,22 +5,24 @@ using System.Text.Json.Serialization;
 
 namespace EventSourcing.Core
 {
-  public abstract class Aggregate
+  public abstract class Aggregate : Aggregate<Event> { }
+
+  public abstract class Aggregate<TBaseEvent> where TBaseEvent : Event
   {
     public Guid Id { get; init; }
     public int Version => _events.Count;
     
-    [JsonIgnore] public ImmutableArray<Event> Events => _events.ToImmutableArray();
-    private readonly List<Event> _events = new();
+    [JsonIgnore] public ImmutableArray<TBaseEvent> Events => _events.ToImmutableArray();
+    private readonly List<TBaseEvent> _events = new();
 
     public Aggregate()
     {
       Id = Guid.NewGuid();
     }
-    
-    protected abstract void Apply(Event e);
 
-    public TEvent Add<TEvent>(TEvent e) where TEvent : Event
+    protected abstract void Apply<TEvent>(TBaseEvent e) where TEvent : TBaseEvent;
+
+    public TEvent Add<TEvent>(TEvent e) where TEvent : TBaseEvent
     {
       if (e.Id == Guid.Empty)
         throw new InvalidOperationException("Event should not have empty Id");
@@ -35,12 +37,12 @@ namespace EventSourcing.Core
         throw new InvalidOperationException($"Event.AggregateVersion ({e.AggregateVersion}) does not correspond with Aggregate.Version ({Version})");
 
       _events.Add(e);
-      Apply(e);
+      Apply<TEvent>(e);
 
       return e;
     }
     
-    protected Aggregate Map(Event e) => Mapper.Map(e, this, MapperExclude);
+    protected Aggregate<TBaseEvent> Map(Event e) => Mapper.Map(e, this, MapperExclude);
 
     private static readonly HashSet<string> MapperExclude = new(new[]
     {
