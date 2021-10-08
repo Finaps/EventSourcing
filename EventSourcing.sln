@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventSourcing.Cosmos.Tests"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventSourcing.Example", "EventSourcing.Example\EventSourcing.Example.csproj", "{6329BBB9-7364-42D2-9A7F-B1FDB66FD3FD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventSourcing.Core.Tests", "EventSourcing.Core.Tests\EventSourcing.Core.Tests.csproj", "{BA509124-060C-4B2F-82B4-00819CD3B6C0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -72,5 +74,17 @@ Global
 		{6329BBB9-7364-42D2-9A7F-B1FDB66FD3FD}.Release|x64.Build.0 = Release|Any CPU
 		{6329BBB9-7364-42D2-9A7F-B1FDB66FD3FD}.Release|x86.ActiveCfg = Release|Any CPU
 		{6329BBB9-7364-42D2-9A7F-B1FDB66FD3FD}.Release|x86.Build.0 = Release|Any CPU
+		{BA509124-060C-4B2F-82B4-00819CD3B6C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA509124-060C-4B2F-82B4-00819CD3B6C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA509124-060C-4B2F-82B4-00819CD3B6C0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BA509124-060C-4B2F-82B4-00819CD3B6C0}.Debug|x64.Build.0 = Debug|Any CPU
+		{BA509124-060C-4B2F-82B4-00819CD3B6C0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BA509124-060C-4B2F-82B4-00819CD3B6C0}.Debug|x86.Build.0 = Debug|Any CPU
+		{BA509124-060C-4B2F-82B4-00819CD3B6C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA509124-060C-4B2F-82B4-00819CD3B6C0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA509124-060C-4B2F-82B4-00819CD3B6C0}.Release|x64.ActiveCfg = Release|Any CPU
+		{BA509124-060C-4B2F-82B4-00819CD3B6C0}.Release|x64.Build.0 = Release|Any CPU
+		{BA509124-060C-4B2F-82B4-00819CD3B6C0}.Release|x86.ActiveCfg = Release|Any CPU
+		{BA509124-060C-4B2F-82B4-00819CD3B6C0}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
