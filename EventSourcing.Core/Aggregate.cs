@@ -8,10 +8,10 @@ namespace EventSourcing.Core
   public abstract class Aggregate
   {
     public Guid Id { get; init; }
-    public int Version => _events.Count;
+    public int Version { get; private set; }
     
-    [JsonIgnore] public ImmutableArray<Event> Events => _events.ToImmutableArray();
-    private readonly List<Event> _events = new();
+    [JsonIgnore] public ImmutableArray<Event> UncommittedEvents => _uncommittedEvents.ToImmutableArray();
+    private readonly List<Event> _uncommittedEvents = new();
 
     public Aggregate()
     {
@@ -20,7 +20,12 @@ namespace EventSourcing.Core
     
     protected abstract void Apply(Event e);
 
-    public TEvent Add<TEvent>(TEvent e) where TEvent : Event
+    public void ClearUncommittedEvents()
+    {
+      _uncommittedEvents.Clear();
+    }
+    
+    public TEvent Add<TEvent>(TEvent e, bool isFromHistory = false) where TEvent : Event
     {
       if (e.Id == Guid.Empty)
         throw new InvalidOperationException("Event should not have empty Id");
@@ -33,9 +38,11 @@ namespace EventSourcing.Core
       
       if (e.AggregateVersion != Version)
         throw new InvalidOperationException($"Event.AggregateVersion ({e.AggregateVersion}) does not correspond with Aggregate.Version ({Version})");
-
-      _events.Add(e);
+      
       Apply(e);
+      Version++;
+      if(!isFromHistory)
+        _uncommittedEvents.Add(e);
 
       return e;
     }
@@ -44,7 +51,7 @@ namespace EventSourcing.Core
 
     private static readonly HashSet<string> MapperExclude = new(new[]
     {
-      nameof(Id), nameof(Version), nameof(Events)
+      nameof(Id), nameof(Version), nameof(UncommittedEvents)
     });
   }
 }

@@ -13,7 +13,6 @@ namespace EventSourcing.Core
 
   public class EventService<TEvent> : IEventService where TEvent : Event
   {
-    private readonly Dictionary<Guid, int> _versions = new ();
     private readonly IEventStore<TEvent> _store;
     
     public EventService(IEventStore<TEvent> store)
@@ -42,9 +41,8 @@ namespace EventSourcing.Core
     public async Task<TAggregate> PersistAsync<TAggregate>(TAggregate aggregate,
       CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
     {
-      _versions.TryGetValue(aggregate.Id, out var version);
-      await _store.AddAsync(aggregate.Events.Skip(version).ToList(), cancellationToken);
-      _versions[aggregate.Id] = aggregate.Version;
+      await _store.AddAsync(aggregate.UncommittedEvents.ToList(), cancellationToken);
+      aggregate.ClearUncommittedEvents();
       return aggregate;
     }
     
@@ -53,8 +51,7 @@ namespace EventSourcing.Core
     {
       var aggregate = new TAggregate { Id = aggregateId };
       await foreach (var @event in _store.Query(query).WithCancellation(cancellationToken))
-        aggregate.Add(@event);
-      _versions[aggregate.Id] = aggregate.Version;
+        aggregate.Add(@event, true);
       return aggregate;
     }
   }
