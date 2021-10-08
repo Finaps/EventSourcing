@@ -14,7 +14,7 @@ namespace EventSourcing.Core
     public Guid AggregateId { get; init; }
     public int AggregateVersion { get; init; }
 
-    public static TEvent Create<TEvent>(Aggregate aggregate) where TEvent : Event, new() => new()
+    public static TEvent Create<TEvent>(Aggregate<Event> aggregate) where TEvent : Event, new() => new()
     {
       Id = Guid.NewGuid(),
       Type = typeof(TEvent).Name,
@@ -24,7 +24,7 @@ namespace EventSourcing.Core
       Timestamp = DateTimeOffset.Now
     };
     
-    public static TEvent Create<TEvent, TEventData>(Aggregate aggregate, TEventData data) where TEvent : Event, TEventData, new() =>
+    public static TEvent Create<TEvent, TEventData>(Aggregate<Event> aggregate, TEventData data) where TEvent : Event, TEventData, new() =>
       Mapper.Map(data, Create<TEvent>(aggregate), MapperExclude);
 
     private static readonly HashSet<string> MapperExclude = new (new[]

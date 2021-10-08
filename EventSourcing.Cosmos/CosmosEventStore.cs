@@ -19,7 +19,7 @@ namespace EventSourcing.Cosmos
     public CosmosEventStore(IOptions<CosmosEventStoreOptions> options) : base(options) { }
   }
 
-  public class CosmosEventStore<TEvent> : IEventStore<TEvent> where TEvent : Event, new()
+  public class CosmosEventStore<TBaseEvent> : IEventStore<TBaseEvent> where TBaseEvent : Event, new()
   {
     private readonly CosmosClientOptions _clientOptions = new()
     {
@@ -57,16 +57,16 @@ namespace EventSourcing.Cosmos
         });
     }
 
-    public async IAsyncEnumerable<T> Query<T>(Func<IQueryable<TEvent>, IQueryable<T>> func)
+    public async IAsyncEnumerable<T> Query<T>(Func<IQueryable<TBaseEvent>, IQueryable<T>> func)
     {
-      var iterator = func(_container.GetItemLinqQueryable<TEvent>()).ToFeedIterator();
+      var iterator = func(_container.GetItemLinqQueryable<TBaseEvent>()).ToFeedIterator();
       
       while (iterator.HasMoreResults)
         foreach (var item in await iterator.ReadNextAsync())
           yield return item;
     }
     
-    public async Task AddAsync(IList<Event> events, CancellationToken cancellationToken = default)
+    public async Task AddAsync(IList<TBaseEvent> events, CancellationToken cancellationToken = default)
     {
       var partition = new PartitionKey(events.Select(x => x.AggregateId).First().ToString());
       
@@ -77,15 +77,15 @@ namespace EventSourcing.Cosmos
       if (!response.IsSuccessStatusCode) HandleExceptionAsync(response, events);
     }
 
-    private void HandleExceptionAsync(TransactionalBatchResponse response, IList<Event> events)
+    private void HandleExceptionAsync(TransactionalBatchResponse response, IList<TBaseEvent> events)
     {
       if (response.StatusCode == HttpStatusCode.Conflict)
         throw new CosmosEventStoreException(GetStatusCode(response), CreateConflictException(response, events));
       
       throw new CosmosEventStoreException(GetStatusCode(response));
-    }
+    } 
 
-    private ConflictException CreateConflictException(TransactionalBatchResponse response, IList<Event> events)
+    private ConflictException CreateConflictException(TransactionalBatchResponse response, IList<TBaseEvent> events)
     {
       var conflictingEventIndex = response.ToList()
         .FindIndex(x => x.StatusCode == HttpStatusCode.Conflict);
