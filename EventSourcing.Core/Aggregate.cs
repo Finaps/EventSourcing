@@ -37,7 +37,7 @@ namespace EventSourcing.Core
         throw new InvalidOperationException($"Event.AggregateVersion ({e.AggregateVersion}) does not correspond with Aggregate.Version ({Version})");
 
       _events.Add(e);
-      Apply<TEvent>(e);
+      Apply(e);
 
       return e;
     }
