@@ -20,7 +20,7 @@ namespace EventSourcing.Core
       Id = Guid.NewGuid();
     }
 
-    protected abstract void Apply<TEvent>(TBaseEvent e) where TEvent : TBaseEvent;
+    protected abstract void Apply<TEvent>(TEvent e) where TEvent : TBaseEvent;
 
     public TEvent Add<TEvent>(TEvent e) where TEvent : TBaseEvent
     {

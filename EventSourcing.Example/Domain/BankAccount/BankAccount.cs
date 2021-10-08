@@ -35,10 +35,10 @@ namespace EventSourcing.Example.Domain.BankAccount
         $"Not enough money on bank account to withdraw €{e.Amount}");
     }
 
-    protected override void Apply<TEvent>(Event e)
+    protected override void Apply<TEvent>(TEvent e)
     {
       Map(e);
-      
+
       switch (e)
       {
         case BankAccountWithdrawEvent withdraw:
