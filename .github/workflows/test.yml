@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  test:
 
     runs-on: ubuntu-latest
 
@@ -22,8 +22,14 @@ jobs:
     - name: Build
       run: dotnet build --no-restore
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test --no-build --logger trx --results-directory "TestResults"
       env:
         Cosmos__ConnectionString: ${{ secrets.COSMOS_CONNECTIONSTRING }}
         Cosmos__Database: ${{ secrets.COSMOS_DATABASE }}
         Cosmos__Container: ${{ secrets.COSMOS_CONTAINER }}
+    - name: Upload dotnet test results
+      uses: actions/upload-artifact@v2
+      with:
+        name: dotnet-results
+        path: TestResults
+      if: ${{ always() }}
