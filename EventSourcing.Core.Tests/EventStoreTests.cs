@@ -97,26 +97,26 @@ namespace EventSourcing.Core.Tests
         async () => await Store.AddAsync(new Event[] { event1, event2 }));
     }
 
-    [Fact]
-    public async Task Can_Get_Events_By_AggregateId()
-    {
-      var aggregate = new EmptyAggregate();
-      var events = new List<Event>
-      {
-        aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
-        aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
-        aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
-        aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
-      };
-
-      await Store.AddAsync(events);
-
-      var result = Store.Events
-        .Where(x => x.AggregateId == aggregate.Id)
-        .ToList();
-       
-      
-      Assert.Equal(events.Count, result.Count);
-    }
+    // [Fact]
+    // public async Task Can_Get_Events_By_AggregateId()
+    // {
+    //   var aggregate = new EmptyAggregate();
+    //   var events = new List<Event>
+    //   {
+    //     aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
+    //     aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
+    //     aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
+    //     aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
+    //   };
+    //
+    //   await Store.AddAsync(events);
+    //
+    //   var result = Store.Events
+    //     .Where(x => x.AggregateId == aggregate.Id)
+    //     .ToList();
+    //    
+    //   
+    //   Assert.Equal(events.Count, result.Count);
+    // }
   }
 }
