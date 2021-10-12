@@ -16,6 +16,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\EventSourcing.Core.Tests\EventSourcing.Core.Tests.csproj" />
       <ProjectReference Include="..\EventSourcing.Core\EventSourcing.Core.csproj" />
       <ProjectReference Include="..\EventSourcing.Cosmos\EventSourcing.Cosmos.csproj" />
     </ItemGroup>

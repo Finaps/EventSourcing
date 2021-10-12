@@ -1,14 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using EventSourcing.Core;
 using EventSourcing.Core.Exceptions;
-using EventSourcing.Cosmos.Tests.Mocks;
+using EventSourcing.Core.Tests.Mocks;
 using Xunit;
 
-namespace EventSourcing.Cosmos.Tests
+namespace EventSourcing.Core.Tests
 {
-  public abstract class EventStoreTests
+    public abstract class EventStoreTests
   {
     public abstract IEventStore Store { get; }
     
@@ -112,9 +111,10 @@ namespace EventSourcing.Cosmos.Tests
 
       await Store.AddAsync(events);
 
-      var result = await Store.Events
+      var result = Store.Events
         .Where(x => x.AggregateId == aggregate.Id)
-        .ToListAsync();
+        .ToList();
+       
       
       Assert.Equal(events.Count, result.Count);
     }
