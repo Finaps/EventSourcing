@@ -24,19 +24,23 @@ namespace EventSourcing.Core
     public async Task<TAggregate> RehydrateAsync<TAggregate>(Guid aggregateId,
       CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
     {
-      return await RehydrateAsync<TAggregate>(aggregateId, events => events
+      var events = _store.Events
         .Where(x => x.AggregateId == aggregateId)
-        .OrderBy(x => x.AggregateVersion
-        ), cancellationToken);
+        .OrderBy(x => x.AggregateVersion)
+        .ToAsyncEnumerable();
+      
+      return await RehydrateAsync<TAggregate>(aggregateId, events, cancellationToken);
     }
 
     public async Task<TAggregate> RehydrateAsync<TAggregate>(Guid aggregateId, DateTimeOffset date,
       CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
     {
-      return await RehydrateAsync<TAggregate>(aggregateId, events => events
+      var events = _store.Events
         .Where(x => x.AggregateId == aggregateId && x.Timestamp <= date)
-        .OrderBy(x => x.AggregateVersion
-        ), cancellationToken);
+        .OrderBy(x => x.AggregateVersion)
+        .ToAsyncEnumerable();
+      
+      return await RehydrateAsync<TAggregate>(aggregateId, events, cancellationToken);
     }
 
     public async Task<TAggregate> PersistAsync<TAggregate>(TAggregate aggregate,
@@ -48,11 +52,11 @@ namespace EventSourcing.Core
       return aggregate;
     }
     
-    public async Task<TAggregate> RehydrateAsync<TAggregate>(Guid aggregateId, Func<IQueryable<TBaseEvent>, IQueryable<TBaseEvent>> query,
+    public async Task<TAggregate> RehydrateAsync<TAggregate>(Guid aggregateId, IAsyncEnumerable<TBaseEvent> events,
       CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
     {
       var aggregate = new TAggregate { Id = aggregateId };
-      await foreach (var @event in _store.Query(query).WithCancellation(cancellationToken))
+      await foreach (var @event in events.WithCancellation(cancellationToken))
         aggregate.Add(@event);
       _versions[aggregate.Id] = aggregate.Version;
       return aggregate;

@@ -57,9 +57,13 @@ namespace EventSourcing.Cosmos
         });
     }
 
+    public IQueryable<TBaseEvent> Events =>
+      new CosmosAsyncQueryable<TBaseEvent>(_container.GetItemLinqQueryable<TBaseEvent>());
+
     public async IAsyncEnumerable<T> Query<T>(Func<IQueryable<TBaseEvent>, IQueryable<T>> func)
     {
-      var iterator = func(_container.GetItemLinqQueryable<TBaseEvent>()).ToFeedIterator();
+      var queryable = func(_container.GetItemLinqQueryable<TBaseEvent>());
+      var iterator = queryable.ToFeedIterator();
       
       while (iterator.HasMoreResults)
         foreach (var item in await iterator.ReadNextAsync())
