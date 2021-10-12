@@ -15,14 +15,13 @@ namespace EventSourcing.Example
 
     public Startup(IHostEnvironment env)
     {
-      var builder = new ConfigurationBuilder()
+      Configuration = new ConfigurationBuilder()
         .SetBasePath(env.ContentRootPath)
         .AddJsonFile("appsettings.json", false)
         .AddJsonFile("appsettings.local.json", true)
         .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true)
-        .AddEnvironmentVariables();
-
-      Configuration = builder.Build();
+        .AddEnvironmentVariables()
+        .Build();
     }
 
     // This method gets called by the runtime. Use this method to add services to the container.
