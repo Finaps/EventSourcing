@@ -22,7 +22,7 @@ jobs:
     - name: Build
       run: dotnet build --no-restore
     - name: Test
-      run: dotnet test --no-build --logger trx --results-directory "TestResults"
+      run: dotnet test --no-build --verbosity normal --logger trx --results-directory "TestResults"
       env:
         Cosmos__ConnectionString: ${{ secrets.COSMOS_CONNECTIONSTRING }}
         Cosmos__Database: ${{ secrets.COSMOS_DATABASE }}
