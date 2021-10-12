@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using EventSourcing.Core;
 using EventSourcing.Core.Exceptions;
@@ -95,6 +96,27 @@ namespace EventSourcing.Cosmos.Tests
 
       await Assert.ThrowsAnyAsync<EventStoreException>(
         async () => await Store.AddAsync(new Event[] { event1, event2 }));
+    }
+
+    [Fact]
+    public async Task Can_Get_Events_By_AggregateId()
+    {
+      var aggregate = new EmptyAggregate();
+      var events = new List<Event>
+      {
+        aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
+        aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
+        aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
+        aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
+      };
+
+      await Store.AddAsync(events);
+
+      var result = await Store.Events
+        .Where(x => x.AggregateId == aggregate.Id)
+        .ToListAsync();
+      
+      Assert.Equal(events.Count, result.Count);
     }
   }
 }

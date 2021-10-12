@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -10,7 +9,7 @@ namespace EventSourcing.Core
 
   public interface IEventStore<TBaseEvent> where TBaseEvent : Event
   {
-    IAsyncEnumerable<T> Query<T>(Func<IQueryable<TBaseEvent>, IQueryable<T>> func);
+    IQueryable<TBaseEvent> Events { get; }
     Task AddAsync(IList<TBaseEvent> events, CancellationToken cancellationToken = default);
   }
 }
