@@ -8,32 +8,41 @@ using EventSourcing.Core.Exceptions;
 
 namespace EventSourcing.Core.Tests.Mocks
 {
-    public class InMemoryEventStore : InMemoryEventStore<Event>, IEventStore
+    internal class InMemoryEventStore : InMemoryEventStore<Event>, IEventStore
     {
     }
 
-    public class InMemoryEventStore<TEvent> : IEventStore<TEvent> where TEvent : Event, new()
+    internal class InMemoryEventStore<TBaseEvent> : IEventStore<TBaseEvent> where TBaseEvent : Event, new()
     {
-        private readonly ConcurrentDictionary<(Guid,int), TEvent> _storedEvents = new();
-        public async IAsyncEnumerable<T> Query<T>(Func<IQueryable<TEvent>, IQueryable<T>> func)
+        private readonly ConcurrentDictionary<(Guid,int), TBaseEvent> _storedEvents = new();
+
+        public IQueryable<TBaseEvent> Events => _storedEvents.Values.AsQueryable();
+
+        public Task AddAsync(IList<TBaseEvent> events, CancellationToken cancellationToken = default)
         {
-            var events = func(_storedEvents.Values.AsQueryable());
-            foreach(var e in events)
+            if (events == null || events.Count == 0)
+                return Task.CompletedTask;
+            
+            var aggregateId = events.First().AggregateId;
+            if (events.Any(e => e.AggregateId != aggregateId))
+                throw new EventStoreException("Cannot add multiple events with different aggregate id's");
+            
+            foreach (var e in events)
+            {
+                var added = _storedEvents.TryAdd((aggregateId, e.AggregateVersion), e);
+                if(!added)
+                    throw new EventStoreException("", new ConflictException($"Conflict when persisting events to {nameof(InMemoryEventStore)}"));
+            }
+            return Task.CompletedTask;
+        }
+        
+        private async IAsyncEnumerable<TBaseEvent> ToAsyncEnumerable()
+        {
+            foreach(var e in _storedEvents.Values)
             {
                 await Task.CompletedTask;
                 yield return e;
             }
-        }
-
-        public Task AddAsync(IList<Event> events, CancellationToken cancellationToken = default)
-        {
-            foreach (var e in events)
-            {
-                var added = _storedEvents.TryAdd((e.AggregateId, e.AggregateVersion), (TEvent) e);
-                if(!added)
-                    throw new ConflictException($"Conflict when persisting events to {nameof(InMemoryEventStore)}");
-            }
-            return Task.CompletedTask;
         }
     }
 }

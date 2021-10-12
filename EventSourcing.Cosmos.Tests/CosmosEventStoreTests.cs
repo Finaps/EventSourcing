@@ -1,4 +1,5 @@
 using EventSourcing.Core;
+using EventSourcing.Core.Tests;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 
