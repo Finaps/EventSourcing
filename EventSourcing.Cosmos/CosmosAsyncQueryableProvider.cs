@@ -8,7 +8,7 @@ using Microsoft.Azure.Cosmos.Linq;
 
 namespace EventSourcing.Cosmos
 {
-  internal class CosmosAsyncQueryable<TResult> : IQueryable<TResult>, IAsyncEnumerable<TResult>
+  internal class CosmosAsyncQueryable<TResult> : IOrderedQueryable<TResult>, IAsyncEnumerable<TResult>
   {
     private readonly IQueryable<TResult> _queryable;
 
