@@ -13,6 +13,7 @@ namespace EventSourcing.Cosmos.Tests
       var configuration = new ConfigurationBuilder()
         .AddJsonFile("appsettings.json", false)
         .AddJsonFile("appsettings.local.json", true)
+        .AddEnvironmentVariables()
         .Build();
 
       var options = Options.Create(new CosmosEventStoreOptions
