@@ -16,7 +16,7 @@ namespace EventSourcing.Core.Tests.Mocks
     {
         private readonly ConcurrentDictionary<(Guid,int), TBaseEvent> _storedEvents = new();
 
-        public IQueryable<TBaseEvent> Events => _storedEvents.Values.AsQueryable();
+        public IQueryable<TBaseEvent> Events => new MockAsyncQueryable<TBaseEvent>(_storedEvents.Values.AsQueryable());
 
         public Task AddAsync(IList<TBaseEvent> events, CancellationToken cancellationToken = default)
         {
@@ -26,6 +26,9 @@ namespace EventSourcing.Core.Tests.Mocks
             var aggregateId = events.First().AggregateId;
             if (events.Any(e => e.AggregateId != aggregateId))
                 throw new EventStoreException("Cannot add multiple events with different aggregate id's");
+            
+            if(events.Any(e => _storedEvents.ContainsKey((e.AggregateId, e.AggregateVersion))))
+                throw new EventStoreException("", new ConflictException($"Conflict when persisting events to {nameof(InMemoryEventStore)}"));
             
             foreach (var e in events)
             {
