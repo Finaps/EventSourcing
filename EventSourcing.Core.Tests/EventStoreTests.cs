@@ -111,9 +111,9 @@ namespace EventSourcing.Core.Tests
 
       await Store.AddAsync(events);
 
-      var result = Store.Events
+      var result = await Store.Events
         .Where(x => x.AggregateId == aggregate.Id)
-        .ToList();
+        .ToListAsync();
        
       
       Assert.Equal(events.Count, result.Count);
