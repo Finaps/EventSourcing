@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using EventSourcing.Core.Tests.Mocks;
+using EventSourcing.Core.Tests.MockAggregates;
 using Xunit;
 
 namespace EventSourcing.Core.Tests

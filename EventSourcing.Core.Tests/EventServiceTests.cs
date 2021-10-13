@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using EventSourcing.Core.Exceptions;
-using EventSourcing.Core.Tests.Mocks;
+using EventSourcing.Core.Tests.MockAggregates;
+using EventSourcing.Core.Tests.MockEventStore;
 using Xunit;
 
 namespace EventSourcing.Core.Tests
@@ -14,7 +15,7 @@ namespace EventSourcing.Core.Tests
 
         public EventServiceTests()
         {
-            _eventStore = new InMemoryEventStore.InMemoryEventStore();
+            _eventStore = new InMemoryEventStore();
             _eventService = new EventService(_eventStore);
         }
         

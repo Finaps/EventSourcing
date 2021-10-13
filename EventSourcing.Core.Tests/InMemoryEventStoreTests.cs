@@ -1,4 +1,4 @@
-using EventSourcing.Core.Tests.Mocks;
+using EventSourcing.Core.Tests.MockEventStore;
 
 namespace EventSourcing.Core.Tests
 {
@@ -8,7 +8,7 @@ namespace EventSourcing.Core.Tests
 
         public InMemoryEventStoreTests()
         {
-            Store = new InMemoryEventStore.InMemoryEventStore();
+            Store = new InMemoryEventStore();
         }
     }
 }
