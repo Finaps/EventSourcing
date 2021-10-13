@@ -1,4 +1,4 @@
-namespace EventSourcing.Core.Tests.Mocks
+namespace EventSourcing.Core.Tests.MockAggregates
 {
     public class EmptyAggregate : Aggregate
     {

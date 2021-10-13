@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using EventSourcing.Core.Exceptions;
-using EventSourcing.Core.Tests.Mocks;
+using EventSourcing.Core.Tests.MockAggregates;
 using Xunit;
 
 namespace EventSourcing.Core.Tests
