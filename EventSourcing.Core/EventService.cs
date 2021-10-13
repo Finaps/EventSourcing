@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using EventSourcing.Core.Exceptions;
 
 namespace EventSourcing.Core
 {
@@ -45,6 +46,9 @@ namespace EventSourcing.Core
     public async Task<TAggregate> PersistAsync<TAggregate>(TAggregate aggregate,
       CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
     {
+      if (aggregate.Id == Guid.Empty)
+        throw new EventServiceException("Invalid aggregate id");
+      
       await _store.AddAsync(aggregate.UncommittedEvents.ToList(), cancellationToken);
       aggregate.ClearUncommittedEvents();
       return aggregate;
