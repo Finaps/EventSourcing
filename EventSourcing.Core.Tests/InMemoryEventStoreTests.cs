@@ -8,7 +8,7 @@ namespace EventSourcing.Core.Tests
 
         public InMemoryEventStoreTests()
         {
-            Store = new InMemoryEventStore();
+            Store = new InMemoryEventStore.InMemoryEventStore();
         }
     }
 }

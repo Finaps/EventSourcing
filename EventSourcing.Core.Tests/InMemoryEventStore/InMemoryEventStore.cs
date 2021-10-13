@@ -5,8 +5,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EventSourcing.Core.Exceptions;
+using EventSourcing.Core.Tests.Mocks;
 
-namespace EventSourcing.Core.Tests.Mocks
+namespace EventSourcing.Core.Tests.InMemoryEventStore
 {
     internal class InMemoryEventStore : InMemoryEventStore<Event>, IEventStore
     {
