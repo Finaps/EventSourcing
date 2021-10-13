@@ -106,7 +106,7 @@ namespace EventSourcing.Core.Tests
         aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
         aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
         aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
-        aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
+        aggregate.Add(Event.Create<EmptyEvent>(aggregate))
       };
 
       await Store.AddAsync(events);
@@ -117,6 +117,35 @@ namespace EventSourcing.Core.Tests
        
       
       Assert.Equal(events.Count, result.Count);
+    }
+    
+    [Fact]
+    public async Task Can_Filter_Events()
+    {
+      var aggregate = new EmptyAggregate();
+      var events = new List<Event>
+      {
+        aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
+        aggregate.Add(Event.Create<EmptyEvent>(aggregate))
+      };
+      
+      var aggregate2 = new EmptyAggregate();
+      var events2 = new List<Event>
+      {
+        aggregate2.Add(Event.Create<EmptyEvent>(aggregate2)),
+        aggregate2.Add(Event.Create<EmptyEvent>(aggregate2))
+      };
+
+      await Store.AddAsync(events);
+      await Store.AddAsync(events2);
+
+      var result = await Store.Events
+        .Where(x => x.AggregateId == aggregate.Id)
+        .Where(x => x.AggregateVersion > 0)
+        .ToListAsync();
+       
+      
+      Assert.Single(result);
     }
   }
 }

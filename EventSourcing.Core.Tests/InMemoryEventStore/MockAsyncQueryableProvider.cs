@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EventSourcing.Core.Tests.Mocks
+namespace EventSourcing.Core.Tests.InMemoryEventStore
 {
     internal class MockAsyncQueryable<TResult> : IOrderedQueryable<TResult>, IAsyncEnumerable<TResult>
         {
