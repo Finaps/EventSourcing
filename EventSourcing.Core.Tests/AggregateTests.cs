@@ -6,6 +6,7 @@ namespace EventSourcing.Core.Tests
 {
     public class AggregateTests
     {
+        
         [Fact]
         public void Can_Add_Event()
         {

@@ -17,6 +17,7 @@ namespace EventSourcing.Core.Tests
             _eventStore = new InMemoryEventStore.InMemoryEventStore();
             _eventService = new EventService(_eventStore);
         }
+        
         [Fact]
         public async Task Can_Persist_Event()
         {
