@@ -6,25 +6,45 @@ using System.Text.Json.Serialization;
 
 namespace EventSourcing.Core
 {
-  public class EventType
-  {
-    public string Type { get; set; }
-  }
-  
+  /// <summary>
+  /// Custom <see cref="Event"/><see cref="JsonConverter{T}"/>
+  /// </summary>
+  /// <remarks>
+  /// Enables Polymorphic Serialization and Deserialization using the <see cref="Event"/>.<see cref="Event.Type"/> property
+  /// </remarks>
   public class EventConverter : JsonConverter<Event>
   {
+    private class EventType
+    {
+      public string Type { get; set; }
+    }
+    
+    /// <summary>
+    /// Dictionary containing mapping between <see cref="Event"/>.<see cref="Event.Type"/> string and actual <see cref="Event"/> type
+    /// </summary>
     private static readonly Dictionary<string, Type> EventTypes =
       AppDomain.CurrentDomain.GetAssemblies()
         .SelectMany(assembly => assembly.GetTypes())
         .Where(type => typeof(Event).IsAssignableFrom(type) && type.IsClass && !type.IsAbstract)
         .ToDictionary(type => type.Name);
 
+    /// <summary>
+    /// Use <see cref="EventConverter"/> for all Types inheriting from <see cref="Event"/>
+    /// </summary>
+    /// <param name="typeToConvert">Type to Convert</param>
     public override bool CanConvert(Type typeToConvert) =>
       typeof(Event).IsAssignableFrom(typeToConvert);
 
+    /// <summary>
+    /// Serialize Event
+    /// </summary>
     public override void Write(Utf8JsonWriter writer, Event value, JsonSerializerOptions options) =>
       JsonSerializer.Serialize(writer, value, EventTypes[value.Type]);
 
+    /// <summary>
+    /// Deserialize Event
+    /// </summary>
+    /// <exception cref="JsonException">Thrown when <see cref="Event"/> type cannot be found.</exception>
     public override Event Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
       var readerClone = reader;

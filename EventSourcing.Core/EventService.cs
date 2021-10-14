@@ -28,8 +28,8 @@ namespace EventSourcing.Core
         .Where(x => x.AggregateId == aggregateId)
         .OrderBy(x => x.AggregateVersion)
         .ToAsyncEnumerable();
-      
-      return await RehydrateAsync<TAggregate>(aggregateId, events, cancellationToken);
+
+      return await Aggregate<TBaseEvent>.RehydrateAsync<TAggregate>(aggregateId, events, cancellationToken);
     }
 
     public async Task<TAggregate> RehydrateAsync<TAggregate>(Guid aggregateId, DateTimeOffset date,
@@ -40,26 +40,17 @@ namespace EventSourcing.Core
         .OrderBy(x => x.AggregateVersion)
         .ToAsyncEnumerable();
       
-      return await RehydrateAsync<TAggregate>(aggregateId, events, cancellationToken);
+      return await Aggregate<TBaseEvent>.RehydrateAsync<TAggregate>(aggregateId, events, cancellationToken);
     }
 
     public async Task<TAggregate> PersistAsync<TAggregate>(TAggregate aggregate,
       CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
     {
       if (aggregate.Id == Guid.Empty)
-        throw new EventServiceException("Invalid aggregate id");
+        throw new ArgumentException("Aggregate.Id cannot be empty", nameof(aggregate));
       
       await _store.AddAsync(aggregate.UncommittedEvents.ToList(), cancellationToken);
       aggregate.ClearUncommittedEvents();
-      return aggregate;
-    }
-    
-    private async Task<TAggregate> RehydrateAsync<TAggregate>(Guid aggregateId, IAsyncEnumerable<TBaseEvent> events,
-      CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
-    {
-      var aggregate = new TAggregate { Id = aggregateId };
-      await foreach (var @event in events.WithCancellation(cancellationToken))
-        aggregate.Add(@event, true);
       return aggregate;
     }
   }
