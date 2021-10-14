@@ -38,7 +38,7 @@ namespace EventSourcing.Core.Tests
             var aggregate = new SimpleAggregate{Id = Guid.Empty};
             aggregate.Add(Event.Create<EmptyEvent>(aggregate));
 
-            await Assert.ThrowsAsync<EventServiceException>(async () => await _eventService.PersistAsync(aggregate));
+            await Assert.ThrowsAsync<ArgumentException>(async () => await _eventService.PersistAsync(aggregate));
         }
         
         [Fact]
