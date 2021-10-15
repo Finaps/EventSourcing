@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Reflection;
 using System.Text.Json.Serialization;
 
 namespace EventSourcing.Core
@@ -53,5 +55,15 @@ namespace EventSourcing.Core
     {
       nameof(Id), nameof(Version), nameof(UncommittedEvents)
     });
+    
+    public static string Hash<TAggregate>() where TAggregate : Aggregate<TBaseEvent>
+    {
+      var method = typeof(TAggregate).GetMethod(nameof(Apply), BindingFlags.NonPublic | BindingFlags.Instance);
+      var data = method?.GetMethodBody()?.GetILAsByteArray();
+      if (data == null) throw new NullReferenceException("Cannot compute hash for Aggregate");
+      
+      using var sha1 = new System.Security.Cryptography.SHA1CryptoServiceProvider();
+      return string.Concat(sha1.ComputeHash(data).Select(x => x.ToString("X2")));
+    }
   }
 }

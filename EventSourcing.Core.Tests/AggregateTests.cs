@@ -83,5 +83,12 @@ namespace EventSourcing.Core.Tests
             
             Assert.Empty(aggregate.UncommittedEvents);
         }
+
+        [Fact]
+        public void Can_Calculate_Aggregate_Hash()
+        {
+            var hash = Aggregate.Hash<SimpleAggregate>();
+            Assert.Equal("C927ADDF0A910D15CC13DDD06FE7C0D63590C984", hash);
+        }
     }
 }
