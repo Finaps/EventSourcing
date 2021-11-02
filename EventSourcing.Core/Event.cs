@@ -60,12 +60,10 @@ namespace EventSourcing.Core
     }
     
     /// <summary>
-    /// Create new Event based on TEventData
+    /// Create new Event with Data
     /// </summary>
     /// <param name="aggregate">Target <see cref="Aggregate{TBaseEvent}"/></param>
     /// <param name="data">Event Data</param>
-    /// <typeparam name="TEvent">Event Type, must extend <see cref="TEventData"/></typeparam>
-    /// <typeparam name="TEventData">Event Data Type</typeparam>
     /// <returns><see cref="TEvent"/></returns>
     public static TEvent Create<TEvent>(Aggregate<Event> aggregate, TEvent data)
       where TEvent : Event, new()
