@@ -1,3 +1,0 @@
-# EventSourcing
-
-Very Much WIP
