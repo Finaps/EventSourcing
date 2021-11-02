@@ -2,7 +2,7 @@ name: Publish to NuGet on version change
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   publish:
