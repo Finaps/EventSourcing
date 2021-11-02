@@ -10,6 +10,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      
+      - name: Setup Dotnet Core 5.0
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '5.0'
+          
+      - name: Build Finaps.EventSourcing Project
+        run: dotnet build
 
       - name: Publish Finaps.EventSourcing.Core
         uses: rohith/publish-nuget@v2
