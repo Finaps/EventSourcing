@@ -9,7 +9,7 @@
         <Company>Finaps B.V.</Company>
         <RepositoryUrl>https://github.com/Finaps/EventSourcing</RepositoryUrl>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <PackageLicenseExpression>Apache License 2.0</PackageLicenseExpression>
+        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
         <PackageDescription>Core Package for Finaps.EventSourcing</PackageDescription>
     </PropertyGroup>
 
