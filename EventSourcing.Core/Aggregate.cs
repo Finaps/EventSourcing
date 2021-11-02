@@ -25,6 +25,11 @@ namespace EventSourcing.Core
     /// </summary>
     public int Version { get; private set; }
     
+    /// <summary>
+    /// Aggregate type
+    /// </summary>
+    public string Type { get; init; }
+    
     [JsonIgnore] public ImmutableArray<TBaseEvent> UncommittedEvents => _uncommittedEvents.ToImmutableArray();
     [JsonIgnore] private readonly List<TBaseEvent> _uncommittedEvents = new();
 
@@ -34,6 +39,7 @@ namespace EventSourcing.Core
     public Aggregate()
     {
       Id = Guid.NewGuid();
+      Type = GetType().Name;
     }
     
     /// <summary>

@@ -53,10 +53,24 @@ namespace EventSourcing.Core
         Id = Guid.NewGuid(),
         Type = typeof(TEvent).Name,
         AggregateId = aggregate.Id,
-        AggregateType = aggregate.GetType().Name,
+        AggregateType = aggregate.Type,
         AggregateVersion = aggregate.Version,
         Timestamp = DateTimeOffset.Now
       };
+    }
+    
+    /// <summary>
+    /// Create new Event based on TEventData
+    /// </summary>
+    /// <param name="aggregate">Target <see cref="Aggregate{TBaseEvent}"/></param>
+    /// <param name="data">Event Data</param>
+    /// <typeparam name="TEvent">Event Type, must extend <see cref="TEventData"/></typeparam>
+    /// <typeparam name="TEventData">Event Data Type</typeparam>
+    /// <returns><see cref="TEvent"/></returns>
+    public static TEvent Create<TEvent>(Aggregate<Event> aggregate, TEvent data)
+      where TEvent : Event, new()
+    {
+      return Mapper.Map(data, Create<TEvent>(aggregate), MapperExclude);
     }
 
     /// <summary>

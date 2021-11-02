@@ -12,7 +12,7 @@ namespace EventSourcing.Core
   /// <remarks>
   /// Enables Polymorphic Serialization and Deserialization using the <see cref="Event"/>.<see cref="Event.Type"/> property
   /// </remarks>
-  public class EventConverter : JsonConverter<Event>
+  public class EventConverter<TBaseEvent> : JsonConverter<TBaseEvent> where TBaseEvent : Event
   {
     private class EventType
     {
@@ -38,20 +38,20 @@ namespace EventSourcing.Core
     /// <summary>
     /// Serialize Event
     /// </summary>
-    public override void Write(Utf8JsonWriter writer, Event value, JsonSerializerOptions options) =>
+    public override void Write(Utf8JsonWriter writer, TBaseEvent value, JsonSerializerOptions options) =>
       JsonSerializer.Serialize(writer, value, EventTypes[value.Type]);
 
     /// <summary>
     /// Deserialize Event
     /// </summary>
     /// <exception cref="JsonException">Thrown when <see cref="Event"/> type cannot be found.</exception>
-    public override Event Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override TBaseEvent Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
       var readerClone = reader;
       var typeString = JsonSerializer.Deserialize<EventType>(ref readerClone)?.Type;
       var type = EventTypes[typeString ?? throw new JsonException($"Can't decode Event with type {typeString}")];
       
-      return (Event) JsonSerializer.Deserialize(ref reader, type);
+      return (TBaseEvent) JsonSerializer.Deserialize(ref reader, type);
     }
   }
 }
