@@ -15,9 +15,6 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: '5.0'
-          
-      - name: Build Finaps.EventSourcing Project
-        run: dotnet build
 
       - name: Publish Finaps.EventSourcing.Core
         uses: rohith/publish-nuget@v2
