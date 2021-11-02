@@ -1,0 +1,24 @@
+name: Publish to NuGet on version change
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  publish:
+    name: build, pack & publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Publish Finaps.EventSourcing.Core
+        uses: rohith/publish-nuget@v2
+        with:
+          PROJECT_FILE_PATH: EventSourcing.Core/EventSourcing.Core.csproj
+          NUGET_KEY: ${{ secrets.NUGET_API_KEY }}
+
+      - name: Publish Finaps.EventSourcing.Cosmos
+        uses: rohith/publish-nuget@v2
+        with:
+          PROJECT_FILE_PATH: EventSourcing.Cosmos/EventSourcing.Cosmos.csproj
+          NUGET_KEY: ${{ secrets.NUGET_API_KEY }}
