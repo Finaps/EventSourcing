@@ -7,7 +7,13 @@ namespace EventSourcing.Cosmos.Tests
 {
   public class CosmosEventStoreTests : EventStoreTests
   {
-    public override IEventStore Store { get; }
+    private readonly IOptions<CosmosEventStoreOptions> _options;
+    
+    public override IEventStore GetEventStore() =>
+      new CosmosEventStore(_options);
+
+    public override IEventStore<TBaseEvent> GetEventStore<TBaseEvent>() =>
+      new CosmosEventStore<TBaseEvent>(_options);
 
     public CosmosEventStoreTests()
     {
@@ -17,14 +23,12 @@ namespace EventSourcing.Cosmos.Tests
         .AddEnvironmentVariables()
         .Build();
 
-      var options = Options.Create(new CosmosEventStoreOptions
+      _options = Options.Create(new CosmosEventStoreOptions
         {
           ConnectionString = configuration["Cosmos:ConnectionString"],
           Database = configuration["Cosmos:Database"],
           Container = configuration["Cosmos:Container"]
         });
-
-      Store = new CosmosEventStore(options);
     }
   }
 }

@@ -25,7 +25,7 @@ namespace EventSourcing.Cosmos
     {
       Serializer = new CosmosEventSerializer(new JsonSerializerOptions
       {
-        Converters = { new EventConverter() }
+        Converters = { new EventConverter<TBaseEvent>() }
       })
     };
 
@@ -60,16 +60,6 @@ namespace EventSourcing.Cosmos
     public IQueryable<TBaseEvent> Events =>
       new CosmosAsyncQueryable<TBaseEvent>(_container.GetItemLinqQueryable<TBaseEvent>());
 
-    public async IAsyncEnumerable<T> Query<T>(Func<IQueryable<TBaseEvent>, IQueryable<T>> func)
-    {
-      var queryable = func(_container.GetItemLinqQueryable<TBaseEvent>());
-      var iterator = queryable.ToFeedIterator();
-      
-      while (iterator.HasMoreResults)
-        foreach (var item in await iterator.ReadNextAsync())
-          yield return item;
-    }
-    
     public async Task AddAsync(IList<TBaseEvent> events, CancellationToken cancellationToken = default)
     {
       var partition = new PartitionKey(events.Select(x => x.AggregateId).First().ToString());
