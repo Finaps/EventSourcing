@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -26,7 +27,9 @@ namespace EventSourcing.Core
     /// e.g. <c>System.Linq.Async</c> or <c>EventSourcing.Core.QueryableExtensions</c> work as intended.
     /// </remarks>
     IQueryable<TBaseEvent> Events { get; }
-    
+
+    IQueryable<TBaseEvent> Snapshots => throw new NotImplementedException();
+
     /// <summary>
     /// Add <see cref="Events"/>s to the <see cref="IEventStore{TBaseEvent}"/>
     /// </summary>
