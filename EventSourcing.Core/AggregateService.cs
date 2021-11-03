@@ -1,9 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using EventSourcing.Core.Exceptions;
+using EventSourcing.Core.Attributes;
 
 namespace EventSourcing.Core
 {
@@ -28,6 +28,10 @@ namespace EventSourcing.Core
     public async Task<TAggregate> RehydrateAsync<TAggregate>(Guid aggregateId,
       CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
     {
+      var snapshotInterval = typeof(TAggregate).GetCustomAttributes(typeof(SnapshotInterval)).FirstOrDefault();
+      if (snapshotInterval != null)
+        return await RehydrateFromSnapshotAsync<TAggregate>(aggregateId, cancellationToken);
+      
       var events = _store.Events
         .Where(x => x.AggregateId == aggregateId)
         .OrderBy(x => x.AggregateVersion)
@@ -45,6 +49,26 @@ namespace EventSourcing.Core
         .ToAsyncEnumerable();
       
       return await Aggregate<TBaseEvent>.RehydrateAsync<TAggregate>(aggregateId, events, cancellationToken);
+    }
+    
+    public async Task<TAggregate> RehydrateFromSnapshotAsync<TAggregate>(Guid aggregateId,
+      CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
+    {
+      var latestSnapshot = _store.Snapshots
+        .Where(x => x.AggregateId == aggregateId)
+        .OrderBy(x => x.AggregateVersion)
+        .LastOrDefault();
+
+      var events = _store.Events
+        .Where(x => x.AggregateId == aggregateId);
+
+      if (latestSnapshot != null)
+        events = events
+          .Where(x => x.AggregateVersion > latestSnapshot.AggregateVersion);
+
+      var orderedEvents = events.OrderBy(x => x.AggregateVersion).ToAsyncEnumerable();
+
+      return await Aggregate<TBaseEvent>.RehydrateAsync<TAggregate>(aggregateId, orderedEvents, cancellationToken);
     }
 
     public async Task<TAggregate> PersistAsync<TAggregate>(TAggregate aggregate,
