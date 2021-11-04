@@ -28,13 +28,13 @@ namespace EventSourcing.Core.Tests.MockEventStore
                 throw new EventStoreException("Cannot add multiple events with different aggregate id's");
             
             if(events.Any(e => _storedEvents.ContainsKey((e.AggregateId, e.AggregateVersion))))
-                throw new EventStoreException("", new ConflictException($"Conflict when persisting events to {nameof(InMemoryEventStore)}"));
+                throw new EventStoreException("", new DuplicateKeyException($"Conflict when persisting events to {nameof(InMemoryEventStore)}"));
             
             foreach (var e in events)
             {
                 var added = _storedEvents.TryAdd((aggregateId, e.AggregateVersion), e);
                 if(!added)
-                    throw new EventStoreException("", new ConflictException($"Conflict when persisting events to {nameof(InMemoryEventStore)}"));
+                    throw new EventStoreException("", new DuplicateKeyException($"Conflict when persisting events to {nameof(InMemoryEventStore)}"));
             }
             return Task.CompletedTask;
         }

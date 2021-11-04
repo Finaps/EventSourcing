@@ -4,7 +4,7 @@ namespace EventSourcing.Core.Tests
 {
   public class InMemoryEventStoreTests : EventStoreTests
   {
-    public override IEventStore GetEventStore() => new InMemoryEventStore();
-    public override IEventStore<TBaseEvent> GetEventStore<TBaseEvent>() => new InMemoryEventStore<TBaseEvent>();
+    protected override IEventStore GetEventStore() => new InMemoryEventStore();
+    protected override IEventStore<TBaseEvent> GetEventStore<TBaseEvent>() => new InMemoryEventStore<TBaseEvent>();
   }
 }

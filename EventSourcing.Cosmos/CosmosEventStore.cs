@@ -40,21 +40,21 @@ namespace EventSourcing.Cosmos
 
     public CosmosEventStore(IOptions<CosmosEventStoreOptions> options)
     {
+      if (options?.Value == null)
+        throw new ArgumentException("CosmosEventStoreOptions should not be null", nameof(options));
+      
+      if (string.IsNullOrWhiteSpace(options.Value.ConnectionString))
+        throw new ArgumentException("CosmosEventStoreOptions.ConnectionString should not be empty", nameof(options));
+      
+      if (string.IsNullOrWhiteSpace(options.Value.Database))
+        throw new ArgumentException("CosmosEventStoreOptions.Database should not be empty", nameof(options));
+      
+      if (string.IsNullOrWhiteSpace(options.Value.Container))
+        throw new ArgumentException("CosmosEventStoreOptions.Container should not be empty", nameof(options));
+      
       _options = options;
       _database = new CosmosClient(options.Value.ConnectionString, _clientOptions).GetDatabase(options.Value.Database);
       _container = _database.GetContainer(options.Value.Container);
-    }
-
-    public async Task CreateIfNotExistsAsync()
-    {
-      await _database.CreateContainerIfNotExistsAsync(
-        new ContainerProperties(_options.Value.Container, $"/{nameof(Event.AggregateId)}")
-        {
-          UniqueKeyPolicy = new UniqueKeyPolicy { UniqueKeys =
-          {
-            new UniqueKey { Paths = { $"/{nameof(Event.AggregateId)}", $"/{nameof(Event.AggregateVersion)}" }}
-          }}
-        });
     }
 
     public IQueryable<TBaseEvent> Events =>
@@ -68,40 +68,43 @@ namespace EventSourcing.Cosmos
       foreach (var @event in events) batch.CreateItem(@event, _batchItemRequestOptions);
       var response = await batch.ExecuteAsync(cancellationToken);
 
-      if (!response.IsSuccessStatusCode) HandleExceptionAsync(response, events);
+      if (!response.IsSuccessStatusCode) Throw(response, events);
     }
-
-    private void HandleExceptionAsync(TransactionalBatchResponse response, IList<TBaseEvent> events)
+    
+    public async Task CreateIfNotExistsAsync()
+    {
+      await _database.CreateContainerIfNotExistsAsync(
+        new ContainerProperties(_options.Value.Container, $"/{nameof(Event.AggregateId)}")
+        {
+          UniqueKeyPolicy = new UniqueKeyPolicy { UniqueKeys =
+          {
+            new UniqueKey { Paths = { $"/{nameof(Event.AggregateId)}", $"/{nameof(Event.AggregateVersion)}" }}
+          }}
+        });
+    }
+    
+    private static void Throw(TransactionalBatchResponse response, IEnumerable<TBaseEvent> events)
     {
       if (response.StatusCode == HttpStatusCode.Conflict)
-        throw new CosmosEventStoreException(GetStatusCode(response), CreateConflictException(response, events));
-      
-      throw new CosmosEventStoreException(GetStatusCode(response));
-    } 
+        throw new DuplicateKeyException(response.Zip(events)
+          .Where(x => x.First.StatusCode == HttpStatusCode.Conflict)
+          .Select(x => x.Second)
+          .Select(x => new DuplicateKeyException(
+            $"Duplicate Id and/or Unique Constraint while adding {x.Type} with Id {x.Id}")));
 
-    private ConflictException CreateConflictException(TransactionalBatchResponse response, IList<TBaseEvent> events)
-    {
-      var conflictingEventIndex = response.ToList()
-        .FindIndex(x => x.StatusCode == HttpStatusCode.Conflict);
-
-      if (conflictingEventIndex == -1)
-        return new ConflictException("Conflict while persisting Event");
-
-      var conflictingEvent = events[conflictingEventIndex];
-
-      return new ConflictException(
-        $"Conflict while persisting {conflictingEvent.Type} " +
-        $"{new { conflictingEvent.Id, conflictingEvent.AggregateId, conflictingEvent.AggregateVersion }}.");
+      throw new EventStoreException(
+      $"Encountered error while adding events: {(int)response.StatusCode} {response.StatusCode.ToString()}",
+      CreateCosmosException(response));
     }
 
-    private static string GetStatusCode(TransactionalBatchResponse response)
+    private static CosmosException CreateCosmosException(TransactionalBatchResponse response)
     {
-      var statusCode = response.StatusCode;
-      var subStatusCode = (dynamic) response
+      var subStatusCode = (int) response
         .GetType()
         .GetProperty("SubStatusCode", BindingFlags.NonPublic | BindingFlags.Instance)?
-        .GetValue(response);
-      return $"{(int) statusCode} {statusCode} ({subStatusCode})";
+        .GetValue(response)!;
+      
+      return new CosmosException(response.ErrorMessage, response.StatusCode, subStatusCode, response.ActivityId, response.RequestCharge);
     }
   }
 }
