@@ -87,7 +87,6 @@ namespace EventSourcing.Cosmos.Tests
     {
       var store = new CosmosEventStore(Options.Create(new CosmosEventStoreOptions
       {
-        // Invalid Connection String
         ConnectionString = _options.Value.ConnectionString,
         Database = "Invalid",
         Container = _options.Value.Container
@@ -103,7 +102,6 @@ namespace EventSourcing.Cosmos.Tests
     {
       var store = new CosmosEventStore(Options.Create(new CosmosEventStoreOptions
       {
-        // Invalid Connection String
         ConnectionString = _options.Value.ConnectionString,
         Database = _options.Value.Database,
         Container = "Invalid"
@@ -135,7 +133,6 @@ namespace EventSourcing.Cosmos.Tests
     {
       var store = new CosmosEventStore(Options.Create(new CosmosEventStoreOptions
       {
-        // Invalid Connection String
         ConnectionString = _options.Value.ConnectionString,
         Database = "Invalid",
         Container = _options.Value.Container
@@ -151,7 +148,6 @@ namespace EventSourcing.Cosmos.Tests
     {
       var store = new CosmosEventStore(Options.Create(new CosmosEventStoreOptions
       {
-        // Invalid Connection String
         ConnectionString = _options.Value.ConnectionString,
         Database = _options.Value.Database,
         Container = "Invalid"
