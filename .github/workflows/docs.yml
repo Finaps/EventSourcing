@@ -3,8 +3,6 @@ name: Publish Documentation
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
   docs:
