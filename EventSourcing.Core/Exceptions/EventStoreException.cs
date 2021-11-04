@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
 
 namespace EventSourcing.Core.Exceptions
 {
-  public class EventStoreException : Exception
+  public class EventStoreException : AggregateException
   {
-    public EventStoreException(string message, Exception innerException = null) :
-      base(innerException == null ? message : $"{message}. See the inner exception for details.", innerException) { }
+    public EventStoreException() { }
+    public EventStoreException(string message) : base(message) { }
+    public EventStoreException(string message, Exception inner) : base(message, inner) { }
+    public EventStoreException(IEnumerable<Exception> innerExceptions) : base(innerExceptions) { }
   }
 }

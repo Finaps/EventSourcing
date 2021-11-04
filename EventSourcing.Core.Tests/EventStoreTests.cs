@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,8 +9,8 @@ namespace EventSourcing.Core.Tests
 {
   public abstract class EventStoreTests
   {
-    public abstract IEventStore GetEventStore();
-    public abstract IEventStore<TBaseEvent> GetEventStore<TBaseEvent>() where TBaseEvent : Event, new();
+    protected abstract IEventStore GetEventStore();
+    protected abstract IEventStore<TBaseEvent> GetEventStore<TBaseEvent>() where TBaseEvent : Event, new();
 
     [Fact]
     public async Task Can_Add_Event()
@@ -50,7 +49,7 @@ namespace EventSourcing.Core.Tests
       var exception = await Assert.ThrowsAnyAsync<EventStoreException>(
         async () => await store.AddAsync(new Event[] { @event }));
 
-      Assert.IsType<ConflictException>(exception.InnerException);
+      Assert.IsType<DuplicateKeyException>(exception.InnerException);
     }
 
     [Fact]
@@ -64,7 +63,7 @@ namespace EventSourcing.Core.Tests
       var exception = await Assert.ThrowsAnyAsync<EventStoreException>(
         async () => await store.AddAsync(new Event[] { @event, @event }));
 
-      Assert.IsType<ConflictException>(exception.InnerException);
+      Assert.IsType<DuplicateKeyException>(exception.InnerException);
     }
 
     [Fact]
@@ -81,7 +80,7 @@ namespace EventSourcing.Core.Tests
       var exception = await Assert.ThrowsAnyAsync<EventStoreException>(
         async () => await store.AddAsync(new Event[] { event2 }));
 
-      Assert.IsType<ConflictException>(exception.InnerException);
+      Assert.IsType<DuplicateKeyException>(exception.InnerException);
     }
 
     [Fact]
@@ -96,7 +95,7 @@ namespace EventSourcing.Core.Tests
       var exception = await Assert.ThrowsAnyAsync<EventStoreException>(
         async () => await store.AddAsync(new Event[] { event1, event2 }));
 
-      Assert.IsType<ConflictException>(exception.InnerException);
+      Assert.IsType<DuplicateKeyException>(exception.InnerException);
     }
 
     [Fact]
