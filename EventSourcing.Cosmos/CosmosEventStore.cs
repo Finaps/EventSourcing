@@ -62,13 +62,15 @@ namespace EventSourcing.Cosmos
 
     public async Task AddAsync(IList<TBaseEvent> events, CancellationToken cancellationToken = default)
     {
+      if (events == null || events.Count == 0) return;
+      
       var partition = new PartitionKey(events.Select(x => x.AggregateId).First().ToString());
       
       var batch = _container.CreateTransactionalBatch(partition);
       foreach (var @event in events) batch.CreateItem(@event, _batchItemRequestOptions);
       var response = await batch.ExecuteAsync(cancellationToken);
 
-      if (!response.IsSuccessStatusCode) Throw(response, events);
+      if (!response.IsSuccessStatusCode) await ThrowAsync(response, events);
     }
     
     public async Task CreateIfNotExistsAsync()
@@ -83,18 +85,37 @@ namespace EventSourcing.Cosmos
         });
     }
     
-    private static void Throw(TransactionalBatchResponse response, IEnumerable<TBaseEvent> events)
+    private async Task ThrowAsync(TransactionalBatchResponse response, IEnumerable<TBaseEvent> events)
     {
-      if (response.StatusCode == HttpStatusCode.Conflict)
-        throw new DuplicateKeyException(response.Zip(events)
-          .Where(x => x.First.StatusCode == HttpStatusCode.Conflict)
-          .Select(x => x.Second)
-          .Select(x => new DuplicateKeyException(
-            $"Duplicate Id and/or Unique Constraint while adding {x.Type} with Id {x.Id}")));
+      if (response.StatusCode != HttpStatusCode.Conflict)
+        throw new EventStoreException(
+          $"Encountered error while adding events: {(int)response.StatusCode} {response.StatusCode.ToString()}",
+          CreateCosmosException(response));
+      
+      var conflicts = response.Zip(events)
+        .Where(x => x.First.StatusCode == HttpStatusCode.Conflict)
+        .Select(x => x.Second)
+        .ToList();
 
-      throw new EventStoreException(
-      $"Encountered error while adding events: {(int)response.StatusCode} {response.StatusCode.ToString()}",
-      CreateCosmosException(response));
+      var exceptions = new List<DuplicateKeyException>(conflicts.Count);
+
+      foreach (var conflict in conflicts)
+      {
+        var result = await _container.ReadItemStreamAsync(conflict.Id.ToString(), new PartitionKey(conflict.AggregateId.ToString()));
+        
+        exceptions.Add(result.IsSuccessStatusCode
+          ? DuplicateKeyException.CreateDuplicateIdException(conflict)
+          : DuplicateKeyException.CreateDuplicateVersionException(conflict)
+        );
+      }
+
+      switch (exceptions.Count)
+      {
+        case 1:
+          throw new DuplicateKeyException(exceptions.Single().Message, CreateCosmosException(response));
+        case > 1:
+          throw new DuplicateKeyException(exceptions);
+      }
     }
 
     private static CosmosException CreateCosmosException(TransactionalBatchResponse response)

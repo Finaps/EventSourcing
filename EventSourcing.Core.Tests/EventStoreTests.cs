@@ -35,6 +35,13 @@ namespace EventSourcing.Core.Tests
 
       await store.AddAsync(events);
     }
+    
+    [Fact]
+    public async Task Can_Add_Empty_Event_List()
+    {
+      var store = GetEventStore();
+      await store.AddAsync(System.Array.Empty<Event>());
+    }
 
     [Fact]
     public async Task Cannot_Add_Event_With_Duplicate_Id()
@@ -49,7 +56,7 @@ namespace EventSourcing.Core.Tests
       var exception = await Assert.ThrowsAnyAsync<EventStoreException>(
         async () => await store.AddAsync(new Event[] { @event }));
 
-      Assert.IsType<DuplicateKeyException>(exception.InnerException);
+      Assert.IsType<DuplicateKeyException>(exception);
     }
 
     [Fact]
@@ -63,7 +70,7 @@ namespace EventSourcing.Core.Tests
       var exception = await Assert.ThrowsAnyAsync<EventStoreException>(
         async () => await store.AddAsync(new Event[] { @event, @event }));
 
-      Assert.IsType<DuplicateKeyException>(exception.InnerException);
+      Assert.IsType<DuplicateKeyException>(exception);
     }
 
     [Fact]
@@ -80,7 +87,7 @@ namespace EventSourcing.Core.Tests
       var exception = await Assert.ThrowsAnyAsync<EventStoreException>(
         async () => await store.AddAsync(new Event[] { event2 }));
 
-      Assert.IsType<DuplicateKeyException>(exception.InnerException);
+      Assert.IsType<DuplicateKeyException>(exception);
     }
 
     [Fact]
@@ -95,7 +102,7 @@ namespace EventSourcing.Core.Tests
       var exception = await Assert.ThrowsAnyAsync<EventStoreException>(
         async () => await store.AddAsync(new Event[] { event1, event2 }));
 
-      Assert.IsType<DuplicateKeyException>(exception.InnerException);
+      Assert.IsType<DuplicateKeyException>(exception);
     }
 
     [Fact]
@@ -110,6 +117,41 @@ namespace EventSourcing.Core.Tests
 
       await Assert.ThrowsAnyAsync<EventStoreException>(
         async () => await store.AddAsync(new Event[] { event1, event2 }));
+    }
+    
+    [Fact]
+    public async Task Adding_Event_With_Duplicate_Id_Throws_Exception_With_Duplicate_Id_Message()
+    {
+      var store = GetEventStore();
+
+      var aggregate = new EmptyAggregate();
+      var e = Event.Create<EmptyEvent>(aggregate);
+
+      await store.AddAsync(new Event[] { e });
+
+      var exception = await Assert.ThrowsAnyAsync<EventStoreException>(
+        async () => await store.AddAsync(new Event[] { e }));
+
+      Assert.IsType<DuplicateKeyException>(exception);
+      Assert.Contains(DuplicateKeyException.CreateDuplicateIdException(e).Message, exception.Message);
+    }
+
+    [Fact]
+    public async Task Adding_Event_With_Duplicate_Version_Throws_Exception_With_Duplicate_Version_Message()
+    {
+      var store = GetEventStore();
+
+      var aggregate = new EmptyAggregate();
+      var e1 = Event.Create<EmptyEvent>(aggregate);
+      var e2 = Event.Create<EmptyEvent>(aggregate);
+
+      await store.AddAsync(new Event[] { e1 });
+
+      var exception = await Assert.ThrowsAnyAsync<EventStoreException>(
+        async () => await store.AddAsync(new Event[] { e2 }));
+
+      Assert.IsType<DuplicateKeyException>(exception);
+      Assert.Contains(DuplicateKeyException.CreateDuplicateVersionException(e2).Message, exception.Message);
     }
 
     [Fact]
