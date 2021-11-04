@@ -5,6 +5,7 @@ using EventSourcing.Core;
 using EventSourcing.Example.Domain.BankAccount;
 using EventSourcing.Example.Domain.BankAccount.Commands;
 using Microsoft.AspNetCore.Mvc;
+using EventSourcing.Example.Domain.BankAccountHolder;
 
 namespace EventSourcing.Example.Controllers
 {
@@ -22,6 +23,10 @@ namespace EventSourcing.Example.Controllers
     [HttpPost]
     public async Task<ActionResult> Create([FromBody] BankAccountCreate request, CancellationToken cancellationToken)
     {
+      if (request.Owner != null &&
+          await _service.RehydrateAsync<BankAccountHolder>(request.Owner.Value, cancellationToken) == null)
+        return BadRequest("Invalid owner id");
+      
       var aggregate = new BankAccount();
       aggregate.Create(request);
       await _service.PersistAsync(aggregate, cancellationToken);

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Linq;
@@ -9,7 +8,6 @@ using System.Threading.Tasks;
 using EventSourcing.Core;
 using EventSourcing.Core.Exceptions;
 using Microsoft.Azure.Cosmos;
-using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Options;
 
 namespace EventSourcing.Cosmos
@@ -19,6 +17,10 @@ namespace EventSourcing.Cosmos
     public CosmosEventStore(IOptions<CosmosEventStoreOptions> options) : base(options) { }
   }
 
+  /// <summary>
+  /// Cosmos Event Store: Cosmos connection for Querying and Storing <see cref="TBaseEvent"/>s
+  /// </summary>
+  /// <typeparam name="TBaseEvent"></typeparam>
   public class CosmosEventStore<TBaseEvent> : IEventStore<TBaseEvent> where TBaseEvent : Event, new()
   {
     private readonly CosmosClientOptions _clientOptions = new()
@@ -56,10 +58,20 @@ namespace EventSourcing.Cosmos
           }}
         });
     }
-
+    
+    /// <summary>
+    /// Events: Queryable and AsyncEnumerable Collection of <see cref="TBaseEvent"/>s
+    /// </summary>
+    /// <typeparam name="TBaseEvent"></typeparam>
     public IQueryable<TBaseEvent> Events =>
       new CosmosAsyncQueryable<TBaseEvent>(_container.GetItemLinqQueryable<TBaseEvent>());
-
+    
+    /// <summary>
+    /// AddAsync: Store <see cref="TBaseEvent"/>s to the Cosmos Event Store
+    /// </summary>
+    /// <param name="events"><see cref="TBaseEvent"/>s to add</param>
+    /// <param name="cancellationToken">Cancellation Token</param>
+    /// <exception cref="CosmosEventStoreException">Thrown when conflicts occur when storing <see cref="TBaseEvent"/>s</exception>
     public async Task AddAsync(IList<TBaseEvent> events, CancellationToken cancellationToken = default)
     {
       var partition = new PartitionKey(events.Select(x => x.AggregateId).First().ToString());
