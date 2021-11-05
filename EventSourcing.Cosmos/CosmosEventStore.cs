@@ -18,7 +18,11 @@ namespace EventSourcing.Cosmos
   {
     public CosmosEventStore(IOptions<CosmosEventStoreOptions> options) : base(options) { }
   }
-
+  
+  /// <summary>
+  /// Cosmos Event Store: Cosmos Connection for Querying and Storing <see cref="TBaseEvent"/>s
+  /// </summary>
+  /// <typeparam name="TBaseEvent"></typeparam>
   public class CosmosEventStore<TBaseEvent> : IEventStore<TBaseEvent> where TBaseEvent : Event, new()
   {
     private readonly CosmosClientOptions _clientOptions = new()
@@ -56,10 +60,21 @@ namespace EventSourcing.Cosmos
       _database = new CosmosClient(options.Value.ConnectionString, _clientOptions).GetDatabase(options.Value.Database);
       _container = _database.GetContainer(options.Value.Container);
     }
-
+    
+    /// <summary>
+    /// Events: Queryable and AsyncEnumerable Collection of <see cref="TBaseEvent"/>s
+    /// </summary>
+    /// <typeparam name="TBaseEvent"></typeparam>
     public IQueryable<TBaseEvent> Events =>
       new CosmosAsyncQueryable<TBaseEvent>(_container.GetItemLinqQueryable<TBaseEvent>());
-
+    
+    /// <summary>
+    /// AddAsync: Store <see cref="TBaseEvent"/>s to the Cosmos Event Store
+    /// </summary>
+    /// <param name="events"><see cref="TBaseEvent"/>s to add</param>
+    /// <param name="cancellationToken">Cancellation Token</param>
+    /// <exception cref="EventStoreException">Thrown when conflicts occur when storing <see cref="TBaseEvent"/>s</exception>
+    /// <exception cref="DuplicateKeyException">Thrown when storing <see cref="TBaseEvent"/>s</exception> with existing key
     public async Task AddAsync(IList<TBaseEvent> events, CancellationToken cancellationToken = default)
     {
       if (events == null || events.Count == 0) return;
