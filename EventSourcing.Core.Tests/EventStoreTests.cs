@@ -16,10 +16,7 @@ namespace EventSourcing.Core.Tests
     public async Task Can_Add_Event()
     {
       var store = GetEventStore();
-
-      var aggregate = new EmptyAggregate();
-      var @event = Event.Create<EmptyEvent>(aggregate);
-      await store.AddAsync(new Event[] { @event });
+      await store.AddAsync(new Event[] { new EmptyAggregate().Add(new EmptyEvent()) });
     }
 
     [Fact]
@@ -31,7 +28,7 @@ namespace EventSourcing.Core.Tests
       var events = new List<Event>();
 
       for (var i = 0; i < 10; i++)
-        events.Add(aggregate.Add(Event.Create<EmptyEvent>(aggregate)));
+        events.Add(aggregate.Add(new EmptyEvent()));
 
       await store.AddAsync(events);
     }
@@ -44,48 +41,20 @@ namespace EventSourcing.Core.Tests
     }
 
     [Fact]
-    public async Task Cannot_Add_Event_With_Duplicate_Id()
-    {
-      var store = GetEventStore();
-
-      var aggregate = new EmptyAggregate();
-      var @event = Event.Create<EmptyEvent>(aggregate);
-
-      await store.AddAsync(new Event[] { @event });
-
-      var exception = await Assert.ThrowsAnyAsync<EventStoreException>(
-        async () => await store.AddAsync(new Event[] { @event }));
-
-      Assert.IsType<DuplicateKeyException>(exception);
-    }
-
-    [Fact]
-    public async Task Cannot_Add_Event_With_Duplicate_Id_In_Batch()
-    {
-      var store = GetEventStore();
-
-      var aggregate = new EmptyAggregate();
-      var @event = Event.Create<EmptyEvent>(aggregate);
-
-      var exception = await Assert.ThrowsAnyAsync<EventStoreException>(
-        async () => await store.AddAsync(new Event[] { @event, @event }));
-
-      Assert.IsType<DuplicateKeyException>(exception);
-    }
-
-    [Fact]
     public async Task Cannot_Add_Event_With_Duplicate_AggregateId_And_Version()
     {
       var store = GetEventStore();
 
       var aggregate = new EmptyAggregate();
-      var event1 = Event.Create<EmptyEvent>(aggregate);
-      var event2 = Event.Create<EmptyEvent>(aggregate);
+      var e1 = aggregate.Add(new EmptyEvent());
+      var e2 = aggregate.Add(new EmptyEvent());
 
-      await store.AddAsync(new Event[] { event1 });
+      e2 = e2 with { AggregateVersion = 0 };
+
+      await store.AddAsync(new Event[] { e1 });
 
       var exception = await Assert.ThrowsAnyAsync<EventStoreException>(
-        async () => await store.AddAsync(new Event[] { event2 }));
+        async () => await store.AddAsync(new Event[] { e2 }));
 
       Assert.IsType<DuplicateKeyException>(exception);
     }
@@ -96,11 +65,13 @@ namespace EventSourcing.Core.Tests
       var store = GetEventStore();
 
       var aggregate = new EmptyAggregate();
-      var event1 = Event.Create<EmptyEvent>(aggregate);
-      var event2 = Event.Create<EmptyEvent>(aggregate);
+      var e1 = aggregate.Add(new EmptyEvent());
+      var e2 = aggregate.Add(new EmptyEvent());
+      
+      e2 = e2 with { AggregateVersion = 0 };
 
       var exception = await Assert.ThrowsAnyAsync<EventStoreException>(
-        async () => await store.AddAsync(new Event[] { event1, event2 }));
+        async () => await store.AddAsync(new Event[] { e1, e2 }));
 
       Assert.IsType<DuplicateKeyException>(exception);
     }
@@ -111,29 +82,13 @@ namespace EventSourcing.Core.Tests
       var store = GetEventStore();
 
       var aggregate1 = new EmptyAggregate();
-      var event1 = Event.Create<EmptyEvent>(aggregate1);
+      var event1 = aggregate1.Add(new EmptyEvent());
+
       var aggregate2 = new EmptyAggregate();
-      var event2 = Event.Create<EmptyEvent>(aggregate2);
+      var event2 = aggregate2.Add(new EmptyEvent());
 
       await Assert.ThrowsAnyAsync<EventStoreException>(
         async () => await store.AddAsync(new Event[] { event1, event2 }));
-    }
-    
-    [Fact]
-    public async Task Adding_Event_With_Duplicate_Id_Throws_Exception_With_Duplicate_Id_Message()
-    {
-      var store = GetEventStore();
-
-      var aggregate = new EmptyAggregate();
-      var e = Event.Create<EmptyEvent>(aggregate);
-
-      await store.AddAsync(new Event[] { e });
-
-      var exception = await Assert.ThrowsAnyAsync<EventStoreException>(
-        async () => await store.AddAsync(new Event[] { e }));
-
-      Assert.IsType<DuplicateKeyException>(exception);
-      Assert.Contains(DuplicateKeyException.CreateDuplicateIdException(e).Message, exception.Message);
     }
 
     [Fact]
@@ -142,8 +97,10 @@ namespace EventSourcing.Core.Tests
       var store = GetEventStore();
 
       var aggregate = new EmptyAggregate();
-      var e1 = Event.Create<EmptyEvent>(aggregate);
-      var e2 = Event.Create<EmptyEvent>(aggregate);
+      var e1 = aggregate.Add(new EmptyEvent());
+      var e2 = aggregate.Add(new EmptyEvent());
+
+      e2 = e2 with { AggregateVersion = 0 };
 
       await store.AddAsync(new Event[] { e1 });
 
@@ -162,10 +119,10 @@ namespace EventSourcing.Core.Tests
       var aggregate = new EmptyAggregate();
       var events = new List<Event>
       {
-        aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
-        aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
-        aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
-        aggregate.Add(Event.Create<EmptyEvent>(aggregate))
+        aggregate.Add(new EmptyEvent()),
+        aggregate.Add(new EmptyEvent()),
+        aggregate.Add(new EmptyEvent()),
+        aggregate.Add(new EmptyEvent())
       };
 
       await store.AddAsync(events);
@@ -185,15 +142,15 @@ namespace EventSourcing.Core.Tests
       var aggregate = new EmptyAggregate();
       var events = new List<Event>
       {
-        aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
-        aggregate.Add(Event.Create<EmptyEvent>(aggregate))
+        aggregate.Add(new EmptyEvent()),
+        aggregate.Add(new EmptyEvent())
       };
 
       var aggregate2 = new EmptyAggregate();
       var events2 = new List<Event>
       {
-        aggregate2.Add(Event.Create<EmptyEvent>(aggregate2)),
-        aggregate2.Add(Event.Create<EmptyEvent>(aggregate2))
+        aggregate2.Add(new EmptyEvent()),
+        aggregate2.Add(new EmptyEvent())
       };
 
       await store.AddAsync(events);
@@ -215,15 +172,15 @@ namespace EventSourcing.Core.Tests
       var aggregate = new EmptyAggregate();
       var events = new List<Event>
       {
-        aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
-        aggregate.Add(Event.Create<EmptyEvent>(aggregate))
+        aggregate.Add(new EmptyEvent()),
+        aggregate.Add(new EmptyEvent())
       };
 
       var aggregate2 = new SimpleAggregate();
       var events2 = new List<Event>
       {
-        aggregate2.Add(Event.Create<EmptyEvent>(aggregate2)),
-        aggregate2.Add(Event.Create<EmptyEvent>(aggregate2))
+        aggregate2.Add(new EmptyEvent()),
+        aggregate2.Add(new EmptyEvent())
       };
 
       await store.AddAsync(events);
@@ -253,7 +210,7 @@ namespace EventSourcing.Core.Tests
       var store = GetEventStore();
 
       var aggregate = new EmptyAggregate();
-      var e = Event.Create(aggregate, new MockEvent
+      var e = aggregate.Add(new MockEvent
       {
         MockBoolean = true,
         MockString = "Hello World",
@@ -321,7 +278,8 @@ namespace EventSourcing.Core.Tests
       var store = GetEventStore<MockEvent>();
 
       var aggregate = new EmptyAggregate();
-      var e1 = Event.Create(aggregate, new MockEvent
+      
+      var e1 = aggregate.Add(new MockEvent
       {
         MockBoolean = true,
         MockString = "Hello World",
@@ -362,7 +320,7 @@ namespace EventSourcing.Core.Tests
 
       aggregate.Add(e1);
       
-      var e2 = Event.Create(aggregate, new MockEvent
+      var e2 = aggregate.Add(new MockEvent
       {
         MockBoolean = false,
         MockString = "Guten Tag",
@@ -410,33 +368,33 @@ namespace EventSourcing.Core.Tests
       // Can Filter By MockString
       var result1 = await queryable
         .Where(x => x.MockString == e1.MockString).ToListAsync();
-      Assert.Equal(result1.Single().Id, e1.Id);
+      Assert.Equal(result1.Single().EventId, e1.EventId);
 
       // Can Filter By Nested Decimal
       var result2 = await queryable
         .Where(x => x.MockNestedClass.MockDecimal == e2.MockNestedClass.MockDecimal).ToListAsync();
-      Assert.Equal(result2.Single().Id, e2.Id);
+      Assert.Equal(result2.Single().EventId, e2.EventId);
       
       // Can Filter On List Contents
       var result3 = await queryable
         .Where(x => x.MockFloatList.Contains(1f)).ToListAsync();
-      Assert.Equal(result3.Single().Id, e2.Id);
+      Assert.Equal(result3.Single().EventId, e2.EventId);
       
       // Can Filter On Set Contents
       var result4 = await queryable
         .Where(x => x.MockStringSet.Contains("B")).ToListAsync();
-      Assert.Equal(result4.Single().Id, e1.Id);
+      Assert.Equal(result4.Single().EventId, e1.EventId);
       
       // Can Filter on FlagEnum
       var result5 = await queryable
         .Where(x => (x.MockFlagEnum & MockFlagEnum.D) == MockFlagEnum.D).ToListAsync();
-      Assert.Equal(result5.Single().Id, e1.Id);
+      Assert.Equal(result5.Single().EventId, e1.EventId);
       
       // Can Filter on Nested Class Attribute
       var result6 = await queryable
         .Where(x => x.MockNestedClassList.Select(y => y.MockString).Contains("Croissant"))
         .ToListAsync();
-      Assert.Equal(result6.Single().Id, e2.Id);
+      Assert.Equal(result6.Single().EventId, e2.EventId);
     }
   }
 }

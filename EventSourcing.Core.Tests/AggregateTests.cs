@@ -10,7 +10,7 @@ namespace EventSourcing.Core.Tests
     public void Can_Add_Event()
     {
       var aggregate = new SimpleAggregate();
-      aggregate.Add(Event.Create<EmptyEvent>(aggregate));
+      aggregate.Add(new EmptyEvent());
 
       Assert.Single(aggregate.UncommittedEvents);
     }
@@ -21,9 +21,9 @@ namespace EventSourcing.Core.Tests
       var aggregate = new SimpleAggregate();
       var events = new List<Event>
       {
-        aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
-        aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
-        aggregate.Add(Event.Create<EmptyEvent>(aggregate))
+        aggregate.Add(new EmptyEvent()),
+        aggregate.Add(new EmptyEvent()),
+        aggregate.Add(new EmptyEvent())
       };
 
       Assert.Equal(events.Count, aggregate.UncommittedEvents.Length);
@@ -33,9 +33,9 @@ namespace EventSourcing.Core.Tests
     public void Can_Clear_Uncommitted_Events()
     {
       var aggregate = new SimpleAggregate();
-      aggregate.Add(Event.Create<EmptyEvent>(aggregate));
-      aggregate.Add(Event.Create<EmptyEvent>(aggregate));
-      aggregate.Add(Event.Create<EmptyEvent>(aggregate));
+      aggregate.Add(new EmptyEvent());
+      aggregate.Add(new EmptyEvent());
+      aggregate.Add(new EmptyEvent());
 
       aggregate.ClearUncommittedEvents();
 
@@ -46,7 +46,7 @@ namespace EventSourcing.Core.Tests
     public void Can_Apply_Event()
     {
       var aggregate = new SimpleAggregate();
-      aggregate.Add(Event.Create<EmptyEvent>(aggregate));
+      aggregate.Add(new EmptyEvent());
 
       Assert.Equal(1, aggregate.Counter);
     }
@@ -57,9 +57,9 @@ namespace EventSourcing.Core.Tests
       var aggregate = new SimpleAggregate();
       var events = new List<Event>
       {
-        aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
-        aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
-        aggregate.Add(Event.Create<EmptyEvent>(aggregate))
+        aggregate.Add(new EmptyEvent()),
+        aggregate.Add(new EmptyEvent()),
+        aggregate.Add(new EmptyEvent())
       };
 
       Assert.Equal(events.Count, aggregate.Counter);

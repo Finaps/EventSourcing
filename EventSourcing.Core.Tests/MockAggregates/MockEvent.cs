@@ -28,7 +28,7 @@ namespace EventSourcing.Core.Tests.MockAggregates
     public double MockDouble { get; init; }
   }
 
-  public class MockEvent : Event
+  public record MockEvent : Event
   {
     public bool MockBoolean { get; init; }
     public string MockString { get; init; }

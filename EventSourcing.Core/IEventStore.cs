@@ -33,7 +33,7 @@ namespace EventSourcing.Core
     /// <remarks>
     /// When adding events an <see cref="EventStoreException"/> will occur when
     /// <list type="bullet">
-    /// <item>An <see cref="Events"/> with the same <see cref="Event.Id"/> already exists</item>
+    /// <item>An <see cref="Events"/> with the same <see cref="Event.EventId"/> already exists</item>
     /// <item>An <see cref="Events"/> with the same combination of <see cref="Event.AggregateId"/> and <see cref="Event.AggregateVersion"/> already exists</item>
     /// <item>The added <see cref="Events"/>s do not all share the same <see cref="Event.AggregateId"/></item>
     /// </list>
