@@ -56,7 +56,7 @@ namespace EventSourcing.Core.Tests
       var exception = await Assert.ThrowsAnyAsync<EventStoreException>(
         async () => await store.AddAsync(new Event[] { e2 }));
 
-      Assert.IsType<DuplicateKeyException>(exception);
+      Assert.IsType<EventStoreException>(exception);
     }
 
     [Fact]
@@ -73,7 +73,7 @@ namespace EventSourcing.Core.Tests
       var exception = await Assert.ThrowsAnyAsync<EventStoreException>(
         async () => await store.AddAsync(new Event[] { e1, e2 }));
 
-      Assert.IsType<DuplicateKeyException>(exception);
+      Assert.IsType<ConcurrencyException>(exception);
     }
 
     [Fact]
@@ -107,8 +107,8 @@ namespace EventSourcing.Core.Tests
       var exception = await Assert.ThrowsAnyAsync<EventStoreException>(
         async () => await store.AddAsync(new Event[] { e2 }));
 
-      Assert.IsType<ConcurrencyException>(exception);
-      Assert.Contains(ConcurrencyException.CreateConcurrencyException(e2).Message, exception.Message);
+      Assert.IsType<EventStoreException>(exception);
+      Assert.Contains(new ConcurrencyException(e2).Message, exception.Message);
     }
 
     [Fact]
