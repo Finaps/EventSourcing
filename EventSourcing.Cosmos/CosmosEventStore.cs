@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using EventSourcing.Core;
 using EventSourcing.Core.Exceptions;
 using Microsoft.Azure.Cosmos;
-using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Options;
 
 namespace EventSourcing.Cosmos
@@ -111,16 +110,16 @@ namespace EventSourcing.Cosmos
         .Select(x => x.Second)
         .ToList();
 
-      var exceptions = new List<DuplicateKeyException>(conflicts.Count);
+      var exceptions = new List<EventStoreException>(conflicts.Count);
 
       foreach (var conflict in conflicts)
       {
-        var result = await _container.ReadItemStreamAsync(conflict.AggregateVersion.ToString(), new PartitionKey(conflict.AggregateId.ToString()));
+        var result = await _container.ReadItemStreamAsync(conflict.id,
+            new PartitionKey(conflict.AggregateId.ToString()));
         
         exceptions.Add(result.IsSuccessStatusCode
-          ? DuplicateKeyException.CreateDuplicateVersionException(conflict)
-          : DuplicateKeyException.CreateDuplicateIdException(conflict)
-        );
+            ? DuplicateKeyException.CreateDuplicateIdException(conflict)
+            : ConcurrencyException.CreateConcurrencyException(conflict));
       }
 
       switch (exceptions.Count)

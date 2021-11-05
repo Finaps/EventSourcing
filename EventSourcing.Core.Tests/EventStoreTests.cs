@@ -107,8 +107,8 @@ namespace EventSourcing.Core.Tests
       var exception = await Assert.ThrowsAnyAsync<EventStoreException>(
         async () => await store.AddAsync(new Event[] { e2 }));
 
-      Assert.IsType<DuplicateKeyException>(exception);
-      Assert.Contains(DuplicateKeyException.CreateDuplicateVersionException(e2).Message, exception.Message);
+      Assert.IsType<ConcurrencyException>(exception);
+      Assert.Contains(ConcurrencyException.CreateConcurrencyException(e2).Message, exception.Message);
     }
 
     [Fact]
