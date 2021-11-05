@@ -72,6 +72,8 @@ namespace EventSourcing.Cosmos
     /// </summary>
     /// <param name="events"><see cref="TBaseEvent"/>s to add</param>
     /// <param name="cancellationToken">Cancellation Token</param>
+    /// <exception cref="ArgumentException">Thrown when trying to add <see cref="TBaseEvent"/>s with empty AggregateId</exception>
+    /// <exception cref="ArgumentException">Thrown when trying to add <see cref="TBaseEvent"/>s with equal AggregateVersions</exception>
     /// <exception cref="EventStoreException">Thrown when conflicts occur when storing <see cref="TBaseEvent"/>s</exception>
     /// <exception cref="ConcurrencyException">Thrown when storing <see cref="TBaseEvent"/>s</exception> with existing partition key and version combination
     public async Task AddAsync(IList<TBaseEvent> events, CancellationToken cancellationToken = default)
@@ -81,7 +83,10 @@ namespace EventSourcing.Cosmos
       var aggregateId = events.Select(x => x.AggregateId).First();
 
       if (aggregateId == Guid.Empty)
-        throw new InvalidOperationException("AggregateId should be set, did you forget to add the event to an Aggregate?");
+        throw new ArgumentException("AggregateId should be set, did you forget to add the event to an Aggregate?", nameof(events));
+
+      if (events.Select(x => x.AggregateVersion).Distinct().Count() != events.Count)
+        throw new ArgumentException("Cannot add multiple events with equal versions", nameof(events));
       
       var partition = new PartitionKey(aggregateId.ToString());
       
@@ -116,10 +121,10 @@ namespace EventSourcing.Cosmos
       {
         var result = await _container.ReadItemStreamAsync(conflict.id,
             new PartitionKey(conflict.AggregateId.ToString()));
+
+        if (result.IsSuccessStatusCode) throw new ConcurrencyException(conflict);
         
-        exceptions.Add(result.IsSuccessStatusCode 
-          ? new ConcurrencyException(conflict) 
-          : new EventStoreException($"Encountered error while verifying conflict type for event {conflict.EventId}: {result.ErrorMessage}"));
+        exceptions.Add(new EventStoreException($"Encountered error while verifying conflict type for event {conflict.EventId}: {result.ErrorMessage}"));
       }
 
       switch (exceptions.Count)

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -53,10 +54,10 @@ namespace EventSourcing.Core.Tests
 
       await store.AddAsync(new Event[] { e1 });
 
-      var exception = await Assert.ThrowsAnyAsync<EventStoreException>(
+      var exception = await Assert.ThrowsAnyAsync<ConcurrencyException>(
         async () => await store.AddAsync(new Event[] { e2 }));
 
-      Assert.IsType<EventStoreException>(exception);
+      Assert.IsType<ConcurrencyException>(exception);
     }
 
     [Fact]
@@ -70,10 +71,10 @@ namespace EventSourcing.Core.Tests
       
       e2 = e2 with { AggregateVersion = 0 };
 
-      var exception = await Assert.ThrowsAnyAsync<EventStoreException>(
+      var exception = await Assert.ThrowsAnyAsync<ArgumentException>(
         async () => await store.AddAsync(new Event[] { e1, e2 }));
 
-      Assert.IsType<ConcurrencyException>(exception);
+      Assert.IsType<ArgumentException>(exception);
     }
 
     [Fact]
@@ -87,7 +88,7 @@ namespace EventSourcing.Core.Tests
       var aggregate2 = new EmptyAggregate();
       var event2 = aggregate2.Add(new EmptyEvent());
 
-      await Assert.ThrowsAnyAsync<EventStoreException>(
+      await Assert.ThrowsAnyAsync<ArgumentException>(
         async () => await store.AddAsync(new Event[] { event1, event2 }));
     }
 
@@ -104,10 +105,10 @@ namespace EventSourcing.Core.Tests
 
       await store.AddAsync(new Event[] { e1 });
 
-      var exception = await Assert.ThrowsAnyAsync<EventStoreException>(
+      var exception = await Assert.ThrowsAnyAsync<ConcurrencyException>(
         async () => await store.AddAsync(new Event[] { e2 }));
 
-      Assert.IsType<EventStoreException>(exception);
+      Assert.IsType<ConcurrencyException>(exception);
       Assert.Contains(new ConcurrencyException(e2).Message, exception.Message);
     }
 
