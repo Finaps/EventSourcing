@@ -28,7 +28,7 @@ namespace EventSourcing.Core.Tests.MockEventStore
       if (events.Any(e => e.AggregateId != aggregateId))
         throw new EventStoreException("Cannot add multiple events with different aggregate id's");
 
-      var conflicts = new List<DuplicateKeyException>(events.Count);
+      var conflicts = new List<EventStoreException>(events.Count);
 
       foreach (var e in events)
       {
@@ -36,7 +36,7 @@ namespace EventSourcing.Core.Tests.MockEventStore
           conflicts.Add(DuplicateKeyException.CreateDuplicateIdException(e));
         
         if (_storedEvents.ContainsKey((e.AggregateId, e.AggregateVersion)))
-          conflicts.Add(DuplicateKeyException.CreateDuplicateVersionException(e));
+          conflicts.Add(ConcurrencyException.CreateConcurrencyException(e));
       }
       
       switch (conflicts.Count)
@@ -48,7 +48,7 @@ namespace EventSourcing.Core.Tests.MockEventStore
       }
 
       foreach (var e in events.Where(e => !_storedEvents.TryAdd((e.AggregateId, e.AggregateVersion), e)))
-        throw DuplicateKeyException.CreateDuplicateVersionException(e);
+        throw ConcurrencyException.CreateConcurrencyException(e);
 
       return Task.CompletedTask;
     }
