@@ -1,4 +1,4 @@
 namespace EventSourcing.Core.Tests.MockAggregates
 {
-    public class EmptyEvent : Event { }
+    public record EmptyEvent : Event { }
 }

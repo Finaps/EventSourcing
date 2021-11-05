@@ -14,7 +14,7 @@ namespace EventSourcing.Core.Tests.MockEventStore
 
   internal class InMemoryEventStore<TBaseEvent> : IEventStore<TBaseEvent> where TBaseEvent : Event, new()
   {
-    private readonly ConcurrentDictionary<(Guid, int), TBaseEvent> _storedEvents = new();
+    private readonly ConcurrentDictionary<(Guid, uint), TBaseEvent> _storedEvents = new();
     
     public IQueryable<TBaseEvent> Events => new MockAsyncQueryable<TBaseEvent>(_storedEvents.Values.AsQueryable());
 
@@ -32,7 +32,7 @@ namespace EventSourcing.Core.Tests.MockEventStore
 
       foreach (var e in events)
       {
-        if (_storedEvents.Values.Select(x => x.Id).Contains(e.Id))
+        if (_storedEvents.Values.Select(x => x.EventId).Contains(e.EventId))
           conflicts.Add(DuplicateKeyException.CreateDuplicateIdException(e));
         
         if (_storedEvents.ContainsKey((e.AggregateId, e.AggregateVersion)))

@@ -7,24 +7,24 @@ using Xunit;
 
 namespace EventSourcing.Core.Tests
 {
-  public class EventServiceTests
+  public class AggregateServiceTests
   {
     private readonly IEventStore _eventStore;
-    private readonly IEventService _eventService;
+    private readonly IAggregateService _aggregateService;
 
-    public EventServiceTests()
+    public AggregateServiceTests()
     {
       _eventStore = new InMemoryEventStore();
-      _eventService = new EventService(_eventStore);
+      _aggregateService = new AggregateService(_eventStore);
     }
 
     [Fact]
     public async Task Can_Persist_Event()
     {
       var aggregate = new SimpleAggregate();
-      aggregate.Add(Event.Create<EmptyEvent>(aggregate));
+      aggregate.Add(new EmptyEvent());
 
-      await _eventService.PersistAsync(aggregate);
+      await _aggregateService.PersistAsync(aggregate);
 
       var result = await _eventStore.Events.ToListAsync();
 
@@ -35,9 +35,9 @@ namespace EventSourcing.Core.Tests
     public async Task Cannot_Persist_With_Empty_Id()
     {
       var aggregate = new SimpleAggregate { Id = Guid.Empty };
-      aggregate.Add(Event.Create<EmptyEvent>(aggregate));
+      aggregate.Add(new EmptyEvent());
 
-      await Assert.ThrowsAsync<ArgumentException>(async () => await _eventService.PersistAsync(aggregate));
+      await Assert.ThrowsAsync<ArgumentException>(async () => await _aggregateService.PersistAsync(aggregate));
     }
 
     [Fact]
@@ -46,12 +46,12 @@ namespace EventSourcing.Core.Tests
       var aggregate = new SimpleAggregate();
       var events = new List<Event>
       {
-        aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
-        aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
-        aggregate.Add(Event.Create<EmptyEvent>(aggregate))
+        aggregate.Add(new EmptyEvent()),
+        aggregate.Add(new EmptyEvent()),
+        aggregate.Add(new EmptyEvent())
       };
 
-      await _eventService.PersistAsync(aggregate);
+      await _aggregateService.PersistAsync(aggregate);
 
       var result = await _eventStore.Events.ToListAsync();
 
@@ -64,14 +64,14 @@ namespace EventSourcing.Core.Tests
       var aggregate = new SimpleAggregate();
       var events = new List<Event>
       {
-        aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
-        aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
-        aggregate.Add(Event.Create<EmptyEvent>(aggregate))
+        aggregate.Add(new EmptyEvent()),
+        aggregate.Add(new EmptyEvent()),
+        aggregate.Add(new EmptyEvent())
       };
 
-      await _eventService.PersistAsync(aggregate);
+      await _aggregateService.PersistAsync(aggregate);
 
-      var rehydrated = await _eventService.RehydrateAsync<SimpleAggregate>(aggregate.Id);
+      var rehydrated = await _aggregateService.RehydrateAsync<SimpleAggregate>(aggregate.Id);
 
       Assert.Equal(events.Count, rehydrated.Counter);
     }
@@ -81,10 +81,10 @@ namespace EventSourcing.Core.Tests
     {
       var aggregate = new SimpleAggregate();
 
-      aggregate.Add(Event.Create<EmptyEvent>(aggregate));
-      aggregate.Add(Event.Create<EmptyEvent>(aggregate));
+      aggregate.Add(new EmptyEvent());
+      aggregate.Add(new EmptyEvent());
 
-      await _eventService.PersistAsync(aggregate);
+      await _aggregateService.PersistAsync(aggregate);
 
       Assert.Empty(aggregate.UncommittedEvents);
     }
@@ -93,12 +93,12 @@ namespace EventSourcing.Core.Tests
     public async Task Empty_Uncommitted_Events_After_Rehydrate()
     {
       var aggregate = new SimpleAggregate();
-      aggregate.Add(Event.Create<EmptyEvent>(aggregate));
-      aggregate.Add(Event.Create<EmptyEvent>(aggregate));
+      aggregate.Add(new EmptyEvent());
+      aggregate.Add(new EmptyEvent());
 
-      await _eventService.PersistAsync(aggregate);
+      await _aggregateService.PersistAsync(aggregate);
 
-      var result = await _eventService.RehydrateAsync<SimpleAggregate>(aggregate.Id);
+      var result = await _aggregateService.RehydrateAsync<SimpleAggregate>(aggregate.Id);
 
       Assert.Empty(result.UncommittedEvents);
     }
@@ -109,13 +109,13 @@ namespace EventSourcing.Core.Tests
       var aggregate = new SimpleAggregate();
       var events = new List<Event>
       {
-        aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
-        aggregate.Add(Event.Create<EmptyEvent>(aggregate)),
+        aggregate.Add(new EmptyEvent()),
+        aggregate.Add(new EmptyEvent()),
       };
 
-      await _eventService.PersistAsync(aggregate);
-      await _eventService.RehydrateAndPersistAsync<SimpleAggregate>(aggregate.Id,
-        a => a.Add(Event.Create<EmptyEvent>(a)));
+      await _aggregateService.PersistAsync(aggregate);
+      await _aggregateService.RehydrateAndPersistAsync<SimpleAggregate>(aggregate.Id,
+        a => a.Add(new EmptyEvent()));
 
       var result = await _eventStore.Events.ToListAsync();
 

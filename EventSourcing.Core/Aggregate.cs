@@ -23,7 +23,7 @@ namespace EventSourcing.Core
     /// <summary>
     /// The number of events applied to this aggregate.
     /// </summary>
-    public int Version { get; private set; }
+    public uint Version { get; private set; }
     
     /// <summary>
     /// Aggregate type
@@ -62,6 +62,13 @@ namespace EventSourcing.Core
     /// <exception cref="ArgumentException">Thrown when an invalid <see cref="Event"/> is added.</exception>
     public TEvent Add<TEvent>(TEvent e) where TEvent : TBaseEvent
     {
+      e = e with
+      {
+        AggregateId = Id,
+        AggregateType = Type,
+        AggregateVersion = Version,
+      };
+
       ValidateAndApply(e);
       _uncommittedEvents.Add(e);
       return e;
@@ -118,7 +125,7 @@ namespace EventSourcing.Core
     /// <exception cref="InvalidOperationException">Thrown when on a version mismatch between <see cref="Event"/> and <see cref="Aggregate{TBaseEvent}"/></exception>
     private void ValidateAndApply<TEvent>(TEvent e) where TEvent : TBaseEvent
     {
-      if (e.Id == Guid.Empty)
+      if (e.EventId == Guid.Empty)
         throw new ArgumentException("Event.Id should not be empty", nameof(e));
       
       if (e.Type != e.GetType().Name)

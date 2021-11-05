@@ -7,20 +7,20 @@ using EventSourcing.Core.Exceptions;
 
 namespace EventSourcing.Core
 {
-  public class EventService : EventService<Event>, IEventService
+  public class AggregateService : AggregateService<Event>, IAggregateService
   {
-    public EventService(IEventStore store) : base(store) { }
+    public AggregateService(IEventStore store) : base(store) { }
   }
 
   /// <summary>
-  /// Event Service: Rehydrating and Persisting <see cref="Aggregate{TBaseEvent}"/>s from <see cref="Event"/>s
+  /// Aggregate Service: Rehydrating and Persisting <see cref="Aggregate"/>s from <see cref="Event"/>s
   /// </summary>
   /// <typeparam name="TBaseEvent"></typeparam>
-  public class EventService<TBaseEvent> : IEventService<TBaseEvent> where TBaseEvent : Event
+  public class AggregateService<TBaseEvent> : IAggregateService<TBaseEvent> where TBaseEvent : Event
   {
     private readonly IEventStore<TBaseEvent> _store;
     
-    public EventService(IEventStore<TBaseEvent> store)
+    public AggregateService(IEventStore<TBaseEvent> store)
     {
       _store = store;
     }

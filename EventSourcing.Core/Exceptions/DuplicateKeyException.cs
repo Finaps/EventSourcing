@@ -11,7 +11,7 @@ namespace EventSourcing.Core.Exceptions
     public DuplicateKeyException(IEnumerable<Exception> innerExceptions) : base(innerExceptions) { }
 
     public static DuplicateKeyException CreateDuplicateIdException(Event e) => 
-      new($"Event '{e.Type}' with Id '{e.Id}' already exists for Aggregate '{e.AggregateType}' with Id '{e.AggregateId}'");
+      new($"Event '{e.Type}' with Id '{e.EventId}' already exists for Aggregate '{e.AggregateType}' with Id '{e.AggregateId}'");
     
     public static DuplicateKeyException CreateDuplicateVersionException(Event e) =>
       new($"Event '{e.Type}' with Version '{e.AggregateVersion}' already exists for Aggregate '{e.AggregateType}' with Id '{e.AggregateId}'");

@@ -78,7 +78,7 @@ namespace EventSourcing.Cosmos.Tests
       }));
 
       var exception = await Assert.ThrowsAsync<EventStoreException>(async () =>
-        await store.AddAsync(new List<Event> { Event.Create<EmptyEvent>(new EmptyAggregate()) }));
+        await store.AddAsync(new List<Event> { new EmptyAggregate().Add(new EmptyEvent()) }));
       Assert.Contains("401", exception.Message);
     }
     
@@ -93,7 +93,7 @@ namespace EventSourcing.Cosmos.Tests
       }));
 
       var exception = await Assert.ThrowsAsync<EventStoreException>(async () =>
-        await store.AddAsync(new List<Event> { Event.Create<EmptyEvent>(new EmptyAggregate()) }));
+        await store.AddAsync(new List<Event> { new EmptyAggregate().Add(new EmptyEvent()) }));
       Assert.Contains("404", exception.Message);
     }
     
@@ -108,7 +108,7 @@ namespace EventSourcing.Cosmos.Tests
       }));
 
       var exception = await Assert.ThrowsAsync<EventStoreException>(async () =>
-        await store.AddAsync(new List<Event> { Event.Create<EmptyEvent>(new EmptyAggregate()) }));
+        await store.AddAsync(new List<Event> { new EmptyAggregate().Add(new EmptyEvent()) }));
       Assert.Contains("404", exception.Message);
     }
     

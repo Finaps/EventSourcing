@@ -63,8 +63,13 @@ namespace EventSourcing.Cosmos
     public async Task AddAsync(IList<TBaseEvent> events, CancellationToken cancellationToken = default)
     {
       if (events == null || events.Count == 0) return;
+
+      var aggregateId = events.Select(x => x.AggregateId).First();
+
+      if (aggregateId == Guid.Empty)
+        throw new InvalidOperationException("AggregateId should be set, did you forget to add the event to an Aggregate?");
       
-      var partition = new PartitionKey(events.Select(x => x.AggregateId).First().ToString());
+      var partition = new PartitionKey(aggregateId.ToString());
       
       var batch = _container.CreateTransactionalBatch(partition);
       foreach (var @event in events) batch.CreateItem(@event, _batchItemRequestOptions);
@@ -76,13 +81,7 @@ namespace EventSourcing.Cosmos
     public async Task CreateIfNotExistsAsync()
     {
       await _database.CreateContainerIfNotExistsAsync(
-        new ContainerProperties(_options.Value.Container, $"/{nameof(Event.AggregateId)}")
-        {
-          UniqueKeyPolicy = new UniqueKeyPolicy { UniqueKeys =
-          {
-            new UniqueKey { Paths = { $"/{nameof(Event.AggregateId)}", $"/{nameof(Event.AggregateVersion)}" }}
-          }}
-        });
+        new ContainerProperties(_options.Value.Container, $"/{nameof(Event.AggregateId)}"));
     }
     
     private async Task ThrowAsync(TransactionalBatchResponse response, IEnumerable<TBaseEvent> events)
@@ -101,11 +100,11 @@ namespace EventSourcing.Cosmos
 
       foreach (var conflict in conflicts)
       {
-        var result = await _container.ReadItemStreamAsync(conflict.Id.ToString(), new PartitionKey(conflict.AggregateId.ToString()));
+        var result = await _container.ReadItemStreamAsync(conflict.AggregateVersion.ToString(), new PartitionKey(conflict.AggregateId.ToString()));
         
         exceptions.Add(result.IsSuccessStatusCode
-          ? DuplicateKeyException.CreateDuplicateIdException(conflict)
-          : DuplicateKeyException.CreateDuplicateVersionException(conflict)
+          ? DuplicateKeyException.CreateDuplicateVersionException(conflict)
+          : DuplicateKeyException.CreateDuplicateIdException(conflict)
         );
       }
 
