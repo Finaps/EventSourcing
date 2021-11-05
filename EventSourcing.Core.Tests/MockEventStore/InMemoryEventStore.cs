@@ -32,23 +32,20 @@ namespace EventSourcing.Core.Tests.MockEventStore
 
       foreach (var e in events)
       {
-        if (_storedEvents.Values.Select(x => x.EventId).Contains(e.EventId))
-          conflicts.Add(DuplicateKeyException.CreateDuplicateIdException(e));
-        
         if (_storedEvents.ContainsKey((e.AggregateId, e.AggregateVersion)))
-          conflicts.Add(ConcurrencyException.CreateConcurrencyException(e));
+          conflicts.Add(new ConcurrencyException(e));
       }
       
       switch (conflicts.Count)
       {
         case 1:
-          throw new DuplicateKeyException(conflicts.Single().Message);
+          throw new EventStoreException(conflicts.Single().Message);
         case > 1:
-          throw new DuplicateKeyException(conflicts);
+          throw new EventStoreException(conflicts);
       }
 
       foreach (var e in events.Where(e => !_storedEvents.TryAdd((e.AggregateId, e.AggregateVersion), e)))
-        throw ConcurrencyException.CreateConcurrencyException(e);
+        throw new ConcurrencyException(e);
 
       return Task.CompletedTask;
     }

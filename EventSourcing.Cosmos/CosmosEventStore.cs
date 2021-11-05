@@ -73,7 +73,7 @@ namespace EventSourcing.Cosmos
     /// <param name="events"><see cref="TBaseEvent"/>s to add</param>
     /// <param name="cancellationToken">Cancellation Token</param>
     /// <exception cref="EventStoreException">Thrown when conflicts occur when storing <see cref="TBaseEvent"/>s</exception>
-    /// <exception cref="DuplicateKeyException">Thrown when storing <see cref="TBaseEvent"/>s</exception> with existing key
+    /// <exception cref="ConcurrencyException">Thrown when storing <see cref="TBaseEvent"/>s</exception> with existing partition key and version combination
     public async Task AddAsync(IList<TBaseEvent> events, CancellationToken cancellationToken = default)
     {
       if (events == null || events.Count == 0) return;
@@ -117,17 +117,17 @@ namespace EventSourcing.Cosmos
         var result = await _container.ReadItemStreamAsync(conflict.id,
             new PartitionKey(conflict.AggregateId.ToString()));
         
-        exceptions.Add(result.IsSuccessStatusCode
-            ? DuplicateKeyException.CreateDuplicateIdException(conflict)
-            : ConcurrencyException.CreateConcurrencyException(conflict));
+        exceptions.Add(result.IsSuccessStatusCode 
+          ? new ConcurrencyException(conflict) 
+          : new EventStoreException($"Encountered error while verifying conflict type for event {conflict.EventId}: {result.ErrorMessage}"));
       }
 
       switch (exceptions.Count)
       {
         case 1:
-          throw new DuplicateKeyException(exceptions.Single().Message, CreateCosmosException(response));
+          throw new EventStoreException(exceptions.Single().Message, CreateCosmosException(response));
         case > 1:
-          throw new DuplicateKeyException(exceptions);
+          throw new EventStoreException(exceptions);
       }
     }
 
