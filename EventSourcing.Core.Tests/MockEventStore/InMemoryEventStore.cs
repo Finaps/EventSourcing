@@ -20,7 +20,10 @@ namespace EventSourcing.Core.Tests.MockEventStore
 
     public Task AddAsync(IList<TBaseEvent> events, CancellationToken cancellationToken = default)
     {
-      if (events == null || events.Count == 0)
+      if (events == null)
+        throw new ArgumentNullException(nameof(events));
+      
+      if (events.Count == 0)
         return Task.CompletedTask;
 
       var aggregateId = events.First().AggregateId;
@@ -28,8 +31,11 @@ namespace EventSourcing.Core.Tests.MockEventStore
       if (events.Any(e => e.AggregateId != aggregateId))
         throw new ArgumentException("Cannot add multiple events with different aggregate id's", nameof(events));
       
-      if (events.Select(x => x.AggregateVersion).Distinct().Count() != events.Count)
-        throw new ArgumentException("Cannot add multiple events with equal versions", nameof(events));
+      if (events.Select((e, index) => e.AggregateVersion - index).Distinct().Skip(1).Any())
+        throw new InvalidOperationException("Event versions should be consecutive");
+      
+      if (events.First().AggregateVersion != 0 && !_storedEvents.ContainsKey((events.First().AggregateId, events.First().AggregateVersion - 1)))
+        throw new InvalidOperationException("Event versions should be consecutive");
       
       foreach (var e in events)
       {
