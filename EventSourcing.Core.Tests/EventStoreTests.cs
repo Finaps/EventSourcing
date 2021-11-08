@@ -38,7 +38,14 @@ namespace EventSourcing.Core.Tests
     public async Task Can_Add_Empty_Event_List()
     {
       var store = GetEventStore();
-      await store.AddAsync(System.Array.Empty<Event>());
+      await store.AddAsync(Array.Empty<Event>());
+    }
+    
+    [Fact]
+    public async Task Cannot_Add_Null_Event_List()
+    {
+      var store = GetEventStore();
+      await Assert.ThrowsAsync<ArgumentNullException>(async () => await store.AddAsync(null));
     }
 
     [Fact]
@@ -71,10 +78,8 @@ namespace EventSourcing.Core.Tests
       
       e2 = e2 with { AggregateVersion = 0 };
 
-      var exception = await Assert.ThrowsAnyAsync<ArgumentException>(
+      var exception = await Assert.ThrowsAnyAsync<InvalidOperationException>(
         async () => await store.AddAsync(new Event[] { e1, e2 }));
-
-      Assert.IsType<ArgumentException>(exception);
     }
 
     [Fact]
@@ -91,7 +96,35 @@ namespace EventSourcing.Core.Tests
       await Assert.ThrowsAnyAsync<ArgumentException>(
         async () => await store.AddAsync(new Event[] { event1, event2 }));
     }
+    
+    [Fact]
+    public async Task Cannot_Add_NonConsecutive_Events()
+    {
+      var store = GetEventStore();
 
+      var aggregate = new EmptyAggregate();
+      var e1 = aggregate.Add(new EmptyEvent());
+      await store.AddAsync(new List<Event> { e1 });
+      
+      var e2 = aggregate.Add(new EmptyEvent()) with { AggregateVersion = 2 };
+      
+      await Assert.ThrowsAnyAsync<InvalidOperationException>(
+        async () => await store.AddAsync(new Event[] { e2 }));
+    }
+    
+    [Fact]
+    public async Task Cannot_Add_NonConsecutive_Events_In_Batch()
+    {
+      var store = GetEventStore();
+
+      var aggregate = new EmptyAggregate();
+      var e1 = aggregate.Add(new EmptyEvent());
+      var e2 = aggregate.Add(new EmptyEvent()) with { AggregateVersion = 2 };
+      
+      await Assert.ThrowsAnyAsync<InvalidOperationException>(
+        async () => await store.AddAsync(new Event[] { e1, e2 }));
+    }
+    
     [Fact]
     public async Task Adding_Event_With_Duplicate_Version_Throws_Exception_With_Duplicate_Version_Message()
     {
@@ -319,8 +352,6 @@ namespace EventSourcing.Core.Tests
         MockStringSet = new HashSet<string> { "A", "B", "C", "C" }
       });
 
-      aggregate.Add(e1);
-      
       var e2 = aggregate.Add(new MockEvent
       {
         MockBoolean = false,
@@ -359,8 +390,6 @@ namespace EventSourcing.Core.Tests
         MockFloatList = new List<float> { 1f, 2f, 3f },
         MockStringSet = new HashSet<string> { "Just one item" }
       });
-
-      aggregate.Add(e2);
 
       await store.AddAsync(new List<MockEvent> { e1, e2 });
 
