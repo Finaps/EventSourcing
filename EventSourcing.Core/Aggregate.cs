@@ -50,6 +50,12 @@ namespace EventSourcing.Core
     protected abstract void Apply<TEvent>(TEvent e) where TEvent : TBaseEvent;
     
     /// <summary>
+    /// Called after Applying all events
+    /// <remarks>Can be used to apply time-dependent updates</remarks>
+    /// </summary>
+    protected virtual void Finish() { }
+    
+    /// <summary>
     /// Add Event to Aggregate
     /// </summary>
     /// <remarks>
@@ -92,6 +98,8 @@ namespace EventSourcing.Core
       var aggregate = new TAggregate { Id = id };
       await foreach (var e in events.WithCancellation(cancellationToken))
         aggregate.ValidateAndApply(e);
+      
+      aggregate.Finish();
       
       // If no Events have been applied (i.e. no events could be found), return null
       // Otherwise, return Aggregate
