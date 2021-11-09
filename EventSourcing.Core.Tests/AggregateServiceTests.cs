@@ -127,5 +127,20 @@ namespace EventSourcing.Core.Tests
 
       Assert.Equal(events.Count + 1, result.Count);
     }
+    
+    [Fact]
+    public async Task Rehydrating_Calls_Finish()
+    {
+      var aggregate = new VerboseAggregate();
+      aggregate.Add(new EmptyEvent());
+
+      await _aggregateService.PersistAsync(aggregate);
+      
+      Assert.False(aggregate.IsFinished);
+
+      var result = await _aggregateService.RehydrateAsync<VerboseAggregate>(aggregate.Id);
+
+      Assert.True(result.IsFinished);
+    }
   }
 }
