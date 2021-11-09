@@ -66,7 +66,7 @@ namespace EventSourcing.Cosmos
     /// <typeparam name="TBaseEvent"></typeparam>
     public IQueryable<TBaseEvent> Events =>
       new CosmosAsyncQueryable<TBaseEvent>(_container.GetItemLinqQueryable<TBaseEvent>());
-    
+
     /// <summary>
     /// AddAsync: Store <see cref="TBaseEvent"/>s to the Cosmos Event Store
     /// </summary>
@@ -78,23 +78,22 @@ namespace EventSourcing.Cosmos
     /// <exception cref="ConcurrencyException">Thrown when storing <see cref="TBaseEvent"/>s</exception> with existing partition key and version combination
     public async Task AddAsync(IList<TBaseEvent> events, CancellationToken cancellationToken = default)
     {
-      if (events == null || events.Count == 0) return;
-
-      var aggregateId = events.Select(x => x.AggregateId).First();
-
-      if (aggregateId == Guid.Empty)
-        throw new ArgumentException("AggregateId should be set, did you forget to add the event to an Aggregate?", nameof(events));
-
-      if (events.Select(x => x.AggregateVersion).Distinct().Count() != events.Count)
-        throw new ArgumentException("Cannot add multiple events with equal versions", nameof(events));
+      if (events == null) throw new ArgumentNullException(nameof(events));
+      if (events.Count == 0) return;
       
-      var partition = new PartitionKey(aggregateId.ToString());
+      await VerifyAsync(events);
       
-      var batch = _container.CreateTransactionalBatch(partition);
+      var batch = _container.CreateTransactionalBatch(new PartitionKey(events.First().AggregateId.ToString()));
       foreach (var @event in events) batch.CreateItem(@event, _batchItemRequestOptions);
       var response = await batch.ExecuteAsync(cancellationToken);
 
       if (!response.IsSuccessStatusCode) await ThrowAsync(response, events);
+    }
+    
+    private async Task<bool> ExistsAsync(Guid aggregateId, uint version)
+    {
+      var result = await _container.ReadItemStreamAsync(version.ToString(), new PartitionKey(aggregateId.ToString()));
+      return result.IsSuccessStatusCode;
     }
     
     public async Task CreateIfNotExistsAsync()
@@ -102,38 +101,37 @@ namespace EventSourcing.Cosmos
       await _database.CreateContainerIfNotExistsAsync(
         new ContainerProperties(_options.Value.Container, $"/{nameof(Event.AggregateId)}"));
     }
-    
-    private async Task ThrowAsync(TransactionalBatchResponse response, IEnumerable<TBaseEvent> events)
+
+    private async Task VerifyAsync(IList<TBaseEvent> events)
+    {
+      var aggregateIds = events.Select(x => x.AggregateId).Distinct().ToList();
+
+      if (aggregateIds.Count > 1)
+        throw new ArgumentException("All Events should have the same AggregateId", nameof(events));
+
+      if (aggregateIds.Single() == Guid.Empty) throw new ArgumentException(
+          "AggregateId should be set, did you forget to Add Events to an Aggregate?", nameof(events));
+
+      if (events.Select((e, index) => e.AggregateVersion - index).Distinct().Skip(1).Any())
+        throw new InvalidOperationException("Event versions should be consecutive");
+
+      if (events[0].AggregateVersion != 0 && !await ExistsAsync(events[0].AggregateId, events[0].AggregateVersion - 1))
+        throw new InvalidOperationException(
+          $"Attempted to add nonconsecutive Event '{events[0].Type}' with Version {events[0].AggregateVersion} for Aggregate '{events[0].AggregateType}' with Id '{events[0].AggregateId}': " +
+          $"no Event with Version {events[0].AggregateVersion - 1} exists");
+    }
+
+    private static async Task ThrowAsync(TransactionalBatchResponse response, IEnumerable<TBaseEvent> events)
     {
       if (response.StatusCode != HttpStatusCode.Conflict)
         throw new EventStoreException(
           $"Encountered error while adding events: {(int)response.StatusCode} {response.StatusCode.ToString()}",
           CreateCosmosException(response));
-      
-      var conflicts = response.Zip(events)
+
+      throw new ConcurrencyException(response.Zip(events)
         .Where(x => x.First.StatusCode == HttpStatusCode.Conflict)
         .Select(x => x.Second)
-        .ToList();
-
-      var exceptions = new List<EventStoreException>(conflicts.Count);
-
-      foreach (var conflict in conflicts)
-      {
-        var result = await _container.ReadItemStreamAsync(conflict.id,
-            new PartitionKey(conflict.AggregateId.ToString()));
-
-        if (result.IsSuccessStatusCode) throw new ConcurrencyException(conflict);
-        
-        exceptions.Add(new EventStoreException($"Encountered error while verifying conflict type for event {conflict.EventId}: {result.ErrorMessage}"));
-      }
-
-      switch (exceptions.Count)
-      {
-        case 1:
-          throw new EventStoreException(exceptions.Single().Message, CreateCosmosException(response));
-        case > 1:
-          throw new EventStoreException(exceptions);
-      }
+        .FirstOrDefault(), CreateCosmosException(response));
     }
 
     private static CosmosException CreateCosmosException(TransactionalBatchResponse response)
