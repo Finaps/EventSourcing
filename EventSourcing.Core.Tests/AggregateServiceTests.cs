@@ -75,6 +75,12 @@ namespace EventSourcing.Core.Tests
 
       Assert.Equal(events.Count, rehydrated.Counter);
     }
+    
+    [Fact]
+    public async Task Rehydrating_Aggregate_Returns_Null_When_No_Events_Are_Found()
+    {
+      Assert.Null(await _aggregateService.RehydrateAsync<EmptyAggregate>(Guid.NewGuid()));
+    }
 
     [Fact]
     public async Task Uncommitted_Events_Are_Cleared_After_Persist()
