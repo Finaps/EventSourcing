@@ -95,27 +95,12 @@ namespace EventSourcing.Core
       
       return aggregate;
     }
-    
-    /// <summary>
-    /// Map <see cref="Event"/> to this <see cref="Aggregate{TBaseEvent}"/>
-    /// </summary>
-    /// <param name="e"><see cref="Event"/> to map</param>
-    /// <returns>Mapped <see cref="Event"/></returns>
-    protected Aggregate<TBaseEvent> Map(Event e) => Mapper.Map(e, this, MapperExclude);
 
     /// <summary>
     /// Clear Uncommitted Events
     /// </summary>
     public void ClearUncommittedEvents() => _uncommittedEvents.Clear();
-    
-    /// <summary>
-    /// Aggregate Members to Exclude when mapping Events to Aggregate
-    /// </summary>
-    private static readonly HashSet<string> MapperExclude = new(new[]
-    {
-      nameof(Id), nameof(Version), nameof(UncommittedEvents)
-    });
-    
+
     /// <summary>
     /// Validate and Apply <see cref="Event"/> to <see cref="Aggregate{TBaseEvent}"/>
     /// </summary>
