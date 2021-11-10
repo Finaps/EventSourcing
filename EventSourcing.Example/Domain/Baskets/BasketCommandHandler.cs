@@ -7,7 +7,7 @@ namespace EventSourcing.Example.Domain.Baskets
 {
     public class BasketCommandHandler : CommandHandler<Basket>
     {
-        public BasketCommandHandler(AggregateService aggregateService) : base(aggregateService)
+        public BasketCommandHandler(IAggregateService aggregateService) : base(aggregateService)
         {
             RegisterCommandHandler(Create);
         }

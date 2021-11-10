@@ -6,10 +6,10 @@ namespace EventSourcing.Example.Commands
 {
     public class CommandHandler<TAggregate> where TAggregate : Aggregate, new()
     {
-        private readonly AggregateService _aggregateService;
+        private readonly IAggregateService _aggregateService;
         private readonly Dictionary<Type, Func<TAggregate, ICommand, TAggregate>> _commandHandlers = new ();
 
-        public CommandHandler(AggregateService aggregateService)
+        public CommandHandler(IAggregateService aggregateService)
         {
             _aggregateService = aggregateService;
         }
