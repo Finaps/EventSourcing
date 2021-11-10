@@ -1,6 +1,6 @@
 using System;
 
-namespace EventSourcing.Example.Commands
+namespace EventSourcing.Example.CommandHandler
 {
     public record CommandBase(Guid AggregateId) : ICommand;
 }

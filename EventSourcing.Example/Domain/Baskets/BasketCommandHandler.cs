@@ -1,7 +1,7 @@
 using System;
 using EventSourcing.Core;
 using EventSourcing.Core.Exceptions;
-using EventSourcing.Example.Commands;
+using EventSourcing.Example.CommandHandler;
 
 namespace EventSourcing.Example.Domain.Baskets
 {
