@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using EventSourcing.Core;
 
-namespace EventSourcing.Example.Commands
+namespace EventSourcing.Example.CommandHandler
 {
     public class CommandHandler<TAggregate> where TAggregate : Aggregate, new()
     {

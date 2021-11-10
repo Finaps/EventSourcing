@@ -1,5 +1,5 @@
 using System;
-using EventSourcing.Example.Commands;
+using EventSourcing.Example.CommandHandler;
 
 namespace EventSourcing.Example.Domain.Baskets
 {
