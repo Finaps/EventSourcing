@@ -1,13 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Reflection;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace EventSourcing.Core
 {
-  public abstract class Aggregate : Aggregate<Event> { }
+  public abstract class Aggregate : Aggregate<Event>, ITyped { }
   
   /// <summary>
   /// Abstract Base <see cref="Aggregate{TBaseEvent}"/>
@@ -29,6 +31,12 @@ namespace EventSourcing.Core
     /// Aggregate type
     /// </summary>
     public string Type { get; init; }
+    
+    /// <summary>
+    /// If True, Aggregate cannot be persisted
+    /// <remarks>An Aggregate is readonly when queried as View <see cref="IViewStore"/></remarks>
+    /// </summary>
+    public bool Readonly { get; init; }
     
     [JsonIgnore] public ImmutableArray<TBaseEvent> UncommittedEvents => _uncommittedEvents.ToImmutableArray();
     [JsonIgnore] private readonly List<TBaseEvent> _uncommittedEvents = new();
@@ -137,6 +145,16 @@ namespace EventSourcing.Core
 
       Apply(e);
       Version++;
+    }
+    
+    public static string Hash<TAggregate>() where TAggregate : Aggregate<TBaseEvent>
+    {
+      var method = typeof(TAggregate).GetMethod(nameof(Apply), BindingFlags.NonPublic | BindingFlags.Instance);
+      var data = method?.GetMethodBody()?.GetILAsByteArray();
+      if (data == null) throw new NullReferenceException("Cannot compute hash for Aggregate");
+
+      using var sha1 = new System.Security.Cryptography.SHA1CryptoServiceProvider();
+      return string.Concat(sha1.ComputeHash(data).Select(x => x.ToString("X2")));
     }
   }
 }

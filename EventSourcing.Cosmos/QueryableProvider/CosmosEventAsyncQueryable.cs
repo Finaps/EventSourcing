@@ -8,13 +8,13 @@ using EventSourcing.Core.Exceptions;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 
-namespace EventSourcing.Cosmos
+namespace EventSourcing.Cosmos.QueryableProvider
 {
-  internal class CosmosAsyncQueryable<TResult> : IOrderedQueryable<TResult>, IAsyncEnumerable<TResult>
+  internal class CosmosEventAsyncQueryable<TResult> : IOrderedQueryable<TResult>, IAsyncEnumerable<TResult>
   {
     private readonly IQueryable<TResult> _queryable;
 
-    public CosmosAsyncQueryable(IQueryable<TResult> queryable)
+    public CosmosEventAsyncQueryable(IQueryable<TResult> queryable)
     {
       _queryable = queryable;
       Provider = new CosmosAsyncQueryableProvider(queryable.Provider);
@@ -52,24 +52,5 @@ namespace EventSourcing.Cosmos
           yield return item;
       }
     }
-  }
-
-  internal class CosmosAsyncQueryableProvider : IQueryProvider
-  {
-    private readonly IQueryProvider _provider;
-    public CosmosAsyncQueryableProvider(IQueryProvider provider) =>
-      _provider = provider;
-
-    public IQueryable<TElement> CreateQuery<TElement>(Expression expression) =>
-      new CosmosAsyncQueryable<TElement>(_provider.CreateQuery<TElement>(expression));
-
-    public IQueryable CreateQuery(Expression expression) =>
-      CreateQuery<object>(expression);
-
-    public object Execute(Expression expression) =>
-      _provider.Execute(expression);
-
-    public TResult Execute<TResult>(Expression expression) =>
-      _provider.Execute<TResult>(expression);
   }
 }

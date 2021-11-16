@@ -5,11 +5,11 @@ using Microsoft.Azure.Cosmos;
 
 namespace EventSourcing.Cosmos
 {
-  internal class CosmosEventSerializer : CosmosSerializer
+  internal class CosmosStoreSerializer : CosmosSerializer
   {
     private readonly JsonObjectSerializer _serializer;
 
-    public CosmosEventSerializer(JsonSerializerOptions jsonSerializerOptions)
+    public CosmosStoreSerializer(JsonSerializerOptions jsonSerializerOptions)
     {
       _serializer = new JsonObjectSerializer(jsonSerializerOptions);
     }
