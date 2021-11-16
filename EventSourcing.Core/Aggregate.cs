@@ -93,7 +93,9 @@ namespace EventSourcing.Core
       await foreach (var e in events.WithCancellation(cancellationToken))
         aggregate.ValidateAndApply(e);
       
-      return aggregate;
+      // If no Events have been applied (i.e. no events could be found), return null
+      // Otherwise, return Aggregate
+      return aggregate.Version == 0 ? null : aggregate;
     }
 
     /// <summary>

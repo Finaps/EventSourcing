@@ -18,7 +18,7 @@ namespace EventSourcing.Core
     /// <param name="aggregateId">Unique identifier of <see cref="Aggregate"/> to rehydrate</param>
     /// <param name="cancellationToken">Cancellation Token</param>
     /// <typeparam name="TAggregate">Type of <see cref="Aggregate"/></typeparam>
-    /// <returns><see cref="Aggregate"/> of type <see cref="TAggregate"/></returns>
+    /// <returns><see cref="Aggregate"/> of type <see cref="TAggregate"/> or null when not found</returns>
     Task<TAggregate> RehydrateAsync<TAggregate>(Guid aggregateId,
       CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new();
 
@@ -29,7 +29,7 @@ namespace EventSourcing.Core
     /// <param name="date">Date up to which to rehydrate <see cref="Aggregate"/></param>
     /// <param name="cancellationToken">Cancellation Token</param>
     /// <typeparam name="TAggregate">Type of <see cref="Aggregate"/></typeparam>
-    /// <returns><see cref="Aggregate"/> of type <see cref="TAggregate"/> as it was on <c>date</c></returns>
+    /// <returns><see cref="Aggregate"/> of type <see cref="TAggregate"/> as it was on <c>date</c> or null when not found</returns>
     Task<TAggregate> RehydrateAsync<TAggregate>(Guid aggregateId, DateTimeOffset date,
       CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new();
     
@@ -50,7 +50,7 @@ namespace EventSourcing.Core
     /// <param name="action"><c>Action</c> to take before Persisting</param>
     /// <param name="cancellationToken">Cancellation Token</param>
     /// <typeparam name="TAggregate">Type of <see cref="Aggregate"/></typeparam>
-    /// <returns><see cref="Aggregate"/> of type <see cref="TAggregate"/></returns>
+    /// <returns><see cref="Aggregate"/> of type <see cref="TAggregate"/> or null when not found</returns>
     public async Task<TAggregate> RehydrateAndPersistAsync<TAggregate>(Guid aggregateId, Action<TAggregate> action,
       CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
     {
@@ -67,7 +67,7 @@ namespace EventSourcing.Core
     /// <param name="action"><c>Action</c> to take before Persisting</param>
     /// <param name="cancellationToken">Cancellation Token</param>
     /// <typeparam name="TAggregate">Type of <see cref="Aggregate"/></typeparam>
-    /// <returns><see cref="Aggregate"/> of type <see cref="TAggregate"/></returns>
+    /// <returns><see cref="Aggregate"/> of type <see cref="TAggregate"/> or null when not found</returns>
     public async Task<TAggregate> RehydrateAndPersistAsync<TAggregate>(Guid aggregateId, DateTimeOffset date, Action<TAggregate> action,
       CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
     {
