@@ -10,7 +10,7 @@ namespace EventSourcing.Core
 
     public View()
     {
-      Type = typeof(TAggregate).Name;
+      Type = typeof(TAggregate).FullName;
     }
   }
 }

@@ -27,7 +27,7 @@ namespace EventSourcing.Core
       AppDomain.CurrentDomain.GetAssemblies()
         .SelectMany(assembly => assembly.GetTypes())
         .Where(type => typeof(Event).IsAssignableFrom(type) && type.IsClass && !type.IsAbstract)
-        .ToDictionary(type => type.Name);
+        .ToDictionary(type => type.FullName);
 
     /// <summary>
     /// Use <see cref="JsonTypedConverter{TTyped}"/> for all Types inheriting from <see cref="ITyped"/>

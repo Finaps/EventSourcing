@@ -42,7 +42,7 @@ namespace EventSourcing.Core
     public Event()
     {
       EventId = Guid.NewGuid();
-      Type = GetType().Name;
+      Type = GetType().FullName;
       Timestamp = DateTimeOffset.Now;
     }
   }

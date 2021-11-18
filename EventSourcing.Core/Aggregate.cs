@@ -43,7 +43,7 @@ namespace EventSourcing.Core
     public Aggregate()
     {
       Id = Guid.NewGuid();
-      Type = GetType().Name;
+      Type = GetType().FullName;
     }
     
     /// <summary>
@@ -127,14 +127,14 @@ namespace EventSourcing.Core
       if (e.EventId == Guid.Empty)
         throw new ArgumentException("Event.Id should not be empty", nameof(e));
       
-      if (e.Type != e.GetType().Name)
-        throw new ArgumentException($"Event.Type ({e.Type}) does not correspond with Class Type ({e.GetType().Name})", nameof(e));
+      if (e.Type != e.GetType().FullName)
+        throw new ArgumentException($"Event.Type ({e.Type}) does not correspond with Class Type ({e.GetType().FullName})", nameof(e));
       
       if (e.AggregateId != Id)
         throw new ArgumentException($"Event.AggregateId ({e.AggregateId}) does not correspond with Aggregate.Id ({Id})", nameof(e));
 
-      if (e.AggregateType != GetType().Name)
-        throw new ArgumentException($"Event.AggregateType ({e.AggregateType}) does not correspond with typeof(Aggregate) ({GetType().Name})", nameof(e));
+      if (e.AggregateType != GetType().FullName)
+        throw new ArgumentException($"Event.AggregateType ({e.AggregateType}) does not correspond with typeof(Aggregate) ({GetType().FullName})", nameof(e));
       
       if (e.AggregateVersion != Version)
         throw new InvalidOperationException($"Event.AggregateVersion ({e.AggregateVersion}) does not correspond with Aggregate.Version ({Version})");
