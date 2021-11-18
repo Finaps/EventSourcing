@@ -24,6 +24,9 @@ jobs:
     - name: Test
       run: dotnet test --no-build --verbosity normal
       env:
-        Cosmos__ConnectionString: ${{ secrets.COSMOS_CONNECTIONSTRING }}
-        Cosmos__Database: ${{ secrets.COSMOS_DATABASE }}
-        Cosmos__Container: ${{ secrets.COSMOS_CONTAINER }}
+        EventStore__ConnectionString: ${{ secrets.COSMOS_CONNECTIONSTRING }}
+        EventStore__Database: ${{ secrets.COSMOS_DATABASE }}
+        EventStore__Container: ${{ secrets.COSMOS_EVENT_CONTAINER }}
+        ViewStore__ConnectionString: ${{ secrets.COSMOS_CONNECTIONSTRING }}
+        ViewStore__Database: ${{ secrets.COSMOS_DATABASE }}
+        ViewStore__Container: ${{ secrets.COSMOS_VIEW_CONTAINER }}
