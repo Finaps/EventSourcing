@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 
-namespace EventSourcing.Core.Tests.MockAggregates
+namespace EventSourcing.Core.Tests.Mocks
 {
   public class VerboseAggregate : Aggregate
   {
-    public List<Event> AppliedEvents = new();
+    public readonly List<Event> AppliedEvents = new();
     public bool IsFinished = false;
     
     protected override void Apply<TEvent>(TEvent e) => AppliedEvents.Add(e);

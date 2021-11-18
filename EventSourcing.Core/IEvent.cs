@@ -2,21 +2,13 @@ using System;
 
 namespace EventSourcing.Core
 {
-  /// <summary>
-  /// Base Event
-  /// </summary>
-  public record Event : IEvent
+  public interface IEvent : ITyped
   {
     /// <summary>
     /// Unique Event identifier
     /// </summary>
     public Guid EventId { get; init; }
-    
-    /// <summary>
-    /// Event type
-    /// </summary>
-    public string Type { get; init; }
-    
+
     /// <summary>
     /// Event creation time
     /// </summary>
@@ -38,12 +30,5 @@ namespace EventSourcing.Core
     public uint AggregateVersion { get; init; }
     
     public string id => AggregateVersion.ToString();
-
-    public Event()
-    {
-      EventId = Guid.NewGuid();
-      Type = GetType().Name;
-      Timestamp = DateTimeOffset.Now;
-    }
   }
 }

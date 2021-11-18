@@ -1,4 +1,4 @@
-namespace EventSourcing.Core.Tests.MockAggregates
+namespace EventSourcing.Core.Tests.Mocks
 {
   internal class SimpleAggregate : Aggregate
   {

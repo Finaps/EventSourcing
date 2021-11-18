@@ -1,6 +1,7 @@
-using EventSourcing.Core.Tests.MockEventStore;
+using EventSourcing.Core;
+using EventSourcing.Core.Tests;
 
-namespace EventSourcing.Core.Tests
+namespace EventSourcing.InMemory.Tests
 {
   public class InMemoryEventStoreTests : EventStoreTests
   {

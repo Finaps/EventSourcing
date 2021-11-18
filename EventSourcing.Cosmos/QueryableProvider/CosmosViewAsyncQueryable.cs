@@ -7,10 +7,10 @@ using Microsoft.Azure.Cosmos.Linq;
 
 namespace EventSourcing.Cosmos.QueryableProvider
 {
-  internal class CosmosEventAsyncQueryable<TResult> : CosmosAsyncQueryable<TResult>
+  internal class CosmosViewAsyncQueryable<TResult> : CosmosAsyncQueryable<TResult>
   {
-    public CosmosEventAsyncQueryable(IQueryable<TResult> queryable) : base(queryable) { }
-
+    public CosmosViewAsyncQueryable(IQueryable<TResult> queryable) : base(queryable) { }
+    
     public override async IAsyncEnumerator<TResult> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
       var iterator = Queryable.ToFeedIterator();
@@ -25,7 +25,7 @@ namespace EventSourcing.Cosmos.QueryableProvider
         }
         catch (CosmosException e)
         {
-          throw new EventStoreException($"Encountered error while querying events: {(int)e.StatusCode} {e.StatusCode.ToString()}", e);
+          throw new ViewStoreException($"Encountered error while querying views: {(int)e.StatusCode} {e.StatusCode.ToString()}", e);
         }
 
         if (items == null) continue;

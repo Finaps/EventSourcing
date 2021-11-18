@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using EventSourcing.Core.Exceptions;
-using EventSourcing.Core.Tests.MockAggregates;
+using EventSourcing.Core.Tests.Mocks;
 using Xunit;
 
 namespace EventSourcing.Core.Tests

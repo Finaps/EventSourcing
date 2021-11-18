@@ -6,16 +6,16 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EventSourcing.Core.Tests.MockEventStore
+namespace EventSourcing.InMemory
 {
-  internal class MockAsyncQueryable<TResult> : IOrderedQueryable<TResult>, IAsyncEnumerable<TResult>
+  internal class InMemoryAsyncQueryable<TResult> : IOrderedQueryable<TResult>, IAsyncEnumerable<TResult>
   {
     private readonly IQueryable<TResult> _queryable;
 
-    public MockAsyncQueryable(IQueryable<TResult> queryable)
+    public InMemoryAsyncQueryable(IQueryable<TResult> queryable)
     {
       _queryable = queryable;
-      Provider = new MockAsyncQueryableProvide(queryable.Provider);
+      Provider = new InMemoryAsyncQueryableProvider(queryable.Provider);
     }
 
     public Type ElementType => typeof(TResult);
@@ -38,15 +38,15 @@ namespace EventSourcing.Core.Tests.MockEventStore
     }
   }
 
-  internal class MockAsyncQueryableProvide : IQueryProvider
+  internal class InMemoryAsyncQueryableProvider : IQueryProvider
   {
     private readonly IQueryProvider _provider;
 
-    public MockAsyncQueryableProvide(IQueryProvider provider) =>
+    public InMemoryAsyncQueryableProvider(IQueryProvider provider) =>
       _provider = provider;
 
     public IQueryable<TElement> CreateQuery<TElement>(Expression expression) =>
-      new MockAsyncQueryable<TElement>(_provider.CreateQuery<TElement>(expression));
+      new InMemoryAsyncQueryable<TElement>(_provider.CreateQuery<TElement>(expression));
 
     public IQueryable CreateQuery(Expression expression) =>
       CreateQuery<object>(expression);

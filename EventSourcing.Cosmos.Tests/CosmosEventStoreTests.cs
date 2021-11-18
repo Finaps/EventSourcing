@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using EventSourcing.Core;
 using EventSourcing.Core.Exceptions;
 using EventSourcing.Core.Tests;
-using EventSourcing.Core.Tests.MockAggregates;
+using EventSourcing.Core.Tests.Mocks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Xunit;
@@ -32,9 +32,9 @@ namespace EventSourcing.Cosmos.Tests
 
       _options = Options.Create(new CosmosStoreOptions
         {
-          ConnectionString = configuration["Cosmos:ConnectionString"],
-          Database = configuration["Cosmos:Database"],
-          Container = configuration["Cosmos:Container"]
+          ConnectionString = configuration["EventStore:ConnectionString"],
+          Database = configuration["EventStore:Database"],
+          Container = configuration["EventStore:Container"]
         });
     }
 

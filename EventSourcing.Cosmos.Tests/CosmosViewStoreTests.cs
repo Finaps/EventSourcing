@@ -1,0 +1,30 @@
+using EventSourcing.Core;
+using EventSourcing.Core.Tests;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
+
+namespace EventSourcing.Cosmos.Tests
+{
+  public class CosmosViewStoreTests : ViewStoreTests
+  {
+    private readonly IOptions<CosmosStoreOptions> _options;
+
+    protected override IViewStore GetViewStore() => new CosmosViewStore(_options);
+
+    public CosmosViewStoreTests()
+    {
+      var configuration = new ConfigurationBuilder()
+        .AddJsonFile("appsettings.json", false)
+        .AddJsonFile("appsettings.local.json", true)
+        .AddEnvironmentVariables()
+        .Build();
+
+      _options = Options.Create(new CosmosStoreOptions
+      {
+        ConnectionString = configuration["ViewStore:ConnectionString"],
+        Database = configuration["ViewStore:Database"],
+        Container = configuration["ViewStore:Container"]
+      });
+    }
+  }
+}

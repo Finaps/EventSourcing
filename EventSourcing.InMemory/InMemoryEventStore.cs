@@ -4,19 +4,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using EventSourcing.Core;
 using EventSourcing.Core.Exceptions;
 
-namespace EventSourcing.Core.Tests.MockEventStore
+namespace EventSourcing.InMemory
 {
-  internal class InMemoryEventStore : InMemoryEventStore<Event>, IEventStore
-  {
-  }
+  public class InMemoryEventStore : InMemoryEventStore<Event>, IEventStore { }
 
-  internal class InMemoryEventStore<TBaseEvent> : IEventStore<TBaseEvent> where TBaseEvent : Event, new()
+  public class InMemoryEventStore<TBaseEvent> : IEventStore<TBaseEvent> where TBaseEvent : Event, new()
   {
     private readonly ConcurrentDictionary<(Guid, uint), TBaseEvent> _storedEvents = new();
     
-    public IQueryable<TBaseEvent> Events => new MockAsyncQueryable<TBaseEvent>(_storedEvents.Values.AsQueryable());
+    public IQueryable<TBaseEvent> Events => new InMemoryAsyncQueryable<TBaseEvent>(_storedEvents.Values.AsQueryable());
 
     public Task AddAsync(IList<TBaseEvent> events, CancellationToken cancellationToken = default)
     {

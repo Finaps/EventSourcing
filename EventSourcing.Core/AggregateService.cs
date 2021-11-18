@@ -9,7 +9,7 @@ namespace EventSourcing.Core
 {
   public class AggregateService : AggregateService<Event>, IAggregateService
   {
-    public AggregateService(IEventStore store) : base(store) { }
+    public AggregateService(IEventStore events, IViewStore views) : base(events, views) { }
   }
 
   /// <summary>
@@ -18,17 +18,19 @@ namespace EventSourcing.Core
   /// <typeparam name="TBaseEvent"></typeparam>
   public class AggregateService<TBaseEvent> : IAggregateService<TBaseEvent> where TBaseEvent : Event
   {
-    private readonly IEventStore<TBaseEvent> _store;
+    private readonly IEventStore<TBaseEvent> _events;
+    private readonly IViewStore _views;
     
-    public AggregateService(IEventStore<TBaseEvent> store)
+    public AggregateService(IEventStore<TBaseEvent> events, IViewStore views)
     {
-      _store = store;
+      _events = events;
+      _views = views;
     }
 
     public async Task<TAggregate> RehydrateAsync<TAggregate>(Guid aggregateId,
       CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
     {
-      var events = _store.Events
+      var events = _events.Events
         .Where(x => x.AggregateId == aggregateId)
         .OrderBy(x => x.AggregateVersion)
         .ToAsyncEnumerable();
@@ -39,7 +41,7 @@ namespace EventSourcing.Core
     public async Task<TAggregate> RehydrateAsync<TAggregate>(Guid aggregateId, DateTimeOffset date,
       CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
     {
-      var events = _store.Events
+      var events = _events.Events
         .Where(x => x.AggregateId == aggregateId && x.Timestamp <= date)
         .OrderBy(x => x.AggregateVersion)
         .ToAsyncEnumerable();
@@ -53,7 +55,9 @@ namespace EventSourcing.Core
       if (aggregate.Id == Guid.Empty)
         throw new ArgumentException("Aggregate.Id cannot be empty", nameof(aggregate));
       
-      await _store.AddAsync(aggregate.UncommittedEvents.ToList(), cancellationToken);
+      await _events.AddAsync(aggregate.UncommittedEvents.ToList(), cancellationToken);
+      await _views.UpdateAsync(aggregate, cancellationToken);
+      
       aggregate.ClearUncommittedEvents();
       return aggregate;
     }

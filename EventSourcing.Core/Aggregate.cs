@@ -9,13 +9,13 @@ using System.Threading.Tasks;
 
 namespace EventSourcing.Core
 {
-  public abstract class Aggregate : Aggregate<Event>, ITyped { }
+  public abstract class Aggregate : Aggregate<Event> { }
   
   /// <summary>
   /// Abstract Base <see cref="Aggregate{TBaseEvent}"/>
   /// </summary>
   /// <typeparam name="TBaseEvent">Base <see cref="Event"/> Type</typeparam>
-  public abstract class Aggregate<TBaseEvent> where TBaseEvent : Event
+  public abstract class Aggregate<TBaseEvent> : IAggregate where TBaseEvent : Event
   {
     /// <summary>
     /// Unique Aggregate identifier
@@ -31,12 +31,8 @@ namespace EventSourcing.Core
     /// Aggregate type
     /// </summary>
     public string Type { get; init; }
-    
-    /// <summary>
-    /// If True, Aggregate cannot be persisted
-    /// <remarks>An Aggregate is readonly when queried as View <see cref="IViewStore"/></remarks>
-    /// </summary>
-    public bool Readonly { get; init; }
+
+    public string id => Id.ToString();
     
     [JsonIgnore] public ImmutableArray<TBaseEvent> UncommittedEvents => _uncommittedEvents.ToImmutableArray();
     [JsonIgnore] private readonly List<TBaseEvent> _uncommittedEvents = new();
