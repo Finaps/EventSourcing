@@ -5,7 +5,7 @@ namespace EventSourcing.Core
   /// <summary>
   /// Base Event
   /// </summary>
-  public record Event : IEvent
+  public record Event : ITyped
   {
     /// <summary>
     /// Unique Event identifier

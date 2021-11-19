@@ -9,13 +9,11 @@ using System.Threading.Tasks;
 
 namespace EventSourcing.Core
 {
-  public abstract class Aggregate : Aggregate<Event> { }
-  
   /// <summary>
   /// Abstract Base <see cref="Aggregate{TBaseEvent}"/>
   /// </summary>
   /// <typeparam name="TBaseEvent">Base <see cref="Event"/> Type</typeparam>
-  public abstract class Aggregate<TBaseEvent> : IAggregate where TBaseEvent : Event
+  public abstract class Aggregate : ITyped
   {
     /// <summary>
     /// Unique Aggregate identifier
@@ -32,10 +30,12 @@ namespace EventSourcing.Core
     /// </summary>
     public string Type { get; init; }
 
+    public string Hash { get; init; }
+
     public string id => Id.ToString();
     
-    [JsonIgnore] public ImmutableArray<TBaseEvent> UncommittedEvents => _uncommittedEvents.ToImmutableArray();
-    [JsonIgnore] private readonly List<TBaseEvent> _uncommittedEvents = new();
+    [JsonIgnore] public ImmutableArray<Event> UncommittedEvents => _uncommittedEvents.ToImmutableArray();
+    [JsonIgnore] private readonly List<Event> _uncommittedEvents = new();
 
     /// <summary>
     /// Create new Aggregate
@@ -44,6 +44,7 @@ namespace EventSourcing.Core
     {
       Id = Guid.NewGuid();
       Type = GetType().FullName;
+      Hash = GetHash(this);
     }
     
     /// <summary>
@@ -51,7 +52,7 @@ namespace EventSourcing.Core
     /// </summary>
     /// <param name="e"><see cref="Event"/> to apply</param>
     /// <typeparam name="TEvent"><see cref="Event"/> Type</typeparam>
-    protected abstract void Apply<TEvent>(TEvent e) where TEvent : TBaseEvent;
+    protected abstract void Apply<TEvent>(TEvent e) where TEvent : Event;
     
     /// <summary>
     /// Called after Applying all events
@@ -70,7 +71,7 @@ namespace EventSourcing.Core
     /// <typeparam name="TEvent"><see cref="Event"/> Type</typeparam>
     /// <returns>Added <see cref="Event"/></returns>
     /// <exception cref="ArgumentException">Thrown when an invalid <see cref="Event"/> is added.</exception>
-    public TEvent Add<TEvent>(TEvent e) where TEvent : TBaseEvent
+    public TEvent Add<TEvent>(TEvent e) where TEvent : Event
     {
       e = e with
       {
@@ -93,8 +94,8 @@ namespace EventSourcing.Core
     /// <typeparam name="TAggregate"><see cref="Aggregate{TBaseEvent}"/> Type</typeparam>
     /// <returns><see cref="Aggregate{TBaseEvent}"/> of type <c>TAggregate</c></returns>
     /// <exception cref="ArgumentException">Thrown when <c>id</c> or <c>events</c> are invalid</exception>
-    public static async Task<TAggregate> RehydrateAsync<TAggregate>(Guid id, IAsyncEnumerable<TBaseEvent> events,
-      CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
+    public static async Task<TAggregate> RehydrateAsync<TAggregate>(Guid id, IAsyncEnumerable<Event> events,
+      CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
     {
       if (id == Guid.Empty)
         throw new ArgumentException("Aggregate Id should not be empty", nameof(id));
@@ -122,7 +123,7 @@ namespace EventSourcing.Core
     /// <typeparam name="TEvent"><see cref="Event"/> type</typeparam>
     /// <exception cref="ArgumentException">Thrown when <see cref="Event"/> is invalid for this <see cref="Aggregate{TBaseEvent}"/></exception>
     /// <exception cref="InvalidOperationException">Thrown when on a version mismatch between <see cref="Event"/> and <see cref="Aggregate{TBaseEvent}"/></exception>
-    private void ValidateAndApply<TEvent>(TEvent e) where TEvent : TBaseEvent
+    private void ValidateAndApply<TEvent>(TEvent e) where TEvent : Event
     {
       if (e.EventId == Guid.Empty)
         throw new ArgumentException("Event.Id should not be empty", nameof(e));
@@ -142,10 +143,10 @@ namespace EventSourcing.Core
       Apply(e);
       Version++;
     }
-    
-    public static string Hash<TAggregate>() where TAggregate : Aggregate<TBaseEvent>
+
+    private static string GetHash<TAggregate>(TAggregate aggregate) where TAggregate : Aggregate
     {
-      var method = typeof(TAggregate).GetMethod(nameof(Apply), BindingFlags.NonPublic | BindingFlags.Instance);
+      var method = aggregate.GetType().GetMethod(nameof(Apply), BindingFlags.NonPublic | BindingFlags.Instance);
       var data = method?.GetMethodBody()?.GetILAsByteArray();
       if (data == null) throw new NullReferenceException("Cannot compute hash for Aggregate");
 

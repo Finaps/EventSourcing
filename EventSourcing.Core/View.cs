@@ -2,15 +2,11 @@ using System;
 
 namespace EventSourcing.Core
 {
-  public class View<TAggregate> : IView<TAggregate> where TAggregate : Aggregate
+  public class View<TAggregate> where TAggregate : Aggregate, new()
   {
     public Guid Id { get; init; }
     public uint Version { get; init; }
     public string Type { get; init; }
-
-    public View()
-    {
-      Type = typeof(TAggregate).FullName;
-    }
+    public string Hash { get; init; }
   }
 }

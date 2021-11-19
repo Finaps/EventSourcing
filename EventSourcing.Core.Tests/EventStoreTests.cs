@@ -301,9 +301,9 @@ namespace EventSourcing.Core.Tests
       Assert.Equal(e.MockFloatList[0], result.MockFloatList[0]);
       Assert.Equal(e.MockFloatList[1], result.MockFloatList[1]);
       Assert.Equal(e.MockFloatList[2], result.MockFloatList[2]);
-      Assert.Contains(e.MockStringSet, x => x == "A");
-      Assert.Contains(e.MockStringSet, x => x == "B");
-      Assert.Contains(e.MockStringSet, x => x == "C");
+      Assert.Contains(result.MockStringSet, x => x == "A");
+      Assert.Contains(result.MockStringSet, x => x == "B");
+      Assert.Contains(result.MockStringSet, x => x == "C");
     }
     
     [Fact]

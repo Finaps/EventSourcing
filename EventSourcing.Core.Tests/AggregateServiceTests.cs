@@ -9,7 +9,6 @@ namespace EventSourcing.Core.Tests
   public abstract class AggregateServiceTests
   {
     protected abstract IEventStore GetEventStore();
-    protected abstract IViewStore GetViewStore();
     protected abstract IAggregateService GetAggregateService();
 
     [Fact]
