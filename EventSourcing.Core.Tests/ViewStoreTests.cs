@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -127,12 +128,136 @@ namespace EventSourcing.Core.Tests
     }
 
     [Fact]
+    public async Task Can_Filter_MockAggregate()
+    {
+      var store = GetViewStore();
+
+      var a1 = new MockAggregate
+      {
+        MockBoolean = true,
+        MockString = "Hello World",
+        MockDecimal = 0.55m,
+        MockDouble = 0.6,
+        MockEnum = MockEnum.C,
+        MockFlagEnum = MockFlagEnum.A | MockFlagEnum.D,
+        
+        MockNestedClass = new MockNestedClass
+        {
+          MockBoolean = false,
+          MockString = "Bonjour",
+          MockDecimal = 0.82m,
+          MockDouble = 0.999
+        },
+        
+        MockNestedClassList = new List<MockNestedClass>
+        {
+          new ()
+          {
+            MockBoolean = false,
+            MockString = "Hello!",
+            MockDecimal = 12m,
+            MockDouble = 0.22123
+          },
+          new ()
+          {
+            MockBoolean = true,
+            MockString = "Baguette",
+            MockDecimal = 32m,
+            MockDouble = 0.123123
+          },
+        },
+        
+        MockFloatList = new List<float> { .1f, .5f, .9f },
+        MockStringSet = new HashSet<string> { "A", "B", "C", "C" }
+      };
+
+      var a2 = new MockAggregate
+      {
+        MockBoolean = false,
+        MockString = "Guten Tag",
+        MockDecimal = -1,
+        MockDouble = 3.14159,
+        MockEnum = MockEnum.B,
+        MockFlagEnum = MockFlagEnum.C | MockFlagEnum.E,
+        
+        MockNestedClass = new MockNestedClass
+        {
+          MockBoolean = true,
+          MockString = "Buenos Dias",
+          MockDecimal = .10m,
+          MockDouble = 2.123123
+        },
+        
+        MockNestedClassList = new List<MockNestedClass>
+        {
+          new ()
+          {
+            MockBoolean = false,
+            MockString = "Bye Bye",
+            MockDecimal = 23.231m,
+            MockDouble = 0.123123
+          },
+          new ()
+          {
+            MockBoolean = false,
+            MockString = "Croissant",
+            MockDecimal = 6m,
+            MockDouble = 0.111
+          },
+        },
+        
+        MockFloatList = new List<float> { 1f, 2f, 3f },
+        MockStringSet = new HashSet<string> { "Just one item" }
+      };
+
+      await store.UpdateAsync(a1);
+      await store.UpdateAsync(a2);
+
+      var queryable = store
+        .Query<MockAggregate, MockAggregateView>()
+        .Where(x => x.Id == a1.Id || x.Id == a2.Id);
+
+      // Can Filter By MockString
+      var result1 = await queryable
+        .Where(x => x.MockString == a1.MockString).ToListAsync();
+      Assert.Equal(result1.Single().Id, a1.Id);
+
+      // Can Filter By Nested Decimal
+      var result2 = await queryable
+        .Where(x => x.MockNestedClass.MockDecimal == a2.MockNestedClass.MockDecimal).ToListAsync();
+      Assert.Equal(result2.Single().Id, a2.Id);
+      
+      // Can Filter On List Contents
+      var result3 = await queryable
+        .Where(x => x.MockFloatList.Contains(1f)).ToListAsync();
+      Assert.Equal(result3.Single().Id, a2.Id);
+      
+      // Can Filter On Set Contents
+      var result4 = await queryable
+        .Where(x => x.MockStringSet.Contains("B")).ToListAsync();
+      Assert.Equal(result4.Single().Id, a1.Id);
+      
+      // Can Filter on FlagEnum
+      var result5 = await queryable
+        .Where(x => (x.MockFlagEnum & MockFlagEnum.D) == MockFlagEnum.D).ToListAsync();
+      Assert.Equal(result5.Single().Id, a1.Id);
+      
+      // Can Filter on Nested Class Attribute
+      var result6 = await queryable
+        .Where(x => x.MockNestedClassList.Select(y => y.MockString).Contains("Croissant"))
+        .ToListAsync();
+      Assert.Equal(result6.Single().Id, a2.Id);
+    }
+
+    [Fact]
     public async Task View_Gets_Updated_When_Aggregate_Hash_Changes()
     {
       var store = GetViewStore();
       var service = GetAggregateService();
 
-      var aggregate = new VerboseAggregate { Hash = "DifferentHash" };
+      const string fakeHash = "DifferentHash";
+
+      var aggregate = new VerboseAggregate { Hash = fakeHash };
 
       // Add Event and Update View, The View Now Contains One Events
       aggregate.Add(new EmptyEvent());
@@ -145,13 +270,15 @@ namespace EventSourcing.Core.Tests
       // Get View, which because the View Hash was 'hacked' at insertion time, will update itself
       var view = await store.Get<VerboseAggregate, VerboseAggregateView>(aggregate.Id);
 
-      Assert.Equal("DifferentHash", aggregate.Hash);
-      Assert.Equal("DifferentHash", aggregate.HashDuringApply);
+      Assert.Equal(fakeHash, aggregate.Hash);
+      Assert.Equal(fakeHash, aggregate.HashDuringApply);
 
-      Assert.NotEqual("DifferentHash", new VerboseAggregate().Hash);
+      Assert.NotEqual(fakeHash, new VerboseAggregate().Hash);
       Assert.Equal(new VerboseAggregate().Hash, view.Hash);
       Assert.Equal(new VerboseAggregate().Hash, view.HashDuringApply);
       Assert.Equal(2, view.NumberOfAppliedEvents);
     }
+    
+    
   }
 }

@@ -29,7 +29,7 @@ namespace EventSourcing.Cosmos
     public IQueryable<TView> Query<TAggregate, TView>()
       where TView : View<TAggregate>, new() where TAggregate : Aggregate, new() =>
       new CosmosViewAsyncQueryable<TAggregate, TView>(
-        this, Container.GetItemLinqQueryable<TView>().Where(x => x.Type == new TView().Type));
+        this, Container.GetItemLinqQueryable<TView>().Where(x => x.Type == typeof(TAggregate).FullName));
     
     public async Task<TView> Get<TAggregate, TView>(Guid id, CancellationToken cancellationToken = default)
       where TView : View<TAggregate>, new() where TAggregate : Aggregate, new()

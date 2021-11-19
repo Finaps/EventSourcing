@@ -4,20 +4,20 @@ namespace EventSourcing.Core.Tests.Mocks
 {
   public class MockAggregate : Aggregate, IMockAggregate
   {
-    public bool MockBoolean { get; private set; }
-    public string MockString { get; private set; }
-    public decimal MockDecimal { get; private set; }
-    public double MockDouble { get; private set; }
+    public bool MockBoolean { get; set; }
+    public string MockString { get; set; }
+    public decimal MockDecimal { get; set; }
+    public double MockDouble { get; set; }
     
-    public MockEnum MockEnum { get; private set; }
-    public MockFlagEnum MockFlagEnum { get; private set; }
+    public MockEnum MockEnum { get; set; }
+    public MockFlagEnum MockFlagEnum { get; set; }
     
-    public MockNestedClass MockNestedClass { get; private set; }
+    public MockNestedClass MockNestedClass { get; set; }
     
-    public List<MockNestedClass> MockNestedClassList { get; private set; }
+    public List<MockNestedClass> MockNestedClassList { get; set; }
 
-    public List<float> MockFloatList { get; private set; }
-    public HashSet<string> MockStringSet { get; private set; }
+    public List<float> MockFloatList { get; set; }
+    public HashSet<string> MockStringSet { get; set; }
     
     protected override void Apply<TEvent>(TEvent e)
     {
