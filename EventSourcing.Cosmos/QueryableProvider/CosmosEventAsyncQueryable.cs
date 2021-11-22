@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
-using EventSourcing.Core.Exceptions;
 using Microsoft.Azure.Cosmos;
-using Microsoft.Azure.Cosmos.Linq;
+#pragma warning disable CS1998
 
 namespace EventSourcing.Cosmos.QueryableProvider
 {
@@ -11,28 +11,10 @@ namespace EventSourcing.Cosmos.QueryableProvider
   {
     public CosmosEventAsyncQueryable(IQueryable<TResult> queryable) : base(queryable) { }
 
-    public override async IAsyncEnumerator<TResult> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+    protected override async IAsyncEnumerable<TResult> GetItemsAsync(FeedResponse<TResult> feed, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-      var iterator = Queryable.ToFeedIterator();
-      
-      while (iterator.HasMoreResults)
-      {
-        FeedResponse<TResult> items;
-
-        try
-        {
-          items = await iterator.ReadNextAsync(cancellationToken);
-        }
-        catch (CosmosException e)
-        {
-          throw new EventStoreException($"Encountered error while querying events: {(int)e.StatusCode} {e.StatusCode.ToString()}", e);
-        }
-
-        if (items == null) continue;
-        
-        foreach (var item in items)
-          yield return item;
-      }
+      foreach (var result in feed)
+        yield return result;
     }
   }
 }

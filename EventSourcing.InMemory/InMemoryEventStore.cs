@@ -13,6 +13,7 @@ namespace EventSourcing.InMemory
 
   public class InMemoryEventStore<TBaseEvent> : IEventStore<TBaseEvent> where TBaseEvent : Event, new()
   {
+    private readonly ConcurrentDictionary<Guid, byte> _locks = new();
     private readonly ConcurrentDictionary<(Guid, uint), TBaseEvent> _storedEvents = new();
     
     public IQueryable<TBaseEvent> Events => new InMemoryAsyncQueryable<TBaseEvent>(_storedEvents.Values.AsQueryable());
@@ -35,15 +36,22 @@ namespace EventSourcing.InMemory
       
       if (events.First().AggregateVersion != 0 && !_storedEvents.ContainsKey((events.First().AggregateId, events.First().AggregateVersion - 1)))
         throw new InvalidOperationException("Event versions should be consecutive");
-      
+
+      if (!_locks.TryAdd(aggregateId, default))
+        throw new ConcurrencyException($"Couldn't acquire lock for AggregateId '{aggregateId}': Another thread is likely making changes");
+
       foreach (var e in events)
       {
+        // Throw ConcurrencyException if event is already present
         if (_storedEvents.ContainsKey((e.AggregateId, e.AggregateVersion)))
           throw new ConcurrencyException(e);
       }
 
       foreach (var e in events.Where(e => !_storedEvents.TryAdd((e.AggregateId, e.AggregateVersion), e)))
         throw new ConcurrencyException(e);
+
+      if (!_locks.TryRemove(aggregateId, out _))
+        throw new EventStoreException($"Couldn't remove lock for AggregateId '{aggregateId}'");
 
       return Task.CompletedTask;
     }
