@@ -10,6 +10,8 @@ namespace EventSourcing.Example.Domain.Baskets
     {
         public List<Item> Items = new();
         public bool CheckedOut;
+        public DateTimeOffset BasketCreated { get; set; }
+        public DateTimeOffset BasketExpires => BasketCreated + Constants.BasketExpires;
         
         protected override void Apply<TEvent>(TEvent e)
         {
@@ -19,6 +21,7 @@ namespace EventSourcing.Example.Domain.Baskets
             switch (e)
             {
                 case BasketCreatedEvent:
+                    BasketCreated = e.Timestamp;
                     break;
                 case ProductAddedToBasketEvent addedToBasketEvent:
                     var existingItem = Items.SingleOrDefault(x => x.ProductId == addedToBasketEvent.ProductId);
@@ -44,6 +47,19 @@ namespace EventSourcing.Example.Domain.Baskets
         public void Create()
         {
             Add(new BasketCreatedEvent());
+        }
+        public void AddProduct(int quantity, Guid productId)
+        {
+            Add(new ProductAddedToBasketEvent(quantity, productId));
+        }
+        public void RemoveProduct(int quantity, Guid productId)
+        {   
+            if(Items.SingleOrDefault(x => x.ProductId == productId) != null)
+                Add(new ProductRemovedFromBasketEvent(quantity, productId));
+        }
+        public void CheckoutBasket()
+        { 
+            Add(new BasketCheckedOutEvent());
         }
     }
 }
