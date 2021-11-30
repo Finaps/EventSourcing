@@ -6,5 +6,5 @@ namespace EventSourcing.Example.Domain.Baskets
     public record BasketCreatedEvent() : Event();
     public record ProductAddedToBasketEvent(int Quantity, Guid ProductId ) : Event();
     public record ProductRemovedFromBasketEvent(int Quantity, Guid ProductId) : Event();
-    public record BasketCheckedOutEvent(int Quantity) : Event();
+    public record BasketCheckedOutEvent() : Event();
 }
