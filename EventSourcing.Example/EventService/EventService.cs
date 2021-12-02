@@ -3,14 +3,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EventSourcing.Core;
-using EventSourcing.Core.Tests.MockEventStore;
 using EventSourcing.Example.EventPublishing;
 
 namespace EventSourcing.Example.EventService
 {
     public class EventService : IEventStore
     {
-        private static readonly IEventStore EventStore = new InMemoryEventStore();
+        private static readonly IEventStore EventStore;
         private readonly IEventPublisher _eventPublisher;
 
         public EventService(IEventPublisher eventPublisher)
