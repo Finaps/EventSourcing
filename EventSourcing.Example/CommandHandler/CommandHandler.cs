@@ -1,10 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using EventSourcing.Core;
 
 namespace EventSourcing.Example.CommandHandler
 {
-    public class CommandHandler<TAggregate> where TAggregate : Aggregate, new()
+    public interface ICommandHandler<TAggregate> where TAggregate : Aggregate, new()
+    {
+        Task<TAggregate> ExecuteCommand(ICommand command);
+    }
+    public class CommandHandler<TAggregate> : ICommandHandler<TAggregate> where TAggregate : Aggregate, new()
     {
         private readonly IAggregateService _aggregateService;
         private readonly Dictionary<Type, Func<TAggregate, ICommand, TAggregate>> _commandHandlers = new ();
@@ -22,7 +27,7 @@ namespace EventSourcing.Example.CommandHandler
             _commandHandlers.Add(typeof(TCommand), (aggregate, command) => handler(aggregate, (TCommand) command));
         }
         
-        public async void ExecuteCommand(ICommand command)
+        public async Task<TAggregate> ExecuteCommand(ICommand command)
         {
             var handler = _commandHandlers[command.GetType()];
             if (handler == null)
@@ -31,6 +36,7 @@ namespace EventSourcing.Example.CommandHandler
             var aggregate = await _aggregateService.RehydrateAsync<TAggregate>(command.AggregateId);
             aggregate = handler(aggregate, command);
             await _aggregateService.PersistAsync(aggregate);
+            return aggregate;
         }
     }
 }

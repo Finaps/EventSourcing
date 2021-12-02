@@ -3,7 +3,7 @@ using EventSourcing.Core;
 using EventSourcing.Core.Exceptions;
 using EventSourcing.Example.CommandHandler;
 
-namespace EventSourcing.Example.Domain.Baskets
+namespace EventSourcing.Example.Domain.Aggregates.Baskets
 {
     public class BasketCommandHandler : CommandHandler<Basket>
     {
@@ -14,7 +14,6 @@ namespace EventSourcing.Example.Domain.Baskets
             RegisterCommandHandler(RemoveProductFromBasket);
             RegisterCommandHandler(CheckoutBasket);
         }
-
 
         private Func<Basket, CreateBasket, Basket> Create = (basket, _) =>
         {

@@ -3,7 +3,7 @@ using EventSourcing.Core;
 using EventSourcing.Core.Exceptions;
 using EventSourcing.Example.CommandHandler;
 
-namespace EventSourcing.Example.Domain.Orders
+namespace EventSourcing.Example.Domain.Aggregates.Orders
 {
     public class OrderCommandHandler : CommandHandler<Order>
     {

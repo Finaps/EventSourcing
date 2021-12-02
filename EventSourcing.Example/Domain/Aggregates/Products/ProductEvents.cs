@@ -1,7 +1,7 @@
 using System;
 using EventSourcing.Core;
 
-namespace EventSourcing.Example.Domain.Products
+namespace EventSourcing.Example.Domain.Aggregates.Products
 {
     public record ProductCreatedEvent(string Name, int Quantity) : Event();
     public record ProductReservedEvent(int Quantity, Guid BasketId, TimeSpan HeldFor) : Event();
