@@ -3,8 +3,9 @@ using EventSourcing.Core;
 using EventSourcing.Core.Exceptions;
 using EventSourcing.Example.CommandHandler;
 
-namespace EventSourcing.Example.Domain.Products
+namespace EventSourcing.Example.Domain.Aggregates.Products
 {
+
     public class OrderCommandHandler : CommandHandler<Product>
     {
         public OrderCommandHandler(IAggregateService aggregateService) : base(aggregateService)

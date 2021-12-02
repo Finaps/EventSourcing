@@ -4,7 +4,7 @@ using System.Linq;
 using EventSourcing.Core;
 using EventSourcing.Example.Domain.Shared;
 
-namespace EventSourcing.Example.Domain.Baskets
+namespace EventSourcing.Example.Domain.Aggregates.Baskets
 {
     public class Basket : Aggregate
     {

@@ -4,7 +4,7 @@ using System.Linq;
 using EventSourcing.Core;
 using EventSourcing.Example.Domain.Shared;
 
-namespace EventSourcing.Example.Domain.Products
+namespace EventSourcing.Example.Domain.Aggregates.Products
 {
     public class Product : Aggregate
     {
