@@ -21,13 +21,11 @@ namespace EventSourcing.Cosmos
       })
     }) { }
     
-    public IQueryable<TView> Query<TAggregate, TView>()
-      where TView : View<TAggregate>, new() where TAggregate : Aggregate, new() =>
-      new CosmosAsyncQueryable<TView>(Container.GetItemLinqQueryable<TView>().Where(x => x.Type == typeof(TAggregate).FullName));
+    public IQueryable<TView> Query<TView>() where TView : View, new() =>
+      new CosmosAsyncQueryable<TView>(Container.GetItemLinqQueryable<TView>().Where(x => x.Type == new TView().Type));
     
-    public async Task<TView> Get<TAggregate, TView>(Guid id, CancellationToken cancellationToken = default)
-      where TView : View<TAggregate>, new() where TAggregate : Aggregate, new() => 
-      await Get<TView>(id, new PartitionKey(new TAggregate().Type), cancellationToken);
+    public async Task<TView> Get<TView>(Guid id, CancellationToken cancellationToken = default) where TView : View, new() => 
+      await Get<TView>(id, new PartitionKey(new TView().Type), cancellationToken);
 
     public async Task UpsertAsync<TAggregate>(TAggregate aggregate, CancellationToken cancellationToken = default)
       where TAggregate : Aggregate, new()

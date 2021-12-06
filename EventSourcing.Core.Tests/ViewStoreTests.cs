@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -51,7 +52,7 @@ namespace EventSourcing.Core.Tests
 
       await store.UpsertAsync(aggregate);
 
-      var result = await store.Get<MockAggregate, MockAggregateView>(aggregate.Id);
+      var result = await store.Get<MockAggregateView>(aggregate.Id);
       
       Assert.Equal(aggregate.MockBoolean, result.MockBoolean);
       Assert.Equal(aggregate.MockString, result.MockString);
@@ -116,7 +117,7 @@ namespace EventSourcing.Core.Tests
 
       await store.UpsertAsync(aggregate);
 
-      var result = await store.Get<MockAggregate, MockAggregateAlternativeView>(aggregate.Id);
+      var result = await store.Get<MockAggregateAlternativeView>(aggregate.Id);
       
       Assert.Equal(aggregate.MockBoolean, result.MockBoolean);
       Assert.Equal(aggregate.MockString, result.MockString);
@@ -211,7 +212,7 @@ namespace EventSourcing.Core.Tests
       await store.UpsertAsync(a2);
 
       var queryable = store
-        .Query<MockAggregate, MockAggregateView>()
+        .Query<MockAggregateView>()
         .Where(x => x.Id == a1.Id || x.Id == a2.Id);
 
       // Can Filter By MockString

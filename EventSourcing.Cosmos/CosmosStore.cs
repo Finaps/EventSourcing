@@ -26,7 +26,7 @@ namespace EventSourcing.Cosmos
       Container = new CosmosClient(options.Value.ConnectionString, clientOptions)
         .GetDatabase(options.Value.Database).GetContainer(options.Value.Container);
     }
-    
+
     protected static CosmosException CreateCosmosException(TransactionalBatchResponse response)
     {
       var subStatusCode = (int) response
