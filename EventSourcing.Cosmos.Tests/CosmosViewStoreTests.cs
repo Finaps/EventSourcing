@@ -8,12 +8,9 @@ namespace EventSourcing.Cosmos.Tests
   public class CosmosViewStoreTests : ViewStoreTests
   {
     private readonly IOptions<CosmosStoreOptions> _viewStoreOptions;
-    private readonly IOptions<CosmosStoreOptions> _eventStoreOptions;
 
-    protected override IAggregateService GetAggregateService() =>
-      new AggregateService(new CosmosEventStore(_eventStoreOptions));
     protected override IViewStore GetViewStore() => 
-      new CosmosViewStore(GetAggregateService(), _viewStoreOptions);
+      new CosmosViewStore(_viewStoreOptions);
 
     public CosmosViewStoreTests()
     {
@@ -28,13 +25,6 @@ namespace EventSourcing.Cosmos.Tests
         ConnectionString = configuration["ViewStore:ConnectionString"],
         Database = configuration["ViewStore:Database"],
         Container = configuration["ViewStore:Container"]
-      });
-      
-      _eventStoreOptions = Options.Create(new CosmosStoreOptions
-      {
-        ConnectionString = configuration["EventStore:ConnectionString"],
-        Database = configuration["EventStore:Database"],
-        Container = configuration["EventStore:Container"]
       });
     }
   }

@@ -10,7 +10,7 @@ namespace EventSourcing.Cosmos.QueryableProvider
       _provider = provider;
 
     public IQueryable<TElement> CreateQuery<TElement>(Expression expression) =>
-      new CosmosEventAsyncQueryable<TElement>(_provider.CreateQuery<TElement>(expression));
+      new CosmosAsyncQueryable<TElement>(_provider.CreateQuery<TElement>(expression));
 
     public IQueryable CreateQuery(Expression expression) =>
       CreateQuery<object>(expression);

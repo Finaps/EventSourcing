@@ -8,7 +8,6 @@ namespace EventSourcing.Core.Tests
 {
   public abstract class ViewStoreTests
   {
-    protected abstract IAggregateService GetAggregateService();
     protected abstract IViewStore GetViewStore();
 
     [Fact]
@@ -50,7 +49,7 @@ namespace EventSourcing.Core.Tests
         MockStringSet = new HashSet<string> { "A", "B", "C", "C" }
       });
 
-      await store.UpdateAsync(aggregate);
+      await store.UpsertAsync(aggregate);
 
       var result = await store.Get<MockAggregate, MockAggregateView>(aggregate.Id);
       
@@ -115,7 +114,7 @@ namespace EventSourcing.Core.Tests
         MockStringSet = new HashSet<string> { "A", "B", "C", "C" }
       });
 
-      await store.UpdateAsync(aggregate);
+      await store.UpsertAsync(aggregate);
 
       var result = await store.Get<MockAggregate, MockAggregateAlternativeView>(aggregate.Id);
       
@@ -208,8 +207,8 @@ namespace EventSourcing.Core.Tests
         MockStringSet = new HashSet<string> { "Just one item" }
       };
 
-      await store.UpdateAsync(a1);
-      await store.UpdateAsync(a2);
+      await store.UpsertAsync(a1);
+      await store.UpsertAsync(a2);
 
       var queryable = store
         .Query<MockAggregate, MockAggregateView>()
@@ -246,37 +245,5 @@ namespace EventSourcing.Core.Tests
         .ToListAsync();
       Assert.Equal(result6.Single().Id, a2.Id);
     }
-
-    [Fact]
-    public async Task View_Gets_Updated_When_Aggregate_Hash_Changes()
-    {
-      var store = GetViewStore();
-      var service = GetAggregateService();
-
-      const string fakeHash = "DifferentHash";
-
-      var aggregate = new VerboseAggregate { Hash = fakeHash };
-
-      // Add Event and Update View, The View Now Contains One Events
-      aggregate.Add(new EmptyEvent());
-      await store.UpdateAsync(aggregate);
-
-      // Add another event and only update EventStore
-      aggregate.Add(new EmptyEvent());
-      await service.PersistAsync(aggregate);
-
-      // Get View, which because the View Hash was 'hacked' at insertion time, will update itself
-      var view = await store.Get<VerboseAggregate, VerboseAggregateView>(aggregate.Id);
-
-      Assert.Equal(fakeHash, aggregate.Hash);
-      Assert.Equal(fakeHash, aggregate.HashDuringApply);
-
-      Assert.NotEqual(fakeHash, new VerboseAggregate().Hash);
-      Assert.Equal(new VerboseAggregate().Hash, view.Hash);
-      Assert.Equal(new VerboseAggregate().Hash, view.HashDuringApply);
-      Assert.Equal(2, view.NumberOfAppliedEvents);
-    }
-    
-    
   }
 }

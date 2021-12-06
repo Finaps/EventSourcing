@@ -43,7 +43,7 @@ namespace EventSourcing.Cosmos
     /// </summary>
     /// <typeparam name="TBaseEvent"></typeparam>
     public IQueryable<TBaseEvent> Events =>
-      new CosmosEventAsyncQueryable<TBaseEvent>(Container.GetItemLinqQueryable<TBaseEvent>());
+      new CosmosAsyncQueryable<TBaseEvent>(Container.GetItemLinqQueryable<TBaseEvent>());
 
     /// <summary>
     /// AddAsync: Store <see cref="TBaseEvent"/>s to the Cosmos Event Store
