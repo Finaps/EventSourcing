@@ -9,6 +9,6 @@ namespace EventSourcing.Core
   {
     IQueryable<TView> Query<TAggregate, TView>() where TView : View<TAggregate>, new() where TAggregate : Aggregate, new();
     Task<TView> Get<TAggregate, TView>(Guid id, CancellationToken cancellationToken = default) where TView : View<TAggregate>, new() where TAggregate : Aggregate, new();
-    Task UpsertAsync<TAggregate>(TAggregate aggregate, CancellationToken cancellationToken = default) where TAggregate : Aggregate;
+    Task UpsertAsync<TAggregate>(TAggregate aggregate, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new();
   }
 }

@@ -30,7 +30,7 @@ namespace EventSourcing.InMemory
 
     public async IAsyncEnumerator<TResult> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
-      foreach (var item in _queryable.ToList())
+      foreach (var item in _queryable)
       {
         await Task.CompletedTask;
         yield return item;

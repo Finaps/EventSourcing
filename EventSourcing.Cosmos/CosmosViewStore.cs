@@ -29,7 +29,8 @@ namespace EventSourcing.Cosmos
       where TView : View<TAggregate>, new() where TAggregate : Aggregate, new() => 
       await Get<TView>(id, new PartitionKey(new TAggregate().Type), cancellationToken);
 
-    public async Task UpsertAsync<TAggregate>(TAggregate aggregate, CancellationToken cancellationToken = default) where TAggregate : Aggregate
+    public async Task UpsertAsync<TAggregate>(TAggregate aggregate, CancellationToken cancellationToken = default)
+      where TAggregate : Aggregate, new()
     {
       try
       {
