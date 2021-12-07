@@ -5,7 +5,7 @@ using EventSourcing.Example.ComandBus;
 
 namespace EventSourcing.Example.Domain.Aggregates.Products
 {
-    public record Create(Guid AggregateId, string Name, int Quantity) : CommandBase(AggregateId);
+    public record CreateProduct(Guid AggregateId, string Name, int Quantity) : CommandBase(AggregateId);
     public record Reserve(Guid AggregateId, Guid BasketId, int Quantity, TimeSpan TimeToHold) : CommandBase(AggregateId);
     public record Purchase(Guid AggregateId, Guid BasketId, int Quantity) : CommandBase(AggregateId);
     public record RemoveReservation(Guid AggregateId, Guid BasketId, int Quantity) : CommandBase(AggregateId);
@@ -13,9 +13,10 @@ namespace EventSourcing.Example.Domain.Aggregates.Products
     
     
     
+    
     public static class ProductCommandHandlers
     {
-        private static Func<Product, Create, Product> Create = (product, cmd) =>
+        private static Func<Product, CreateProduct, Product> Create = (product, cmd) =>
         {
             if (product != null)
                 throw new ConcurrencyException($"Order with id: {product.Id} already exists");
