@@ -1,6 +1,6 @@
 using System;
 using EventSourcing.Core.Exceptions;
-using EventSourcing.Example.ComandBus;
+using EventSourcing.Example.CommandBus;
 
 namespace EventSourcing.Example.Domain.Aggregates.Baskets
 {
