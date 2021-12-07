@@ -1,5 +1,6 @@
 using System;
-using EventSourcing.Example.CommandHandler;
+using System.Threading.Tasks;
+using EventSourcing.Example.ComandBus;
 using EventSourcing.Example.Domain.Aggregates.Baskets;
 using EventSourcing.Example.Domain.Aggregates.Orders;
 using EventSourcing.Example.Domain.Aggregates.Products;
@@ -10,26 +11,30 @@ namespace EventSourcing.Example.Controllers
 {
     public class BasketController : ControllerBase
     {
-        private readonly ICommandHandler<Basket> _basketCommandHandler;
-        private readonly ICommandHandler<Order> _productCommandHandler;
-        public BasketController(ICommandHandler<Basket> basketCommandHandler, ICommandHandler<Order> productCommandHandler)
+        private readonly ICommandBus _commandBus;
+        public BasketController(ICommandBus commandBus)
         {
-            _basketCommandHandler = basketCommandHandler;
-            _productCommandHandler = productCommandHandler;
+            _commandBus = commandBus;
         }
         [HttpPost]
-        public OkObjectResult CreateBasket()
+        public async Task<OkObjectResult> CreateBasket()
         {
             var basketId = Guid.NewGuid();
-            _basketCommandHandler.ExecuteCommand(new CreateBasket(basketId));
-            return Ok(basketId);
+            var basket = await _commandBus.ExecuteCommand<Basket>(new CreateBasket(basketId));
+            return Ok(basket.Id);
         }
         
         [HttpPost("{basketId:guid}/{productId:guid}/{amount:int}")]
-        public OkObjectResult AddItemToBasket([FromRoute] Guid basketId,[FromRoute] Guid productId,[FromRoute] int amount)
+        public async Task<ObjectResult> AddItemToBasket([FromRoute] Guid basketId,[FromRoute] Guid productId,[FromRoute] int amount)
         {
-            _productCommandHandler.ExecuteCommand(new Reserve(productId ,basketId, amount, Constants.ProductReservationExpires));
-            return Ok(true);
+            var product = await _commandBus.ExecuteCommand<Product>(new Reserve(productId ,basketId, amount, Constants.ProductReservationExpires));
+            
+            if (product.Reservations.Find(x => x.BasketId == basketId && x.Quantity >= amount) == null)
+                return BadRequest($"Reservation of product {productId} failed");
+
+            var basket = await _commandBus.ExecuteCommand<Basket>(new AddProductToBasket(basketId, productId, amount));
+            
+            return Ok(basket);
         }
     }
 }
