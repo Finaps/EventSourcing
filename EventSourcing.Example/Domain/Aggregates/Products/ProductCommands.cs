@@ -1,5 +1,7 @@
 using System;
-using EventSourcing.Example.CommandHandler;
+using EventSourcing.Core;
+using EventSourcing.Core.Exceptions;
+using EventSourcing.Example.ComandBus;
 
 namespace EventSourcing.Example.Domain.Aggregates.Products
 {
@@ -8,4 +10,55 @@ namespace EventSourcing.Example.Domain.Aggregates.Products
     public record Purchase(Guid AggregateId, Guid BasketId, int Quantity) : CommandBase(AggregateId);
     public record RemoveReservation(Guid AggregateId, Guid BasketId, int Quantity) : CommandBase(AggregateId);
     public record AddStock(Guid AggregateId, int Quantity) : CommandBase(AggregateId);
+    
+    
+    
+    public static class ProductCommandHandlers
+    {
+        private static Func<Product, Create, Product> Create = (product, cmd) =>
+        {
+            if (product != null)
+                throw new ConcurrencyException($"Order with id: {product.Id} already exists");
+
+            product = new Product();
+            product.Create(cmd.Name, cmd.Quantity);
+            return product;
+        };
+        
+        public static Func<Product, Reserve, Product> Reserve = (product, cmd) =>
+        {
+            if (product == null)
+                throw new InvalidOperationException($"Product with id: {cmd.AggregateId} does not exist");
+            
+            product.ReserveProduct(cmd.BasketId, cmd.Quantity);
+            return product;
+        };
+        
+        public static Func<Product, Reserve, Product> Purchase = (product, cmd) =>
+        {
+            if (product == null)
+                throw new InvalidOperationException($"Product with id: {cmd.AggregateId} does not exist");
+            
+            product.PurchaseProduct(cmd.BasketId, cmd.Quantity);
+            return product;
+        };
+        
+        public static Func<Product, Reserve, Product> RemoveReservation = (product, cmd) =>
+        {
+            if (product == null)
+                throw new InvalidOperationException($"Product with id: {cmd.AggregateId} does not exist");
+            
+            product.RemoveReservation(cmd.BasketId, cmd.Quantity);
+            return product;
+        };
+        
+        public static Func<Product, Reserve, Product> AddStock = (product, cmd) =>
+        {
+            if (product == null)
+                throw new InvalidOperationException($"Product with id: {cmd.AggregateId} does not exist");
+            
+            product.AddStock(cmd.Quantity);
+            return product;
+        };
+    }
 }

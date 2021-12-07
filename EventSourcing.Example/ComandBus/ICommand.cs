@@ -1,6 +1,6 @@
 using System;
 
-namespace EventSourcing.Example.CommandHandler
+namespace EventSourcing.Example.ComandBus
 {
     public interface ICommand
     {
