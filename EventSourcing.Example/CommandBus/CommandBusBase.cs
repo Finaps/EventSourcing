@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using EventSourcing.Core;
 
-namespace EventSourcing.Example.ComandBus
+namespace EventSourcing.Example.CommandBus
 {
     public interface ICommandBus
     {

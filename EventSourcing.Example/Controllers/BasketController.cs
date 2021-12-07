@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using EventSourcing.Core;
-using EventSourcing.Example.ComandBus;
+using EventSourcing.Example.CommandBus;
 using EventSourcing.Example.Domain.Aggregates.Baskets;
 using EventSourcing.Example.Domain.Aggregates.Orders;
 using EventSourcing.Example.Domain.Aggregates.Products;
