@@ -86,15 +86,24 @@ namespace EventSourcing.Core
     {
       if (aggregate.Id == Guid.Empty)
         throw new ArgumentException("Aggregate.Id cannot be empty", nameof(aggregate));
-
-      if (aggregate is ISnapshottable<TBaseEvent> s 
-          && s.IntervalExceeded(aggregate.Version) 
-          && s.CreateSnapshot() is ISnapshot ss)
-        aggregate.Add(ss as TBaseEvent);
       
       await _store.AddAsync(aggregate.UncommittedEvents.ToList(), cancellationToken);
       aggregate.ClearUncommittedEvents();
+      if (aggregate is ISnapshottable<TBaseEvent> s && s.IntervalExceeded(aggregate.Version))
+        await CreateSnapshotAsync(aggregate, cancellationToken);
       return aggregate;
+    }
+
+    private async Task CreateSnapshotAsync<TAggregate>(TAggregate aggregate,
+      CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
+    {
+      if (aggregate is not ISnapshottable<TBaseEvent> s)
+        return;
+      if (s.CreateSnapshot() is not ISnapshot snapshot)
+        throw new InvalidOperationException(
+          $"Snapshot created for {s.GetType().Name} does not inherit from {nameof(ISnapshot)}");
+      aggregate.Add(snapshot as TBaseEvent);
+      await _store.AddSnapshotAsync(aggregate.UncommittedEvents.First(), cancellationToken);
     }
   }
 }

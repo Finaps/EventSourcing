@@ -44,5 +44,6 @@ namespace EventSourcing.Core
     /// <param name="events"><see cref="Events"/>s to add</param>
     /// <param name="cancellationToken">Cancellation Token</param>
     Task AddAsync(IList<TBaseEvent> events, CancellationToken cancellationToken = default);
+    Task AddSnapshotAsync(TBaseEvent snapshot, CancellationToken cancellationToken = default) => throw new NotImplementedException();
   }
 }
