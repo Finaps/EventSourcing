@@ -57,7 +57,7 @@ namespace EventSourcing.Core
       return await Aggregate<TBaseEvent>.RehydrateAsync<TAggregate>(aggregateId, events, cancellationToken);
     }
     
-    public async Task<TAggregate> RehydrateFromSnapshotAsync<TAggregate>(Guid aggregateId,
+    private async Task<TAggregate> RehydrateFromSnapshotAsync<TAggregate>(Guid aggregateId,
       CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
     {
       var latestSnapshot = _store.Snapshots
@@ -87,8 +87,10 @@ namespace EventSourcing.Core
       if (aggregate.Id == Guid.Empty)
         throw new ArgumentException("Aggregate.Id cannot be empty", nameof(aggregate));
 
-      if (aggregate is ISnapshottable<TBaseEvent> s && s.IntervalExceeded(aggregate.Version))
-        aggregate.Add(s.CreateSnapshot());
+      if (aggregate is ISnapshottable<TBaseEvent> s 
+          && s.IntervalExceeded(aggregate.Version) 
+          && s.CreateSnapshot() is ISnapshot ss)
+        aggregate.Add(ss as TBaseEvent);
       
       await _store.AddAsync(aggregate.UncommittedEvents.ToList(), cancellationToken);
       aggregate.ClearUncommittedEvents();
