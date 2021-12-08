@@ -10,7 +10,7 @@ namespace EventSourcing.Core.Snapshotting
     public TimeSpan? IntervalDuration { get; }
     public DateTimeOffset LastSnapshotAt { get; set; }
 
-    public TBaseEvent CreateSnapshot();
+    public ISnapshot CreateSnapshot();
 
     public void UpdateLastSnapshotVersion(TBaseEvent e)
     {

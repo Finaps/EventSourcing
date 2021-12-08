@@ -1,4 +1,4 @@
 namespace EventSourcing.Core.Snapshotting
 {
-    public interface ISnapshot { }
+    public interface ISnapshot {}
 }
