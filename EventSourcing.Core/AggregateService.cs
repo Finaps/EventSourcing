@@ -35,7 +35,7 @@ namespace EventSourcing.Core
 
       if (new TAggregate() is ISnapshottable<TBaseEvent>)
       {
-        //Do snapshot stuff
+        return await RehydrateFromSnapshotAsync<TAggregate>(aggregateId, cancellationToken);
       }
 
       var events = _store.Events
@@ -69,11 +69,15 @@ namespace EventSourcing.Core
         .Where(x => x.AggregateId == aggregateId);
 
       if (latestSnapshot != null)
+      {
         events = events
           .Where(x => x.AggregateVersion > latestSnapshot.AggregateVersion);
-
+        events = _store.Snapshots 
+          .Where(x => x.id == latestSnapshot.ToString()) //TODO: Find a better way then fetching snapshot again
+          .Union(events);
+      }
+      
       var orderedEvents = events.OrderBy(x => x.AggregateVersion).ToAsyncEnumerable();
-
       return await Aggregate<TBaseEvent>.RehydrateAsync<TAggregate>(aggregateId, orderedEvents, cancellationToken);
     }
 
@@ -82,6 +86,9 @@ namespace EventSourcing.Core
     {
       if (aggregate.Id == Guid.Empty)
         throw new ArgumentException("Aggregate.Id cannot be empty", nameof(aggregate));
+
+      if (aggregate is Snapshottable<TBaseEvent> s && s.IntervalExceeded(aggregate.Version))
+        aggregate.Add(s.CreateSnapshot());
       
       await _store.AddAsync(aggregate.UncommittedEvents.ToList(), cancellationToken);
       aggregate.ClearUncommittedEvents();
