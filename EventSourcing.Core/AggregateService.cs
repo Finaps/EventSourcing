@@ -99,10 +99,10 @@ namespace EventSourcing.Core
     {
       if (aggregate is not ISnapshottable<TBaseEvent> s)
         return;
-      if (s.CreateSnapshot() is not ISnapshot snapshot)
+      if (s.CreateSnapshot() is not TBaseEvent snapshot)
         throw new InvalidOperationException(
-          $"Snapshot created for {s.GetType().Name} does not inherit from {nameof(ISnapshot)}");
-      aggregate.Add(snapshot as TBaseEvent);
+          $"Snapshot created for {s.GetType().Name} is not of type {nameof(TBaseEvent)}");
+      aggregate.Add(snapshot);
       await _store.AddSnapshotAsync(aggregate.UncommittedEvents.Single(), cancellationToken);
       aggregate.ClearUncommittedEvents();
     }
