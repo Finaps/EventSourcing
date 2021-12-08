@@ -90,11 +90,11 @@ namespace EventSourcing.Core
       await _store.AddAsync(aggregate.UncommittedEvents.ToList(), cancellationToken);
       aggregate.ClearUncommittedEvents();
       if (aggregate is ISnapshottable<TBaseEvent> s && s.IntervalExceeded(aggregate.Version))
-        await CreateSnapshotAsync(aggregate, cancellationToken);
+        await CreateAndPersistSnapshotAsync(aggregate, cancellationToken);
       return aggregate;
     }
 
-    private async Task CreateSnapshotAsync<TAggregate>(TAggregate aggregate,
+    private async Task CreateAndPersistSnapshotAsync<TAggregate>(TAggregate aggregate,
       CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
     {
       if (aggregate is not ISnapshottable<TBaseEvent> s)
@@ -103,7 +103,8 @@ namespace EventSourcing.Core
         throw new InvalidOperationException(
           $"Snapshot created for {s.GetType().Name} does not inherit from {nameof(ISnapshot)}");
       aggregate.Add(snapshot as TBaseEvent);
-      await _store.AddSnapshotAsync(aggregate.UncommittedEvents.First(), cancellationToken);
+      await _store.AddSnapshotAsync(aggregate.UncommittedEvents.Single(), cancellationToken);
+      aggregate.ClearUncommittedEvents();
     }
   }
 }
