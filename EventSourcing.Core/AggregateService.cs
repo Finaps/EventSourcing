@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using EventSourcing.Core.Attributes;
+using EventSourcing.Core.Snapshotting;
 
 namespace EventSourcing.Core
 {
@@ -28,10 +29,15 @@ namespace EventSourcing.Core
     public async Task<TAggregate> RehydrateAsync<TAggregate>(Guid aggregateId,
       CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
     {
-      var snapshotInterval = typeof(TAggregate).GetCustomAttributes(typeof(SnapshotInterval)).FirstOrDefault();
-      if (snapshotInterval != null)
-        return await RehydrateFromSnapshotAsync<TAggregate>(aggregateId, cancellationToken);
-      
+      // var snapshotInterval = typeof(TAggregate).GetCustomAttributes(typeof(SnapshotInterval)).FirstOrDefault();
+      // if (snapshotInterval != null)
+      //   return await RehydrateFromSnapshotAsync<TAggregate>(aggregateId, cancellationToken);
+
+      if (new TAggregate() is ISnapshottable<TBaseEvent>)
+      {
+        //Do snapshot stuff
+      }
+
       var events = _store.Events
         .Where(x => x.AggregateId == aggregateId)
         .OrderBy(x => x.AggregateVersion)
