@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using EventSourcing.Core.Snapshotting;
 
 namespace EventSourcing.Core
 {
@@ -97,8 +98,18 @@ namespace EventSourcing.Core
 
       var aggregate = new TAggregate { Id = id };
       await foreach (var e in events.WithCancellation(cancellationToken))
-        aggregate.ValidateAndApply(e);
-      
+      {
+        if (e is ISnapshot)
+        {
+          if (aggregate is not Snapshottable<TBaseEvent> snapshottable)
+            throw new InvalidOperationException($"Cannot apply snapshot {e.GetType().Name} to non-snapshottable aggregate {aggregate.GetType().Name}");
+          aggregate.Version = e.AggregateVersion;
+          snapshottable.ApplySnapshot(e);
+          aggregate.ValidateAndApply(e);
+        }
+        else aggregate.ValidateAndApply(e);
+      }
+
       aggregate.Finish();
       
       // If no Events have been applied (i.e. no events could be found), return null
