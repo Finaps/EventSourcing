@@ -104,7 +104,7 @@ namespace EventSourcing.Core
           if (aggregate is not Snapshottable<TBaseEvent> snapshottable)
             throw new InvalidOperationException($"Cannot apply snapshot {e.GetType().Name} to non-snapshottable aggregate {aggregate.GetType().Name}");
           aggregate.Version = e.AggregateVersion;
-          snapshottable.ApplySnapshot(e);
+          snapshottable.UpdateLastSnapshotVersion(e);
           aggregate.ValidateAndApply(e);
         }
         else aggregate.ValidateAndApply(e);
