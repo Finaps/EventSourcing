@@ -58,17 +58,15 @@ namespace EventSourcing.Core
         .Where(x => x.AggregateId == aggregateId)
         .OrderBy(x => x.AggregateVersion)
         .LastOrDefault();
-
+      
       var events = _store.Events
         .Where(x => x.AggregateId == aggregateId);
 
       if (latestSnapshot != null)
       {
         events = events
-          .Where(x => x.AggregateVersion > latestSnapshot.AggregateVersion);
-        events = _store.Snapshots 
-          .Where(x => x.id == latestSnapshot.id) //TODO: Find a better way then fetching snapshot again
-          .Union(events);
+          .Where(x => x.AggregateVersion > latestSnapshot.AggregateVersion)
+          .Prepend(latestSnapshot);
       }
       
       var orderedEvents = events.OrderBy(x => x.AggregateVersion).ToAsyncEnumerable();
