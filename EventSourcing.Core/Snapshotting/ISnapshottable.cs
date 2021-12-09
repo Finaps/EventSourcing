@@ -2,37 +2,15 @@ using System;
 
 namespace EventSourcing.Core.Snapshotting
 {
-    public interface ISnapshottable : ISnapshottable<Event>{}
-    public interface ISnapshottable<TBaseEvent> where TBaseEvent : Event
+    public interface ISnapshottable
     {
-    public uint? IntervalLength { get; }
-    public uint LastSnapshotVersion { get; set; }
-    public TimeSpan? IntervalDuration { get; }
-    public DateTimeOffset LastSnapshotAt { get; set; }
+        public static uint IntervalLength { get; }
+        public ISnapshot CreateSnapshot();
 
-    public ISnapshot CreateSnapshot();
-
-    public void UpdateLastSnapshotVersion(TBaseEvent e)
-    {
-        LastSnapshotVersion = e.AggregateVersion;
-        LastSnapshotAt = e.Timestamp;
-    }
-
-    public bool IntervalExceeded(uint currentVersion)
-    {
-        var timeSinceLastSnapshot = DateTimeOffset.Now - LastSnapshotAt;
-        var eventsSinceLastSnapshot = currentVersion - LastSnapshotVersion;
-
-        return IntervalExceeded(timeSinceLastSnapshot, eventsSinceLastSnapshot);
-    }
-
-    private bool IntervalExceeded(TimeSpan timeSinceLastSnapshot, uint eventsSinceLastSnapshot)
-    {
-        if (timeSinceLastSnapshot > IntervalDuration)
-            return true;
-
-        return eventsSinceLastSnapshot > IntervalLength;
-    }
-
+        public bool IntervalExceeded(uint previousVersion, uint currentVersion)
+        {
+            var adjusted = previousVersion % IntervalLength;
+            return IntervalLength > previousVersion - adjusted && IntervalLength <= currentVersion - adjusted;
+        }
     }
 }

@@ -73,7 +73,7 @@ namespace EventSourcing.Core
       {
         AggregateId = Id,
         AggregateType = Type,
-        AggregateVersion = Version,
+        AggregateVersion = Version
       };
 
       ValidateAndApply(e);
@@ -98,17 +98,7 @@ namespace EventSourcing.Core
 
       var aggregate = new TAggregate { Id = id };
       await foreach (var e in events.WithCancellation(cancellationToken))
-      {
-        if (e is ISnapshot)
-        {
-          if (aggregate is not ISnapshottable<TBaseEvent> snapshottable)
-            throw new InvalidOperationException($"Cannot apply snapshot {e.GetType().Name} to non-snapshottable aggregate {aggregate.GetType().Name}");
-          aggregate.Version = e.AggregateVersion;
-          snapshottable.UpdateLastSnapshotVersion(e);
-          aggregate.ValidateAndApply(e);
-        }
-        else aggregate.ValidateAndApply(e);
-      }
+        aggregate.ValidateAndApply(e);
 
       aggregate.Finish();
       
@@ -143,11 +133,18 @@ namespace EventSourcing.Core
       if (e.AggregateType != GetType().Name)
         throw new ArgumentException($"Event.AggregateType ({e.AggregateType}) does not correspond with typeof(Aggregate) ({GetType().Name})", nameof(e));
       
-      if (e.AggregateVersion != Version)
+      if (e is ISnapshot && this is not ISnapshottable snapshottable)
+        throw new InvalidOperationException($"Cannot apply snapshot {e.GetType().Name} to non-snapshottable aggregate {GetType().Name}");
+      
+      if (e is not ISnapshot && e.AggregateVersion != Version)
         throw new InvalidOperationException($"Event.AggregateVersion ({e.AggregateVersion}) does not correspond with Aggregate.Version ({Version})");
 
       Apply(e);
-      Version++;
+      
+      if (e is ISnapshot)
+        Version = e.AggregateVersion;
+      else
+        Version++;
     }
   }
 }

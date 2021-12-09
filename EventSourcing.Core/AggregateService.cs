@@ -1,9 +1,7 @@
 using System;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using EventSourcing.Core.Attributes;
 using EventSourcing.Core.Snapshotting;
 
 namespace EventSourcing.Core
@@ -29,11 +27,7 @@ namespace EventSourcing.Core
     public async Task<TAggregate> RehydrateAsync<TAggregate>(Guid aggregateId,
       CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
     {
-      // var snapshotInterval = typeof(TAggregate).GetCustomAttributes(typeof(SnapshotInterval)).FirstOrDefault();
-      // if (snapshotInterval != null)
-      //   return await RehydrateFromSnapshotAsync<TAggregate>(aggregateId, cancellationToken);
-
-      if (new TAggregate() is ISnapshottable<TBaseEvent>)
+      if (new TAggregate() is ISnapshottable)
       {
         return await RehydrateFromSnapshotAsync<TAggregate>(aggregateId, cancellationToken);
       }
@@ -73,7 +67,7 @@ namespace EventSourcing.Core
         events = events
           .Where(x => x.AggregateVersion > latestSnapshot.AggregateVersion);
         events = _store.Snapshots 
-          .Where(x => x.id == latestSnapshot.ToString()) //TODO: Find a better way then fetching snapshot again
+          .Where(x => x.id == latestSnapshot.id) //TODO: Find a better way then fetching snapshot again
           .Union(events);
       }
       
@@ -86,23 +80,27 @@ namespace EventSourcing.Core
     {
       if (aggregate.Id == Guid.Empty)
         throw new ArgumentException("Aggregate.Id cannot be empty", nameof(aggregate));
+
+      var previousVersion = aggregate.UncommittedEvents.FirstOrDefault()?.AggregateVersion ?? 0;
       
       await _store.AddAsync(aggregate.UncommittedEvents.ToList(), cancellationToken);
       aggregate.ClearUncommittedEvents();
-      if (aggregate is ISnapshottable<TBaseEvent> s && s.IntervalExceeded(aggregate.Version))
+      
+      if (aggregate is ISnapshottable s && s.IntervalExceeded(previousVersion ,aggregate.Version))
         await CreateAndPersistSnapshotAsync(aggregate, cancellationToken);
+      
       return aggregate;
     }
 
     private async Task CreateAndPersistSnapshotAsync<TAggregate>(TAggregate aggregate,
       CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
     {
-      if (aggregate is not ISnapshottable<TBaseEvent> s)
+      if (aggregate is not ISnapshottable s)
         return;
       if (s.CreateSnapshot() is not TBaseEvent snapshot)
         throw new InvalidOperationException(
           $"Snapshot created for {s.GetType().Name} is not of type {nameof(TBaseEvent)}");
-      aggregate.Add(snapshot);
+      aggregate.Add(snapshot with {AggregateVersion = snapshot.AggregateVersion - 1});
       await _store.AddSnapshotAsync(aggregate.UncommittedEvents.Single(), cancellationToken);
       aggregate.ClearUncommittedEvents();
     }
