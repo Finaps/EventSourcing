@@ -94,11 +94,12 @@ namespace EventSourcing.Core
       CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
     {
       if (aggregate is not ISnapshottable s)
-        return;
+        throw new InvalidOperationException(
+          $"{aggregate.GetType().Name} does not implement {typeof(ISnapshottable)}");
       if (s.CreateSnapshot() is not TBaseEvent snapshot)
         throw new InvalidOperationException(
           $"Snapshot created for {s.GetType().Name} is not of type {nameof(TBaseEvent)}");
-      aggregate.Add(snapshot with {AggregateVersion = snapshot.AggregateVersion - 1});
+      aggregate.Add(snapshot);
       await _store.AddSnapshotAsync(aggregate.UncommittedEvents.Single(), cancellationToken);
       aggregate.ClearUncommittedEvents();
     }
