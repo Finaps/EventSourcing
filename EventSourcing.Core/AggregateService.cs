@@ -65,7 +65,7 @@ namespace EventSourcing.Core
       if (latestSnapshot != null)
       {
         events = events
-          .Where(x => x.AggregateVersion > latestSnapshot.AggregateVersion)
+          .Where(x => x.AggregateVersion >= latestSnapshot.AggregateVersion)
           .Prepend(latestSnapshot);
       }
       
