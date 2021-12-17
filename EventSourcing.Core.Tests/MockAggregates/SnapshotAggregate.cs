@@ -6,24 +6,23 @@ namespace EventSourcing.Core.Tests.MockAggregates
     {
         public uint IntervalLength => 100;
         public int Counter;
-        public int NumberOfEventsApplied;
-        public int NumberOfSnapshotsApplied;
+        public int EventsAppliedAfterHydration;
+        public int SnapshotsAppliedAfterHydration;
         protected override void Apply<TEvent>(TEvent e)
         {
             switch (e)
             {
                 case EmptyEvent:
-                    NumberOfEventsApplied++;
+                    EventsAppliedAfterHydration++;
                     Counter++;
                     break;
                 case MockSnapshot snapshot:
-                    NumberOfSnapshotsApplied++;
+                    SnapshotsAppliedAfterHydration++;
                     Counter = snapshot.Counter;
                     break;
             }
         }
-
-
+        
         public ISnapshot CreateSnapshot()
         {
             return new MockSnapshot{Counter = this.Counter};

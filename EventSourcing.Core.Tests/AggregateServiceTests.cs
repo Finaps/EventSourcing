@@ -199,8 +199,8 @@ namespace EventSourcing.Core.Tests
       
       Assert.NotNull(result);
       Assert.Equal((int) eventsCount, result.Counter);
-      Assert.Equal(0, result.NumberOfEventsApplied);
-      Assert.Equal(1, result.NumberOfSnapshotsApplied);
+      Assert.Equal(0, result.EventsAppliedAfterHydration);
+      Assert.Equal(1, result.SnapshotsAppliedAfterHydration);
     }
     
     [Fact]
@@ -221,8 +221,8 @@ namespace EventSourcing.Core.Tests
       
       Assert.NotNull(result);
       Assert.Equal(2 * (int) eventsCount, result.Counter);
-      Assert.Equal(0, result.NumberOfEventsApplied);
-      Assert.Equal(1, result.NumberOfSnapshotsApplied);
+      Assert.Equal(0, result.EventsAppliedAfterHydration);
+      Assert.Equal(1, result.SnapshotsAppliedAfterHydration);
       Assert.Equal(2, _eventStore.Snapshots.Count());
     }
     
@@ -244,8 +244,44 @@ namespace EventSourcing.Core.Tests
       
       Assert.NotNull(result);
       Assert.Equal(2 * (int) eventsCount - 1, result.Counter);
-      Assert.Equal((int) eventsCount - 1, result.NumberOfEventsApplied);
-      Assert.Equal(1, result.NumberOfSnapshotsApplied);
+      Assert.Equal((int) eventsCount - 1, result.EventsAppliedAfterHydration);
+      Assert.Equal(1, result.SnapshotsAppliedAfterHydration);
+      Assert.Single(_eventStore.Snapshots);
+    }
+    
+    [Fact]
+    public async Task Can_Rehydrate_Multiple_Snapshotted_Aggregate()
+    {
+      var aggregate = new SnapshotAggregate();
+      var eventsCount = aggregate.IntervalLength;
+      
+      foreach (var _ in new int[eventsCount])
+        aggregate.Add(new EmptyEvent());
+      await _aggregateService.PersistAsync(aggregate);
+      
+      foreach (var _ in new int[eventsCount])
+        aggregate.Add(new EmptyEvent());
+      await _aggregateService.PersistAsync(aggregate);
+      
+      foreach (var _ in new int[eventsCount])
+        aggregate.Add(new EmptyEvent());
+      await _aggregateService.PersistAsync(aggregate);
+      
+      foreach (var _ in new int[eventsCount])
+        aggregate.Add(new EmptyEvent());
+      await _aggregateService.PersistAsync(aggregate);
+      
+      foreach (var _ in new int[eventsCount - 1])
+        aggregate.Add(new EmptyEvent());
+      await _aggregateService.PersistAsync(aggregate);
+      
+      var result = await _aggregateService.RehydrateAsync<SnapshotAggregate>(aggregate.Id);
+      
+      Assert.NotNull(result);
+      Assert.Equal(5 * (int) eventsCount - 1, result.Counter);
+      Assert.Equal((int) eventsCount - 1, result.EventsAppliedAfterHydration);
+      Assert.Equal(1, result.SnapshotsAppliedAfterHydration);
+      Assert.Equal(4, _eventStore.Snapshots.Count());
     }
   }
 }
