@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using EventSourcing.Core.Tests.MockAggregates;
 using EventSourcing.Core.Tests.MockEventStore;
@@ -141,6 +142,110 @@ namespace EventSourcing.Core.Tests
       var result = await _aggregateService.RehydrateAsync<VerboseAggregate>(aggregate.Id);
 
       Assert.True(result.IsFinished);
+    }
+    
+    [Fact]
+    public async Task Can_Snapshot_Aggregate()
+    {
+      var aggregate = new SnapshotAggregate();
+      var eventsCount = aggregate.IntervalLength;
+      foreach (var _ in new int[eventsCount])
+        aggregate.Add(new EmptyEvent());
+
+      await _aggregateService.PersistAsync(aggregate);
+      
+      Assert.Single(_eventStore.Snapshots);
+      Assert.Equal((int) aggregate.IntervalLength, _eventStore.Events.Count());
+    }
+    
+    [Fact]
+    public async Task Cannot_Snapshot_When_Interval_Is_Not_Exceeded()
+    {
+      var aggregate = new SnapshotAggregate();
+      var eventsCount = aggregate.IntervalLength - 1;
+      foreach (var _ in new int[eventsCount])
+        aggregate.Add(new EmptyEvent());
+
+      await _aggregateService.PersistAsync(aggregate);
+      
+      Assert.Empty(_eventStore.Snapshots);
+      Assert.Equal((int) eventsCount, _eventStore.Events.Count());
+    }
+    
+    [Fact]
+    public async Task One_Snapshot_When_Interval_Is_Exceeded_Twice()
+    {
+      var aggregate = new SnapshotAggregate();
+      var eventsCount = 2 * aggregate.IntervalLength;
+      foreach (var _ in new int[eventsCount])
+        aggregate.Add(new EmptyEvent());
+
+      await _aggregateService.PersistAsync(aggregate);
+      
+      Assert.Single(_eventStore.Snapshots);
+      Assert.Equal((int) eventsCount, _eventStore.Events.Count());
+    }
+    
+    [Fact]
+    public async Task Can_Rehydrate_Snapshotted_Aggregate()
+    {
+      var aggregate = new SnapshotAggregate();
+      var eventsCount = aggregate.IntervalLength;
+      foreach (var _ in new int[eventsCount])
+        aggregate.Add(new EmptyEvent());
+
+      await _aggregateService.PersistAsync(aggregate);
+      var result = await _aggregateService.RehydrateAsync<SnapshotAggregate>(aggregate.Id);
+      
+      Assert.NotNull(result);
+      Assert.Equal((int) eventsCount, result.Counter);
+      Assert.Equal(0, result.NumberOfEventsApplied);
+      Assert.Equal(1, result.NumberOfSnapshotsApplied);
+    }
+    
+    [Fact]
+    public async Task Can_Rehydrate_Twice_Snapshotted_Aggregate()
+    {
+      var aggregate = new SnapshotAggregate();
+      var eventsCount = aggregate.IntervalLength;
+      
+      foreach (var _ in new int[eventsCount])
+        aggregate.Add(new EmptyEvent());
+      await _aggregateService.PersistAsync(aggregate);
+      
+      foreach (var _ in new int[eventsCount])
+        aggregate.Add(new EmptyEvent());
+      await _aggregateService.PersistAsync(aggregate);
+      
+      var result = await _aggregateService.RehydrateAsync<SnapshotAggregate>(aggregate.Id);
+      
+      Assert.NotNull(result);
+      Assert.Equal(2 * (int) eventsCount, result.Counter);
+      Assert.Equal(0, result.NumberOfEventsApplied);
+      Assert.Equal(1, result.NumberOfSnapshotsApplied);
+      Assert.Equal(2, _eventStore.Snapshots.Count());
+    }
+    
+    [Fact]
+    public async Task Can_Rehydrate_From_Snapshot_And_Events()
+    {
+      var aggregate = new SnapshotAggregate();
+      var eventsCount = aggregate.IntervalLength;
+      
+      foreach (var _ in new int[eventsCount])
+        aggregate.Add(new EmptyEvent());
+      await _aggregateService.PersistAsync(aggregate);
+      
+      foreach (var _ in new int[eventsCount - 1])
+        aggregate.Add(new EmptyEvent());
+      await _aggregateService.PersistAsync(aggregate);
+      
+      var result = await _aggregateService.RehydrateAsync<SnapshotAggregate>(aggregate.Id);
+      
+      Assert.NotNull(result);
+      Assert.Equal(2 * (int) eventsCount - 1, result.Counter);
+      Assert.Equal((int) eventsCount - 1, result.NumberOfEventsApplied);
+      Assert.Equal(1, result.NumberOfSnapshotsApplied);
     }
   }
 }
