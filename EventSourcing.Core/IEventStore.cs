@@ -27,7 +27,15 @@ namespace EventSourcing.Core
     /// e.g. <c>System.Linq.Async</c> or <c>EventSourcing.Core.QueryableExtensions</c> work as intended.
     /// </remarks>
     IQueryable<TBaseEvent> Events { get; }
-
+    
+    /// <summary>
+    /// Queryable and AsyncEnumerable Collection of <see cref="Snapshots"/>s
+    /// </summary>
+    /// <remarks>
+    /// Implementations of this method should implement the <c cref="IQueryable{T}">IQueryable</c> and
+    /// <c cref="IAsyncEnumerable{T}">IAsyncEnumerable</c> interfaces, such that the async extensions
+    /// e.g. <c>System.Linq.Async</c> or <c>EventSourcing.Core.QueryableExtensions</c> work as intended.
+    /// </remarks>
     IQueryable<TBaseEvent> Snapshots => throw new NotImplementedException();
 
     /// <summary>
