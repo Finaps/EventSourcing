@@ -27,3 +27,4 @@ jobs:
         Cosmos__ConnectionString: ${{ secrets.COSMOS_CONNECTIONSTRING }}
         Cosmos__Database: ${{ secrets.COSMOS_DATABASE }}
         Cosmos__EventsContainer: ${{ secrets.COSMOS_CONTAINER }}
+        Cosmos__SnapshotsContainer: ${{ secrets.COSMOS_SNAPSHOTCONTAINER }}

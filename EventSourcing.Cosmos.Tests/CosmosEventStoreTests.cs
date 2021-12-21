@@ -34,7 +34,8 @@ namespace EventSourcing.Cosmos.Tests
         {
           ConnectionString = configuration["Cosmos:ConnectionString"],
           Database = configuration["Cosmos:Database"],
-          EventsContainer = configuration["Cosmos:EventsContainer"]
+          EventsContainer = configuration["Cosmos:EventsContainer"],
+          SnapshotsContainer = configuration["Cosmos:SnapshotsContainer"]
         });
     }
 
