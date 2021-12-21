@@ -116,6 +116,7 @@ namespace EventSourcing.Cosmos
     /// <exception cref="ConcurrencyException">Thrown when storing <see cref="TBaseEvent"/>s</exception> with existing partition key and version combination
     public async Task AddSnapshotAsync(TBaseEvent snapshot, CancellationToken cancellationToken = default)
     {
+      if (_snapshotsContainer == null) throw new NotImplementedException("Snapshot container not provided");
       if (snapshot == null) throw new ArgumentNullException(nameof(snapshot));
       if (snapshot.AggregateId == Guid.Empty)
         throw new ArgumentException(
