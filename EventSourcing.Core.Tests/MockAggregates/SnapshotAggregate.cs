@@ -4,7 +4,7 @@ namespace EventSourcing.Core.Tests.MockAggregates
 {
     public class SnapshotAggregate : Aggregate<Event>, ISnapshottable
     {
-        public uint IntervalLength => 100;
+        public uint IntervalLength => 10;
         public int Counter;
         public int EventsAppliedAfterHydration;
         public int SnapshotsAppliedAfterHydration;

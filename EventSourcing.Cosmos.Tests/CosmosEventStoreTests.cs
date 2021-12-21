@@ -34,7 +34,7 @@ namespace EventSourcing.Cosmos.Tests
         {
           ConnectionString = configuration["Cosmos:ConnectionString"],
           Database = configuration["Cosmos:Database"],
-          Container = configuration["Cosmos:Container"]
+          EventsContainer = configuration["Cosmos:EventsContainer"]
         });
     }
 
@@ -43,7 +43,7 @@ namespace EventSourcing.Cosmos.Tests
     {
       Assert.Throws<ArgumentException>(() => new CosmosEventStore(Options.Create(new CosmosEventStoreOptions
       {
-        ConnectionString = " ", Database = "A", Container = "B"
+        ConnectionString = " ", Database = "A", EventsContainer = "B"
       })));
     }
     
@@ -52,7 +52,7 @@ namespace EventSourcing.Cosmos.Tests
     {
       Assert.Throws<ArgumentException>(() => new CosmosEventStore(Options.Create(new CosmosEventStoreOptions
       {
-        ConnectionString = "A", Database = null, Container = "B"
+        ConnectionString = "A", Database = null, EventsContainer = "B"
       })));
     }
     
@@ -62,7 +62,7 @@ namespace EventSourcing.Cosmos.Tests
     {
       Assert.Throws<ArgumentException>(() => new CosmosEventStore(Options.Create(new CosmosEventStoreOptions
       {
-        ConnectionString = "A", Database = "B", Container = ""
+        ConnectionString = "A", Database = "B", EventsContainer = ""
       })));
     }
 
@@ -74,7 +74,7 @@ namespace EventSourcing.Cosmos.Tests
         // Invalid Connection String
         ConnectionString = "AccountEndpoint=https://example.documents.azure.com:443/;AccountKey=JKnJg81PiP0kkqhCu0k3mKlEPEEBqlFxwM4eiyd3WX2HKUYAAglbc9vMRJQhDsUomD3VHpwrWO9O5nL4ENwLFw==;",
         Database = _options.Value.Database,
-        Container =_options.Value.Container
+        EventsContainer =_options.Value.EventsContainer
       }));
 
       var exception = await Assert.ThrowsAsync<EventStoreException>(async () =>
@@ -89,7 +89,7 @@ namespace EventSourcing.Cosmos.Tests
       {
         ConnectionString = _options.Value.ConnectionString,
         Database = "Invalid",
-        Container = _options.Value.Container
+        EventsContainer = _options.Value.EventsContainer
       }));
 
       var exception = await Assert.ThrowsAsync<EventStoreException>(async () =>
@@ -104,7 +104,7 @@ namespace EventSourcing.Cosmos.Tests
       {
         ConnectionString = _options.Value.ConnectionString,
         Database = _options.Value.Database,
-        Container = "Invalid"
+        EventsContainer = "Invalid"
       }));
 
       var exception = await Assert.ThrowsAsync<EventStoreException>(async () =>
@@ -120,7 +120,7 @@ namespace EventSourcing.Cosmos.Tests
         // Invalid Connection String
         ConnectionString = "AccountEndpoint=https://example.documents.azure.com:443/;AccountKey=JKnJg81PiP0kkqhCu0k3mKlEPEEBqlFxwM4eiyd3WX2HKUYAAglbc9vMRJQhDsUomD3VHpwrWO9O5nL4ENwLFw==;",
         Database = _options.Value.Database,
-        Container =_options.Value.Container
+        EventsContainer =_options.Value.EventsContainer
       }));
       
       var exception = await Assert.ThrowsAsync<EventStoreException>(async () =>
@@ -135,7 +135,7 @@ namespace EventSourcing.Cosmos.Tests
       {
         ConnectionString = _options.Value.ConnectionString,
         Database = "Invalid",
-        Container = _options.Value.Container
+        EventsContainer = _options.Value.EventsContainer
       }));
 
       var exception = await Assert.ThrowsAsync<EventStoreException>(async () =>
@@ -150,7 +150,7 @@ namespace EventSourcing.Cosmos.Tests
       {
         ConnectionString = _options.Value.ConnectionString,
         Database = _options.Value.Database,
-        Container = "Invalid"
+        EventsContainer = "Invalid"
       }));
 
       var exception = await Assert.ThrowsAsync<EventStoreException>(async () =>
