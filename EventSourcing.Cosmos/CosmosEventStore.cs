@@ -59,7 +59,7 @@ namespace EventSourcing.Cosmos
       _options = options;
       _database = new CosmosClient(options.Value.ConnectionString, _clientOptions).GetDatabase(options.Value.Database);
       _eventsContainer = _database.GetContainer(options.Value.EventsContainer);
-      if(string.IsNullOrWhiteSpace(options.Value.SnapshotsContainer))
+      if(!string.IsNullOrWhiteSpace(options.Value.SnapshotsContainer))
         _snapshotsContainer = _database.GetContainer(options.Value.SnapshotsContainer);
     }
 
