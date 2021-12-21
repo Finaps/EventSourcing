@@ -17,7 +17,7 @@ namespace EventSourcing.Cosmos
   {
     public CosmosEventStore(IOptions<CosmosEventStoreOptions> options) : base(options) { }
   }
-  
+
   /// <summary>
   /// Cosmos Event Store: Cosmos Connection for Querying and Storing <see cref="TBaseEvent"/>s
   /// </summary>
@@ -39,34 +39,50 @@ namespace EventSourcing.Cosmos
 
     private readonly IOptions<CosmosEventStoreOptions> _options;
     private readonly Database _database;
-    private readonly Container _container;
+    private readonly Container _eventsContainer;
+    private readonly Container _snapshotsContainer;
 
     public CosmosEventStore(IOptions<CosmosEventStoreOptions> options)
     {
       if (options?.Value == null)
         throw new ArgumentException("CosmosEventStoreOptions should not be null", nameof(options));
-      
+
       if (string.IsNullOrWhiteSpace(options.Value.ConnectionString))
         throw new ArgumentException("CosmosEventStoreOptions.ConnectionString should not be empty", nameof(options));
-      
+
       if (string.IsNullOrWhiteSpace(options.Value.Database))
         throw new ArgumentException("CosmosEventStoreOptions.Database should not be empty", nameof(options));
-      
-      if (string.IsNullOrWhiteSpace(options.Value.Container))
-        throw new ArgumentException("CosmosEventStoreOptions.Container should not be empty", nameof(options));
-      
+
+      if (string.IsNullOrWhiteSpace(options.Value.EventsContainer))
+        throw new ArgumentException("CosmosEventStoreOptions.EventsContainer should not be empty", nameof(options));
+
       _options = options;
       _database = new CosmosClient(options.Value.ConnectionString, _clientOptions).GetDatabase(options.Value.Database);
-      _container = _database.GetContainer(options.Value.Container);
+      _eventsContainer = _database.GetContainer(options.Value.EventsContainer);
+      if(string.IsNullOrWhiteSpace(options.Value.SnapshotsContainer))
+        _snapshotsContainer = _database.GetContainer(options.Value.SnapshotsContainer);
     }
-    
+
     /// <summary>
     /// Events: Queryable and AsyncEnumerable Collection of <see cref="TBaseEvent"/>s
     /// </summary>
     /// <typeparam name="TBaseEvent"></typeparam>
     public IQueryable<TBaseEvent> Events =>
-      new CosmosAsyncQueryable<TBaseEvent>(_container.GetItemLinqQueryable<TBaseEvent>());
+      new CosmosAsyncQueryable<TBaseEvent>(_eventsContainer.GetItemLinqQueryable<TBaseEvent>());
 
+    /// <summary>
+    /// Snapshots: Queryable and AsyncEnumerable Collection of <see cref="TBaseEvent"/>s
+    /// </summary>
+    /// <typeparam name="TBaseEvent"></typeparam>
+    public IQueryable<TBaseEvent> Snapshots
+    {
+      get
+      {
+        if (_snapshotsContainer == null) throw new NotImplementedException("Snapshot container not provided");
+        return new CosmosAsyncQueryable<TBaseEvent>(_snapshotsContainer.GetItemLinqQueryable<TBaseEvent>());
+      }
+    }
+    
     /// <summary>
     /// AddAsync: Store <see cref="TBaseEvent"/>s to the Cosmos Event Store
     /// </summary>
@@ -80,26 +96,43 @@ namespace EventSourcing.Cosmos
     {
       if (events == null) throw new ArgumentNullException(nameof(events));
       if (events.Count == 0) return;
-      
+
       await VerifyAsync(events);
-      
-      var batch = _container.CreateTransactionalBatch(new PartitionKey(events.First().AggregateId.ToString()));
+
+      var batch = _eventsContainer.CreateTransactionalBatch(new PartitionKey(events.First().AggregateId.ToString()));
       foreach (var @event in events) batch.CreateItem(@event, _batchItemRequestOptions);
       var response = await batch.ExecuteAsync(cancellationToken);
 
       if (!response.IsSuccessStatusCode) await ThrowAsync(response, events);
     }
     
-    private async Task<bool> ExistsAsync(Guid aggregateId, uint version)
+    /// <summary>
+    /// AddSnapshotAsync: Store snapshot as a <see cref="TBaseEvent"/>s to the Cosmos Event Store
+    /// </summary>
+    /// <param name="snapshot"><see cref="TBaseEvent"/>s to add</param>
+    /// <param name="cancellationToken">Cancellation Token</param>
+    /// <exception cref="ArgumentException">Thrown when trying to add <see cref="TBaseEvent"/>s with empty AggregateId</exception>
+    /// <exception cref="EventStoreException">Thrown when conflicts occur when storing <see cref="TBaseEvent"/>s</exception>
+    /// <exception cref="ConcurrencyException">Thrown when storing <see cref="TBaseEvent"/>s</exception> with existing partition key and version combination
+    public async Task AddSnapshotAsync(TBaseEvent snapshot, CancellationToken cancellationToken = default)
     {
-      var result = await _container.ReadItemStreamAsync(version.ToString(), new PartitionKey(aggregateId.ToString()));
-      return result.IsSuccessStatusCode;
+      if (snapshot == null) throw new ArgumentNullException(nameof(snapshot));
+      if (snapshot.AggregateId == Guid.Empty)
+        throw new ArgumentException(
+          "AggregateId should be set", nameof(snapshot));
+
+      var batch = _snapshotsContainer.CreateTransactionalBatch(new PartitionKey(snapshot.AggregateId.ToString()));
+      batch.CreateItem(snapshot, _batchItemRequestOptions);
+      var response = await batch.ExecuteAsync(cancellationToken);
+      
+      if (!response.IsSuccessStatusCode) await ThrowAsync(response, new[]{snapshot});
     }
     
-    public async Task CreateIfNotExistsAsync()
+    private async Task<bool> ExistsAsync(Guid aggregateId, uint version)
     {
-      await _database.CreateContainerIfNotExistsAsync(
-        new ContainerProperties(_options.Value.Container, $"/{nameof(Event.AggregateId)}"));
+      var result =
+        await _eventsContainer.ReadItemStreamAsync(version.ToString(), new PartitionKey(aggregateId.ToString()));
+      return result.IsSuccessStatusCode;
     }
 
     private async Task VerifyAsync(IList<TBaseEvent> events)
@@ -109,7 +142,8 @@ namespace EventSourcing.Cosmos
       if (aggregateIds.Count > 1)
         throw new ArgumentException("All Events should have the same AggregateId", nameof(events));
 
-      if (aggregateIds.Single() == Guid.Empty) throw new ArgumentException(
+      if (aggregateIds.Single() == Guid.Empty)
+        throw new ArgumentException(
           "AggregateId should be set, did you forget to Add Events to an Aggregate?", nameof(events));
 
       if (events.Select((e, index) => e.AggregateVersion - index).Distinct().Skip(1).Any())

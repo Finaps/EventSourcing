@@ -4,6 +4,7 @@ namespace EventSourcing.Cosmos
   {
     public string ConnectionString { get; set; }
     public string Database { get; set; }
-    public string Container { get; set; }
+    public string EventsContainer { get; set; }
+    public string SnapshotsContainer { get; set; }
   }
 }
