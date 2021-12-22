@@ -28,9 +28,7 @@ namespace EventSourcing.Core
       CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
     {
       if (new TAggregate() is ISnapshottable)
-      {
         return await RehydrateFromSnapshotAsync<TAggregate>(aggregateId, cancellationToken);
-      }
 
       var events = _store.Events
         .Where(x => x.AggregateId == aggregateId)
@@ -63,12 +61,10 @@ namespace EventSourcing.Core
         .Where(x => x.AggregateId == aggregateId);
 
       if (latestSnapshot != null)
-      {
         events = events
           .Where(x => x.AggregateVersion >= latestSnapshot.AggregateVersion)
           .Prepend(latestSnapshot);
-      }
-      
+
       var orderedEvents = events.OrderBy(x => x.AggregateVersion).ToAsyncEnumerable();
       return await Aggregate<TBaseEvent>.RehydrateAsync<TAggregate>(aggregateId, orderedEvents, cancellationToken);
     }
