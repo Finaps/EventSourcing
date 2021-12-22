@@ -23,7 +23,7 @@ namespace EventSourcing.Core.Tests.MockAggregates
             }
         }
         
-        public ISnapshot CreateSnapshot()
+        public SnapshotEvent CreateSnapshot()
         {
             return new MockSnapshot{Counter = this.Counter};
         }

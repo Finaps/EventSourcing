@@ -133,15 +133,15 @@ namespace EventSourcing.Core
       if (e.AggregateType != GetType().Name)
         throw new ArgumentException($"Event.AggregateType ({e.AggregateType}) does not correspond with typeof(Aggregate) ({GetType().Name})", nameof(e));
       
-      if (e is ISnapshot && this is not ISnapshottable)
+      if (e is SnapshotEvent && this is not ISnapshottable)
         throw new InvalidOperationException($"Cannot apply snapshot {e.GetType().Name} to non-snapshottable aggregate {GetType().Name}");
       
-      if (e is not ISnapshot && e.AggregateVersion != Version)
+      if (e is not SnapshotEvent && e.AggregateVersion != Version)
         throw new InvalidOperationException($"Event.AggregateVersion ({e.AggregateVersion}) does not correspond with Aggregate.Version ({Version})");
 
       Apply(e);
       
-      if (e is ISnapshot)
+      if (e is SnapshotEvent)
         Version = e.AggregateVersion;
       else
         Version++;

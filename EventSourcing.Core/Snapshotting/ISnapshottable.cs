@@ -3,7 +3,7 @@ namespace EventSourcing.Core.Snapshotting
     public interface ISnapshottable
     {
         public uint IntervalLength { get; }
-        public ISnapshot CreateSnapshot();
+        public SnapshotEvent CreateSnapshot();
 
         public bool IntervalExceeded(uint previousVersion, uint currentVersion)
         {
