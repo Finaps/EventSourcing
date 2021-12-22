@@ -74,6 +74,7 @@ namespace EventSourcing.Cosmos
     /// Snapshots: Queryable and AsyncEnumerable Collection of <see cref="TBaseEvent"/>s
     /// </summary>
     /// <typeparam name="TBaseEvent"></typeparam>
+    /// <exception cref="InvalidOperationException">Thrown when snapshot container is not provided</exception>
     public IQueryable<TBaseEvent> Snapshots
     {
       get
@@ -111,6 +112,7 @@ namespace EventSourcing.Cosmos
     /// </summary>
     /// <param name="snapshot"><see cref="TBaseEvent"/>s to add</param>
     /// <param name="cancellationToken">Cancellation Token</param>
+    /// <exception cref="InvalidOperationException">Thrown when snapshot container is not provided</exception>
     /// <exception cref="ArgumentException">Thrown when trying to add <see cref="TBaseEvent"/>s with empty AggregateId</exception>
     /// <exception cref="EventStoreException">Thrown when conflicts occur when storing <see cref="TBaseEvent"/>s</exception>
     /// <exception cref="ConcurrencyException">Thrown when storing <see cref="TBaseEvent"/>s</exception> with existing partition key and version combination
