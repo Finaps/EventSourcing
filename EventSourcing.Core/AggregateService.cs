@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EventSourcing.Core.Snapshotting;
+using Microsoft.Extensions.Logging;
 
 namespace EventSourcing.Core
 {
@@ -19,18 +20,26 @@ namespace EventSourcing.Core
   {
     private readonly IEventStore<TBaseEvent> _eventStore;
     private readonly ISnapshotStore<TBaseEvent> _snapshotStore;
+    private readonly ILogger<AggregateService> _logger;
     
-    public AggregateService(IEventStore<TBaseEvent> eventStore, ISnapshotStore<TBaseEvent> snapshotStore = null)
+    public AggregateService(IEventStore<TBaseEvent> eventStore, ISnapshotStore<TBaseEvent> snapshotStore = null, ILogger<AggregateService> logger = null)
     {
       _eventStore = eventStore;
       _snapshotStore = snapshotStore;
+      _logger = logger;
     }
 
     public async Task<TAggregate> RehydrateAsync<TAggregate>(Guid aggregateId,
       CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
     {
       if (new TAggregate() is ISnapshottable)
-        return await RehydrateFromSnapshotAsync<TAggregate>(aggregateId, cancellationToken);
+      {
+        if (_snapshotStore != null)
+          return await RehydrateFromSnapshotAsync<TAggregate>(aggregateId, cancellationToken);
+
+        _logger?.LogWarning("{SnapshotStore} not provided while {TAggregate} implements {ISnapshottable}. Rehydrating from events only", 
+          typeof(ISnapshotStore<TBaseEvent>),typeof(TAggregate),typeof(ISnapshottable));
+      }
 
       var events = _eventStore.Events
         .Where(x => x.AggregateId == aggregateId)
@@ -85,7 +94,15 @@ namespace EventSourcing.Core
       if (aggregate is ISnapshottable s && s.IntervalExceeded<TBaseEvent>())
       {
         aggregate.ClearUncommittedEvents();
-        return await CreateAndPersistSnapshotAsync(aggregate, cancellationToken);
+        
+        if (_snapshotStore != null) 
+          return await CreateAndPersistSnapshotAsync(aggregate, cancellationToken);
+        
+        _logger?.LogWarning(
+          "{SnapshotStore} not provided while {TAggregate} implements {ISnapshottable}. No snapshot created",
+          typeof(ISnapshotStore<TBaseEvent>), typeof(TAggregate), typeof(ISnapshottable));
+        
+        return aggregate;
       }
       
       aggregate.ClearUncommittedEvents();
