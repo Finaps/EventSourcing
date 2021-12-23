@@ -20,9 +20,12 @@ namespace EventSourcing.Core
   {
     private readonly IEventStore<TBaseEvent> _eventStore;
     private readonly ISnapshotStore<TBaseEvent> _snapshotStore;
-    private readonly ILogger<AggregateService> _logger;
+    private readonly ILogger<AggregateService<TBaseEvent>> _logger;
     
-    public AggregateService(IEventStore<TBaseEvent> eventStore, ISnapshotStore<TBaseEvent> snapshotStore = null, ILogger<AggregateService> logger = null)
+    public AggregateService(
+      IEventStore<TBaseEvent> eventStore,
+      ISnapshotStore<TBaseEvent> snapshotStore = null,
+      ILogger<AggregateService<TBaseEvent>> logger = null)
     {
       _eventStore = eventStore;
       _snapshotStore = snapshotStore;
