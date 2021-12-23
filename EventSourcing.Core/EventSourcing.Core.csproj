@@ -13,4 +13,8 @@
         <PackageDescription>Core Package for Finaps.EventSourcing</PackageDescription>
     </PropertyGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
+    </ItemGroup>
+
 </Project>
