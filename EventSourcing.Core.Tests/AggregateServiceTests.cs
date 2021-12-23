@@ -11,12 +11,14 @@ namespace EventSourcing.Core.Tests
   public class AggregateServiceTests
   {
     private readonly IEventStore _eventStore;
+    private readonly ISnapshotStore _snapshotStore;
     private readonly IAggregateService _aggregateService;
 
     public AggregateServiceTests()
     {
       _eventStore = new InMemoryEventStore();
-      _aggregateService = new AggregateService(_eventStore);
+      _snapshotStore = (ISnapshotStore) _eventStore;
+      _aggregateService = new AggregateService(_eventStore, _snapshotStore);
     }
 
     [Fact]
@@ -154,7 +156,7 @@ namespace EventSourcing.Core.Tests
 
       await _aggregateService.PersistAsync(aggregate);
       
-      Assert.Single(_eventStore.Snapshots);
+      Assert.Single(_snapshotStore.Snapshots);
       Assert.Equal((int) aggregate.IntervalLength, _eventStore.Events.Count());
     }
     
@@ -168,7 +170,7 @@ namespace EventSourcing.Core.Tests
 
       await _aggregateService.PersistAsync(aggregate);
       
-      Assert.Empty(_eventStore.Snapshots);
+      Assert.Empty(_snapshotStore.Snapshots);
       Assert.Equal((int) eventsCount, _eventStore.Events.Count());
     }
     
@@ -182,7 +184,7 @@ namespace EventSourcing.Core.Tests
 
       await _aggregateService.PersistAsync(aggregate);
       
-      Assert.Single(_eventStore.Snapshots);
+      Assert.Single(_snapshotStore.Snapshots);
       Assert.Equal((int) eventsCount, _eventStore.Events.Count());
     }
     
@@ -223,7 +225,7 @@ namespace EventSourcing.Core.Tests
       Assert.Equal(2 * (int) eventsCount, result.Counter);
       Assert.Equal(0, result.EventsAppliedAfterHydration);
       Assert.Equal(1, result.SnapshotsAppliedAfterHydration);
-      Assert.Equal(2, _eventStore.Snapshots.Count());
+      Assert.Equal(2, _snapshotStore.Snapshots.Count());
     }
     
     [Fact]
@@ -246,7 +248,7 @@ namespace EventSourcing.Core.Tests
       Assert.Equal(2 * (int) eventsCount - 1, result.Counter);
       Assert.Equal((int) eventsCount - 1, result.EventsAppliedAfterHydration);
       Assert.Equal(1, result.SnapshotsAppliedAfterHydration);
-      Assert.Single(_eventStore.Snapshots);
+      Assert.Single(_snapshotStore.Snapshots);
     }
     
     [Fact]
@@ -281,7 +283,7 @@ namespace EventSourcing.Core.Tests
       Assert.Equal(5 * (int) eventsCount - 1, result.Counter);
       Assert.Equal((int) eventsCount - 1, result.EventsAppliedAfterHydration);
       Assert.Equal(1, result.SnapshotsAppliedAfterHydration);
-      Assert.Equal(4, _eventStore.Snapshots.Count());
+      Assert.Equal(4, _snapshotStore.Snapshots.Count());
     }
   }
 }

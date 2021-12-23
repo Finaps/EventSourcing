@@ -36,6 +36,7 @@ namespace EventSourcing.Example
       // Configure Cosmos EventStore
       services.Configure<CosmosEventStoreOptions>(Configuration.GetSection("Cosmos"));
       services.AddSingleton<IEventStore, CosmosEventStore>();
+      services.AddSingleton<ISnapshotStore, CosmosEventStore>();
       services.AddScoped<IAggregateService, AggregateService>();
     }
 

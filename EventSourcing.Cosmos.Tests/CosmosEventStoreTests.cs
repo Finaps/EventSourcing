@@ -21,6 +21,12 @@ namespace EventSourcing.Cosmos.Tests
 
     protected override IEventStore<TBaseEvent> GetEventStore<TBaseEvent>() =>
       new CosmosEventStore<TBaseEvent>(_options);
+    
+    protected override ISnapshotStore GetSnapshotStore() =>
+      new CosmosEventStore(_options);
+
+    protected override ISnapshotStore<TBaseEvent> GetSnapshotStore<TBaseEvent>() =>
+      new CosmosEventStore<TBaseEvent>(_options);
 
     public CosmosEventStoreTests()
     {
