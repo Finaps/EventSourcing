@@ -29,16 +29,6 @@ namespace EventSourcing.Core
     IQueryable<TBaseEvent> Events { get; }
     
     /// <summary>
-    /// Queryable and AsyncEnumerable Collection of <see cref="Snapshots"/>s
-    /// </summary>
-    /// <remarks>
-    /// Implementations of this method should implement the <c cref="IQueryable{T}">IQueryable</c> and
-    /// <c cref="IAsyncEnumerable{T}">IAsyncEnumerable</c> interfaces, such that the async extensions
-    /// e.g. <c>System.Linq.Async</c> or <c>EventSourcing.Core.QueryableExtensions</c> work as intended.
-    /// </remarks>
-    IQueryable<TBaseEvent> Snapshots => throw new NotImplementedException();
-
-    /// <summary>
     /// Add <see cref="Events"/>s to the <see cref="IEventStore{TBaseEvent}"/>
     /// </summary>
     /// <remarks>
@@ -52,6 +42,6 @@ namespace EventSourcing.Core
     /// <param name="events"><see cref="Events"/>s to add</param>
     /// <param name="cancellationToken">Cancellation Token</param>
     Task AddAsync(IList<TBaseEvent> events, CancellationToken cancellationToken = default);
-    Task AddSnapshotAsync(TBaseEvent snapshot, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+    
   }
 }

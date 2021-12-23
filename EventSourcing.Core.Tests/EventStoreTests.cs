@@ -13,6 +13,8 @@ namespace EventSourcing.Core.Tests
   {
     protected abstract IEventStore GetEventStore();
     protected abstract IEventStore<TBaseEvent> GetEventStore<TBaseEvent>() where TBaseEvent : Event, new();
+    protected abstract ISnapshotStore GetSnapshotStore();
+    protected abstract ISnapshotStore<TBaseEvent> GetSnapshotStore<TBaseEvent>() where TBaseEvent : Event, new();
 
     [Fact]
     public async Task Can_Add_Event()
@@ -24,7 +26,7 @@ namespace EventSourcing.Core.Tests
     [Fact]
     public async Task Can_Add_Snapshot()
     {
-      var store = GetEventStore();
+      var store = GetSnapshotStore();
       var aggregate = new SnapshotAggregate();
       aggregate.Add(aggregate.CreateSnapshot() as SnapshotEvent);
       var snapshot = aggregate.UncommittedEvents.First();
@@ -96,7 +98,7 @@ namespace EventSourcing.Core.Tests
     [Fact]
     public async Task Cannot_Add_Snapshot_With_Duplicate_AggregateId_And_Version()
     {
-      var store = GetEventStore();
+      var store = GetSnapshotStore();
 
       var aggregate = new SnapshotAggregate();
       aggregate.Add(aggregate.CreateSnapshot() as SnapshotEvent);
@@ -197,7 +199,7 @@ namespace EventSourcing.Core.Tests
     [Fact]
     public async Task Can_Get_Snapshot_By_AggregateId()
     {
-      var store = GetEventStore();
+      var store = GetSnapshotStore();
 
       var aggregate = new SnapshotAggregate();
       aggregate.Add(aggregate.CreateSnapshot() as SnapshotEvent);
@@ -213,7 +215,7 @@ namespace EventSourcing.Core.Tests
     [Fact]
     public async Task Can_Get_Latest_Snapshot_By_AggregateId()
     {
-      var store = GetEventStore();
+      var store = GetSnapshotStore();
 
       var aggregate = new SnapshotAggregate();
       aggregate.Add(aggregate.CreateSnapshot() as SnapshotEvent);

@@ -13,7 +13,7 @@ using Microsoft.Extensions.Options;
 
 namespace EventSourcing.Cosmos
 {
-  public class CosmosEventStore : CosmosEventStore<Event>, IEventStore
+  public class CosmosEventStore : CosmosEventStore<Event>, IEventStore, ISnapshotStore
   {
     public CosmosEventStore(IOptions<CosmosEventStoreOptions> options) : base(options) { }
   }
@@ -22,7 +22,8 @@ namespace EventSourcing.Cosmos
   /// Cosmos Event Store: Cosmos Connection for Querying and Storing <see cref="TBaseEvent"/>s
   /// </summary>
   /// <typeparam name="TBaseEvent"></typeparam>
-  public class CosmosEventStore<TBaseEvent> : IEventStore<TBaseEvent> where TBaseEvent : Event, new()
+  public class CosmosEventStore<TBaseEvent> : IEventStore<TBaseEvent>, ISnapshotStore<TBaseEvent> 
+    where TBaseEvent : Event, new()
   {
     private readonly CosmosClientOptions _clientOptions = new()
     {
