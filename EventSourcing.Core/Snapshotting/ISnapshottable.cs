@@ -1,3 +1,6 @@
+using System;
+using System.Linq;
+
 namespace EventSourcing.Core.Snapshotting
 {
     public interface ISnapshottable
@@ -5,8 +8,14 @@ namespace EventSourcing.Core.Snapshotting
         public uint IntervalLength { get; }
         public SnapshotEvent CreateSnapshot();
 
-        public bool IntervalExceeded(uint previousVersion, uint currentVersion)
+        public bool IntervalExceeded<TBaseEvent>()
+            where TBaseEvent: Event
         {
+            if (this is not Aggregate<TBaseEvent> aggregate)
+                throw new InvalidOperationException($"Cannot check aggregate version of type {GetType()}");
+            
+            var previousVersion = aggregate.UncommittedEvents.FirstOrDefault()?.AggregateVersion ?? 0;
+            var currentVersion = aggregate.Version;
             var adjusted = previousVersion - previousVersion % IntervalLength;
             return IntervalLength <= currentVersion - adjusted;
         }

@@ -75,12 +75,10 @@ namespace EventSourcing.Core
       if (aggregate.Id == Guid.Empty)
         throw new ArgumentException("Aggregate.Id cannot be empty", nameof(aggregate));
 
-      var previousVersion = aggregate.UncommittedEvents.FirstOrDefault()?.AggregateVersion ?? 0;
-      
       await _store.AddAsync(aggregate.UncommittedEvents.ToList(), cancellationToken);
       aggregate.ClearUncommittedEvents();
       
-      if (aggregate is ISnapshottable s && s.IntervalExceeded(previousVersion ,aggregate.Version))
+      if (aggregate is ISnapshottable s && s.IntervalExceeded<TBaseEvent>())
         await CreateAndPersistSnapshotAsync(aggregate, cancellationToken);
       
       return aggregate;
