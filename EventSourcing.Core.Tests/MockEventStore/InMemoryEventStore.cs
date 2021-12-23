@@ -8,11 +8,11 @@ using EventSourcing.Core.Exceptions;
 
 namespace EventSourcing.Core.Tests.MockEventStore
 {
-  internal class InMemoryEventStore : InMemoryEventStore<Event>, IEventStore
+  internal class InMemoryEventStore : InMemoryEventStore<Event>, IEventStore, ISnapshotStore
   {
   }
 
-  internal class InMemoryEventStore<TBaseEvent> : IEventStore<TBaseEvent> where TBaseEvent : Event, new()
+  internal class InMemoryEventStore<TBaseEvent> : IEventStore<TBaseEvent>, ISnapshotStore<TBaseEvent> where TBaseEvent : Event, new()
   {
     private readonly ConcurrentDictionary<(Guid, uint), TBaseEvent> _storedEvents = new();
     private readonly ConcurrentDictionary<(Guid, uint), TBaseEvent> _storedSnapshots = new();

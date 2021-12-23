@@ -8,7 +8,7 @@ namespace EventSourcing.Core
 {
   public class AggregateService : AggregateService<Event>, IAggregateService
   {
-    public AggregateService(IEventStore store) : base(store) { }
+    public AggregateService(IEventStore eventStore, ISnapshotStore snapshotStore = null) : base(eventStore, snapshotStore) { }
   }
 
   /// <summary>
@@ -17,11 +17,13 @@ namespace EventSourcing.Core
   /// <typeparam name="TBaseEvent"></typeparam>
   public class AggregateService<TBaseEvent> : IAggregateService<TBaseEvent> where TBaseEvent : Event
   {
-    private readonly IEventStore<TBaseEvent> _store;
+    private readonly IEventStore<TBaseEvent> _eventStore;
+    private readonly ISnapshotStore<TBaseEvent> _snapshotStore;
     
-    public AggregateService(IEventStore<TBaseEvent> store)
+    public AggregateService(IEventStore<TBaseEvent> eventStore, ISnapshotStore<TBaseEvent> snapshotStore = null)
     {
-      _store = store;
+      _eventStore = eventStore;
+      _snapshotStore = snapshotStore;
     }
 
     public async Task<TAggregate> RehydrateAsync<TAggregate>(Guid aggregateId,
@@ -30,7 +32,7 @@ namespace EventSourcing.Core
       if (new TAggregate() is ISnapshottable)
         return await RehydrateFromSnapshotAsync<TAggregate>(aggregateId, cancellationToken);
 
-      var events = _store.Events
+      var events = _eventStore.Events
         .Where(x => x.AggregateId == aggregateId)
         .OrderBy(x => x.AggregateVersion)
         .ToAsyncEnumerable();
@@ -41,7 +43,7 @@ namespace EventSourcing.Core
     public async Task<TAggregate> RehydrateAsync<TAggregate>(Guid aggregateId, DateTimeOffset date,
       CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
     {
-      var events = _store.Events
+      var events = _eventStore.Events
         .Where(x => x.AggregateId == aggregateId && x.Timestamp <= date)
         .OrderBy(x => x.AggregateVersion)
         .ToAsyncEnumerable();
@@ -52,12 +54,15 @@ namespace EventSourcing.Core
     private async Task<TAggregate> RehydrateFromSnapshotAsync<TAggregate>(Guid aggregateId,
       CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
     {
-      var latestSnapshot = _store.Snapshots
+      if (_snapshotStore == null)
+        throw new InvalidOperationException("Snapshot store not provided");
+      
+      var latestSnapshot = _snapshotStore.Snapshots
         .Where(x => x.AggregateId == aggregateId)
         .OrderBy(x => x.AggregateVersion)
         .LastOrDefault();
       
-      var events = _store.Events
+      var events = _eventStore.Events
         .Where(x => x.AggregateId == aggregateId);
 
       if (latestSnapshot != null)
@@ -75,7 +80,7 @@ namespace EventSourcing.Core
       if (aggregate.Id == Guid.Empty)
         throw new ArgumentException("Aggregate.Id cannot be empty", nameof(aggregate));
 
-      await _store.AddAsync(aggregate.UncommittedEvents.ToList(), cancellationToken);
+      await _eventStore.AddAsync(aggregate.UncommittedEvents.ToList(), cancellationToken);
 
       if (aggregate is ISnapshottable s && s.IntervalExceeded<TBaseEvent>())
       {
@@ -90,14 +95,17 @@ namespace EventSourcing.Core
     private async Task<TAggregate> CreateAndPersistSnapshotAsync<TAggregate>(TAggregate aggregate,
       CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
     {
+      if (_snapshotStore == null)
+        throw new InvalidOperationException("Snapshot store not provided");
       if (aggregate is not ISnapshottable s)
         throw new InvalidOperationException(
           $"{aggregate.GetType().Name} does not implement {typeof(ISnapshottable)}");
       if (s.CreateSnapshot() is not TBaseEvent snapshot)
         throw new InvalidOperationException(
           $"Snapshot created for {s.GetType().Name} is not of type {nameof(TBaseEvent)}");
+      
       aggregate.Add(snapshot);
-      await _store.AddSnapshotAsync(aggregate.UncommittedEvents.Single(), cancellationToken);
+      await _snapshotStore.AddSnapshotAsync(aggregate.UncommittedEvents.Single(), cancellationToken);
       aggregate.ClearUncommittedEvents();
       return aggregate;
     }
