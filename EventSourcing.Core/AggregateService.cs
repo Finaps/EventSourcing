@@ -76,15 +76,18 @@ namespace EventSourcing.Core
         throw new ArgumentException("Aggregate.Id cannot be empty", nameof(aggregate));
 
       await _store.AddAsync(aggregate.UncommittedEvents.ToList(), cancellationToken);
-      aggregate.ClearUncommittedEvents();
-      
+
       if (aggregate is ISnapshottable s && s.IntervalExceeded<TBaseEvent>())
-        await CreateAndPersistSnapshotAsync(aggregate, cancellationToken);
+      {
+        aggregate.ClearUncommittedEvents();
+        return await CreateAndPersistSnapshotAsync(aggregate, cancellationToken);
+      }
       
+      aggregate.ClearUncommittedEvents();
       return aggregate;
     }
 
-    private async Task CreateAndPersistSnapshotAsync<TAggregate>(TAggregate aggregate,
+    private async Task<TAggregate> CreateAndPersistSnapshotAsync<TAggregate>(TAggregate aggregate,
       CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
     {
       if (aggregate is not ISnapshottable s)
@@ -96,6 +99,7 @@ namespace EventSourcing.Core
       aggregate.Add(snapshot);
       await _store.AddSnapshotAsync(aggregate.UncommittedEvents.Single(), cancellationToken);
       aggregate.ClearUncommittedEvents();
+      return aggregate;
     }
   }
 }
