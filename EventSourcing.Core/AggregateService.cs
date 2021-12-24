@@ -9,7 +9,8 @@ namespace EventSourcing.Core
 {
   public class AggregateService : AggregateService<Event>, IAggregateService
   {
-    public AggregateService(IEventStore eventStore, ISnapshotStore snapshotStore = null) : base(eventStore, snapshotStore) { }
+    public AggregateService(IEventStore eventStore, ISnapshotStore snapshotStore, ILogger<AggregateService> logger) 
+      : base(eventStore, snapshotStore, logger) { }
   }
 
   /// <summary>
@@ -24,8 +25,8 @@ namespace EventSourcing.Core
     
     public AggregateService(
       IEventStore<TBaseEvent> eventStore,
-      ISnapshotStore<TBaseEvent> snapshotStore = null,
-      ILogger<AggregateService<TBaseEvent>> logger = null)
+      ISnapshotStore<TBaseEvent> snapshotStore,
+      ILogger<AggregateService<TBaseEvent>> logger)
     {
       _eventStore = eventStore;
       _snapshotStore = snapshotStore;
