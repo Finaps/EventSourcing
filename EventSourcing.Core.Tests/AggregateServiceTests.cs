@@ -18,7 +18,7 @@ namespace EventSourcing.Core.Tests
     {
       _eventStore = new InMemoryEventStore();
       _snapshotStore = (ISnapshotStore) _eventStore;
-      _aggregateService = new AggregateService(_eventStore, _snapshotStore);
+      _aggregateService = new AggregateService(_eventStore, _snapshotStore, null);
     }
 
     [Fact]

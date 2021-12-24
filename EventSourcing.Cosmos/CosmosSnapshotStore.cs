@@ -52,32 +52,18 @@ namespace EventSourcing.Cosmos
             if (snapshot.AggregateId == Guid.Empty)
                 throw new ArgumentException(
                     "AggregateId should be set", nameof(snapshot));
-
-            var response = await _snapshots.CreateItemAsync(snapshot, new PartitionKey(snapshot.AggregateId.ToString()), null, cancellationToken);
-      
-            if (response.StatusCode != HttpStatusCode.Created) Throw(response, snapshot);
-        }
-        
-        
-        
-        private static void Throw(Response<TBaseEvent> response, TBaseEvent snapshot)
-        {
-            if (response.StatusCode != HttpStatusCode.Conflict)
+            try
+            {
+                await _snapshots.CreateItemAsync(snapshot,
+                    new PartitionKey(snapshot.AggregateId.ToString()), null, cancellationToken);
+            }
+            catch (CosmosException e)
+            {
+                if (e.StatusCode == HttpStatusCode.Conflict)
+                    throw new ConcurrencyException(snapshot, e);
                 throw new EventStoreException(
-                    $"Encountered error while adding events: {(int)response.StatusCode} {response.StatusCode.ToString()}",
-                    CreateCosmosException(response));
-
-            throw new ConcurrencyException(snapshot, CreateCosmosException(response));
-        }
-
-        private static CosmosException CreateCosmosException(Response<TBaseEvent> response)
-        {
-            var subStatusCode = (int) response
-                .GetType()
-                .GetProperty("SubStatusCode", BindingFlags.NonPublic | BindingFlags.Instance)?
-                .GetValue(response)!;
-      
-            return new CosmosException(null, response.StatusCode, subStatusCode, response.ActivityId, response.RequestCharge);
+                    $"Encountered error while adding events: {(int)e.StatusCode} {e.StatusCode.ToString()}", e);
+            }
         }
     }
 }
