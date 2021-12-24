@@ -1,4 +1,4 @@
-namespace EventSourcing.Core.Snapshotting
+namespace EventSourcing.Core
 {
     public record SnapshotEvent : Event, ISnapshot;
 }

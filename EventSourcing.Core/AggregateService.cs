@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using EventSourcing.Core.Snapshotting;
 using Microsoft.Extensions.Logging;
 
 namespace EventSourcing.Core

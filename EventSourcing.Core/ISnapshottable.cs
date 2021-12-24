@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 
-namespace EventSourcing.Core.Snapshotting
+namespace EventSourcing.Core
 {
     public interface ISnapshottable
     {
