@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using EventSourcing.Core.Tests.MockAggregates;
-using EventSourcing.Core.Tests.MockEventStore;
+using EventSourcing.Core.Tests.MockDatabase;
 using Xunit;
 
 namespace EventSourcing.Core.Tests
@@ -17,7 +17,7 @@ namespace EventSourcing.Core.Tests
     public AggregateServiceTests()
     {
       _eventStore = new InMemoryEventStore();
-      _snapshotStore = (ISnapshotStore) _eventStore;
+      _snapshotStore = new InMemorySnapshotStore();
       _aggregateService = new AggregateService(_eventStore, _snapshotStore, null);
     }
 

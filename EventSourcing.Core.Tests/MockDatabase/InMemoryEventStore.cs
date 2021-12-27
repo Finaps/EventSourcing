@@ -6,19 +6,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using EventSourcing.Core.Exceptions;
 
-namespace EventSourcing.Core.Tests.MockEventStore
+namespace EventSourcing.Core.Tests.MockDatabase
 {
-  internal class InMemoryEventStore : InMemoryEventStore<Event>, IEventStore, ISnapshotStore
+  internal class InMemoryEventStore : InMemoryEventStore<Event>, IEventStore
   {
   }
 
-  internal class InMemoryEventStore<TBaseEvent> : IEventStore<TBaseEvent>, ISnapshotStore<TBaseEvent> where TBaseEvent : Event, new()
+  internal class InMemoryEventStore<TBaseEvent> : IEventStore<TBaseEvent> where TBaseEvent : Event, new()
   {
     private readonly ConcurrentDictionary<(Guid, uint), TBaseEvent> _storedEvents = new();
-    private readonly ConcurrentDictionary<(Guid, uint), TBaseEvent> _storedSnapshots = new();
     
     public IQueryable<TBaseEvent> Events => new MockAsyncQueryable<TBaseEvent>(_storedEvents.Values.AsQueryable());
-    public IQueryable<TBaseEvent> Snapshots => new MockAsyncQueryable<TBaseEvent>(_storedSnapshots.Values.AsQueryable());
 
     public Task AddAsync(IList<TBaseEvent> events, CancellationToken cancellationToken = default)
     {
@@ -47,20 +45,6 @@ namespace EventSourcing.Core.Tests.MockEventStore
 
       foreach (var e in events.Where(e => !_storedEvents.TryAdd((e.AggregateId, e.AggregateVersion), e)))
         throw new ConcurrencyException(e);
-
-      return Task.CompletedTask;
-    }
-    
-    public Task AddSnapshotAsync(TBaseEvent snapshot, CancellationToken cancellationToken = default)
-    {
-      if (snapshot == null)
-        throw new ArgumentNullException(nameof(snapshot));
-
-      if (_storedSnapshots.ContainsKey((snapshot.AggregateId, snapshot.AggregateVersion)))
-          throw new ConcurrencyException(snapshot);
-
-      if (!_storedSnapshots.TryAdd((snapshot.AggregateId, snapshot.AggregateVersion), snapshot))
-        throw new ConcurrencyException(snapshot);
 
       return Task.CompletedTask;
     }
