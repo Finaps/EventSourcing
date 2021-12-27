@@ -1,4 +1,4 @@
-using EventSourcing.Core.Tests.MockEventStore;
+using EventSourcing.Core.Tests.MockDatabase;
 
 namespace EventSourcing.Core.Tests
 {
@@ -6,7 +6,5 @@ namespace EventSourcing.Core.Tests
   {
     protected override IEventStore GetEventStore() => new InMemoryEventStore();
     protected override IEventStore<TBaseEvent> GetEventStore<TBaseEvent>() => new InMemoryEventStore<TBaseEvent>();
-    protected override ISnapshotStore GetSnapshotStore() => new InMemoryEventStore();
-    protected override ISnapshotStore<TBaseEvent> GetSnapshotStore<TBaseEvent>() => new InMemoryEventStore<TBaseEvent>();
   }
 }

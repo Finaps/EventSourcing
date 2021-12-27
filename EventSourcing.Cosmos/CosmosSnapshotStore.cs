@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Net;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using EventSourcing.Core;
@@ -61,6 +60,7 @@ namespace EventSourcing.Cosmos
             {
                 if (e.StatusCode == HttpStatusCode.Conflict)
                     throw new ConcurrencyException(snapshot, e);
+                
                 throw new EventStoreException(
                     $"Encountered error while adding events: {(int)e.StatusCode} {e.StatusCode.ToString()}", e);
             }
