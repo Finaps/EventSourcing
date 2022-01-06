@@ -1,29 +1,28 @@
-namespace EventSourcing.Core.Tests.MockAggregates
+namespace EventSourcing.Core.Tests.MockAggregates;
+
+public class SnapshotAggregate : Aggregate<Event>, ISnapshottable
 {
-    public class SnapshotAggregate : Aggregate<Event>, ISnapshottable
+    public uint IntervalLength => 10;
+    public int Counter;
+    public int EventsAppliedAfterHydration;
+    public int SnapshotsAppliedAfterHydration;
+    protected override void Apply<TEvent>(TEvent e)
     {
-        public uint IntervalLength => 10;
-        public int Counter;
-        public int EventsAppliedAfterHydration;
-        public int SnapshotsAppliedAfterHydration;
-        protected override void Apply<TEvent>(TEvent e)
+        switch (e)
         {
-            switch (e)
-            {
-                case EmptyEvent:
-                    EventsAppliedAfterHydration++;
-                    Counter++;
-                    break;
-                case MockSnapshot snapshot:
-                    SnapshotsAppliedAfterHydration++;
-                    Counter = snapshot.Counter;
-                    break;
-            }
+            case EmptyEvent:
+                EventsAppliedAfterHydration++;
+                Counter++;
+                break;
+            case MockSnapshot snapshot:
+                SnapshotsAppliedAfterHydration++;
+                Counter = snapshot.Counter;
+                break;
         }
+    }
         
-        public SnapshotEvent CreateSnapshot()
-        {
-            return new MockSnapshot{Counter = this.Counter};
-        }
+    public SnapshotEvent CreateSnapshot()
+    {
+        return new MockSnapshot{Counter = this.Counter};
     }
 }

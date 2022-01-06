@@ -1,4 +1,3 @@
-namespace EventSourcing.Core
-{
-    public interface ISnapshot {}
-}
+namespace EventSourcing.Core;
+
+public interface ISnapshot {}

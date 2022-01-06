@@ -1,7 +1,6 @@
-namespace EventSourcing.Core.Tests.MockAggregates
+namespace EventSourcing.Core.Tests.MockAggregates;
+
+public record MockSnapshot : SnapshotEvent
 {
-    public record MockSnapshot : SnapshotEvent
-    {
-        public int Counter;
-    }
+    public int Counter;
 }
