@@ -14,7 +14,7 @@ internal class InMemoryEventStore : InMemoryEventStore<Event>, IEventStore
 
 internal class InMemoryEventStore<TBaseEvent> : IEventStore<TBaseEvent> where TBaseEvent : Event, new()
 {
-  private readonly ConcurrentDictionary<(Guid, uint), TBaseEvent> _storedEvents = new();
+  private readonly ConcurrentDictionary<(Guid, ulong), TBaseEvent> _storedEvents = new();
     
   public IQueryable<TBaseEvent> Events => new MockAsyncQueryable<TBaseEvent>(_storedEvents.Values.AsQueryable());
 
@@ -31,7 +31,7 @@ internal class InMemoryEventStore<TBaseEvent> : IEventStore<TBaseEvent> where TB
     if (events.Any(e => e.AggregateId != aggregateId))
       throw new ArgumentException("Cannot add multiple events with different aggregate id's", nameof(events));
       
-    if (events.Select((e, index) => e.AggregateVersion - index).Distinct().Skip(1).Any())
+    if (!Utils.IsConsecutive(events.Select(e => e.AggregateVersion).ToList()))
       throw new InvalidOperationException("Event versions should be consecutive");
       
     if (events.First().AggregateVersion != 0 && !_storedEvents.ContainsKey((events.First().AggregateId, events.First().AggregateVersion - 1)))

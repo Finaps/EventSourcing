@@ -13,7 +13,7 @@ internal class InMemorySnapshotStore : InMemorySnapshotStore<Event>, ISnapshotSt
 internal class InMemorySnapshotStore<TBaseEvent> : ISnapshotStore<TBaseEvent>
     where TBaseEvent: Event, new()
 {
-    private readonly ConcurrentDictionary<(Guid, uint), TBaseEvent> _storedSnapshots = new();
+    private readonly ConcurrentDictionary<(Guid, ulong), TBaseEvent> _storedSnapshots = new();
     public IQueryable<TBaseEvent> Snapshots => new MockAsyncQueryable<TBaseEvent>(_storedSnapshots.Values.AsQueryable());
         
     public Task AddSnapshotAsync(TBaseEvent snapshot, CancellationToken cancellationToken = default)
