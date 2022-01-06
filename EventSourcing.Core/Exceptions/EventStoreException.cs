@@ -1,12 +1,8 @@
-using System;
-using System.Collections.Generic;
+namespace EventSourcing.Core.Exceptions;
 
-namespace EventSourcing.Core.Exceptions
+public class EventStoreException : Exception
 {
-  public class EventStoreException : Exception
-  {
-    public EventStoreException() { }
-    public EventStoreException(string message) : base(message) { }
-    public EventStoreException(string message, Exception inner) : base(message, inner) { }
-  }
+  public EventStoreException() { }
+  public EventStoreException(string message) : base(message) { }
+  public EventStoreException(string message, Exception inner) : base(message, inner) { }
 }

@@ -11,10 +11,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
-      - name: Setup Dotnet Core 5.0
+      - name: Setup Dotnet Core 6.0
         uses: actions/setup-dotnet@v1
         with:
-          dotnet-version: '5.0'
+          dotnet-version: '6.0'
 
       - name: Publish Finaps.EventSourcing.Core
         uses: rohith/publish-nuget@v2

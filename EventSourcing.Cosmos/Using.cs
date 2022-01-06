@@ -1,0 +1,9 @@
+global using System;
+global using System.Net;
+global using System.Linq;
+global using System.Threading;
+global using System.Threading.Tasks;
+global using System.Collections;
+global using System.Collections.Generic;
+global using Microsoft.Azure.Cosmos;
+global using Microsoft.Extensions.Options;

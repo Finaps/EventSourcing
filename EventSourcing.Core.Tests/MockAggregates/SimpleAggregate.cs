@@ -1,12 +1,11 @@
-namespace EventSourcing.Core.Tests.MockAggregates
-{
-  internal class SimpleAggregate : Aggregate
-  {
-    public int Counter { get; private set; }
+namespace EventSourcing.Core.Tests.MockAggregates;
 
-    protected override void Apply<TEvent>(TEvent e)
-    {
-      Counter++;
-    }
+internal class SimpleAggregate : Aggregate
+{
+  public int Counter { get; private set; }
+
+  protected override void Apply<TEvent>(TEvent e)
+  {
+    Counter++;
   }
 }
