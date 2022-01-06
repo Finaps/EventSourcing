@@ -61,7 +61,7 @@ public class CosmosEventStore<TBaseEvent> : CosmosClientBase<TBaseEvent>, IEvent
     if (!response.IsSuccessStatusCode) Throw(response, events);
   }
 
-  private async Task<bool> ExistsAsync(Guid aggregateId, uint version)
+  private async Task<bool> ExistsAsync(Guid aggregateId, ulong version)
   {
     var result =
       await _events.ReadItemStreamAsync(version.ToString(), new PartitionKey(aggregateId.ToString()));
@@ -79,7 +79,7 @@ public class CosmosEventStore<TBaseEvent> : CosmosClientBase<TBaseEvent>, IEvent
       throw new ArgumentException(
         "AggregateId should be set, did you forget to Add Events to an Aggregate?", nameof(events));
 
-    if (events.Select((e, index) => e.AggregateVersion - index).Distinct().Skip(1).Any())
+    if (!Utils.IsConsecutive(events.Select(e => e.AggregateVersion).ToList()))
       throw new InvalidOperationException("Event versions should be consecutive");
 
     if (events[0].AggregateVersion != 0 && !await ExistsAsync(events[0].AggregateId, events[0].AggregateVersion - 1))

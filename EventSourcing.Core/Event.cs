@@ -33,7 +33,7 @@ public record Event
   /// <summary>
   /// Index of this Event in the Aggregate Event Stream
   /// </summary>
-  public uint AggregateVersion { get; init; }
+  public ulong AggregateVersion { get; init; }
     
   public string id => AggregateVersion.ToString();
     

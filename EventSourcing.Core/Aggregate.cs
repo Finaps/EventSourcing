@@ -16,7 +16,7 @@ public abstract class Aggregate<TBaseEvent> where TBaseEvent : Event
   /// <summary>
   /// The number of events applied to this aggregate.
   /// </summary>
-  public uint Version { get; private set; }
+  public ulong Version { get; private set; }
     
   /// <summary>
   /// Aggregate type
