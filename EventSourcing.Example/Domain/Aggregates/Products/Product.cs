@@ -6,12 +6,12 @@ using EventSourcing.Example.Domain.Shared;
 
 namespace EventSourcing.Example.Domain.Aggregates.Products
 {
-    public class Product : Aggregate
+    public class Product : Aggregate, ISnapshottable
     {
         public string Name { get; private set; }
         public int Quantity { get; private set; }
         public List<Reservation> Reservations { get; } = new();
-        
+        public uint SnapshotIntervalLength { get; } = 100;
         protected override void Apply<TEvent>(TEvent e)
         {
             switch (e)
@@ -77,6 +77,11 @@ namespace EventSourcing.Example.Domain.Aggregates.Products
             Quantity - Reservations.Select(x => x.Quantity).Sum() >= quantity;
         private bool CheckAvailabilityForBasket(Guid basketId, int quantity) => 
             Quantity - Reservations.Where(x => x.BasketId != basketId).Select(x => x.Quantity).Sum() >= quantity;
+
+        public SnapshotEvent CreateSnapshot()
+        {
+            return new ProductSnapshot(Name, Quantity, Reservations);
+        }
     }
     
     
