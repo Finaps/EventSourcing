@@ -120,12 +120,34 @@ public abstract class AggregateServiceTests
     await AggregateService.RehydrateAndPersistAsync<SimpleAggregate>(aggregate.Id,
       a => a.Add(new EmptyEvent()));
 
-    var result = await EventStore.Events
+    var count = await EventStore.Events
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
-      .ToListAsync();
+      .CountAsync();
 
-    Assert.Equal(events.Count + 1, result.Count);
+    Assert.Equal(events.Count + 1, count);
+  }
+  
+  [Fact]
+  public async Task Can_Rehydrate_And_Persist_With_PartitionId()
+  {
+    var aggregate = new SimpleAggregate { PartitionId = Guid.NewGuid() };
+    var events = new List<Event>
+    {
+      aggregate.Add(new EmptyEvent()),
+      aggregate.Add(new EmptyEvent()),
+    };
+
+    await AggregateService.PersistAsync(aggregate);
+    await AggregateService.RehydrateAndPersistAsync<SimpleAggregate>(aggregate.PartitionId, aggregate.Id,
+      a => a.Add(new EmptyEvent()));
+
+    var count = await EventStore.Events
+      .Where(x => x.AggregateId == aggregate.Id)
+      .AsAsyncEnumerable()
+      .CountAsync();
+
+    Assert.Equal(events.Count + 1, count);
   }
     
   [Fact]

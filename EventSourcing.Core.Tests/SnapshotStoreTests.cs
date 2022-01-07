@@ -26,8 +26,23 @@ public abstract class SnapshotStoreTests
 
     await SnapshotStore.AddSnapshotAsync(snapshot);
 
-    var exception = await Assert.ThrowsAnyAsync<ConcurrencyException>(
+    await Assert.ThrowsAnyAsync<ConcurrencyException>(
       async () => await SnapshotStore.AddSnapshotAsync(snapshot));
+  }
+  
+  [Fact]
+  public async Task Can_Get_Snapshot_By_PartitionId()
+  {
+    var aggregate = new SnapshotAggregate { PartitionId = Guid.NewGuid() };
+    aggregate.Add(aggregate.CreateSnapshot());
+    await SnapshotStore.AddSnapshotAsync(aggregate.UncommittedEvents.First());
+
+    var count = await SnapshotStore.Snapshots
+      .Where(x => x.PartitionId == aggregate.PartitionId)
+      .AsAsyncEnumerable()
+      .CountAsync();
+
+    Assert.Equal(1, count);
   }
 
   [Fact]
@@ -37,12 +52,12 @@ public abstract class SnapshotStoreTests
     aggregate.Add(aggregate.CreateSnapshot());
     await SnapshotStore.AddSnapshotAsync(aggregate.UncommittedEvents.First());
 
-    var result = await SnapshotStore.Snapshots
+    var count = await SnapshotStore.Snapshots
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
-      .ToListAsync();
+      .CountAsync();
 
-    Assert.Single(result);
+    Assert.Equal(1, count);
   }
 
   [Fact]
