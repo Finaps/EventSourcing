@@ -208,6 +208,28 @@ namespace EventSourcing.Core.Tests
     
       Assert.Equal(0, count);
     }
+    
+    [Fact]
+    public async Task Can_Get_Events_By_PartitionId()
+    {
+      var aggregate1 = new EmptyAggregate { PartitionId = Guid.NewGuid() };
+      var events1 = new List<Event>
+      {
+        aggregate1.Add(new EmptyEvent()),
+        aggregate1.Add(new EmptyEvent()),
+        aggregate1.Add(new EmptyEvent()),
+        aggregate1.Add(new EmptyEvent())
+      };
+
+      await EventStore.AddAsync(events1);
+
+      var count = await EventStore.Events
+        .Where(x => x.PartitionId == aggregate1.PartitionId)
+        .AsAsyncEnumerable()
+        .CountAsync();
+
+      Assert.Equal(events1.Count, count);
+    }
   
     [Fact]
     public async Task Can_Get_Events_By_AggregateId()
@@ -223,12 +245,12 @@ namespace EventSourcing.Core.Tests
 
       await EventStore.AddAsync(events);
 
-      var result = await EventStore.Events
+      var count = await EventStore.Events
         .Where(x => x.AggregateId == aggregate.Id)
         .AsAsyncEnumerable()
-        .ToListAsync();
+        .CountAsync();
 
-      Assert.Equal(events.Count, result.Count);
+      Assert.Equal(events.Count, count);
     }
 
     [Fact]
