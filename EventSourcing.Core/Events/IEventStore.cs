@@ -1,16 +1,14 @@
-using EventSourcing.Core.Exceptions;
-
 namespace EventSourcing.Core;
 
 public interface IEventStore : IEventStore<Event> { }
 
 /// <summary>
-/// Event Store Interface: Persisting <see cref="Events"/>s to a Database
+/// Event Store Interface: Persisting <see cref="Event"/>s to a Database
 /// </summary>
 /// <remarks>
-/// The <c>TBaseEvent</c> type parameter determines which <see cref="Events"/> fields are queryable on a database Level
+/// The <c>TBaseEvent</c> type parameter determines which <see cref="Event"/> fields are queryable on a database Level
 /// </remarks>
-/// <typeparam name="TBaseEvent">Base <see cref="Events"/> for <see cref="IEventStore{TBaseEvent}"/></typeparam>
+/// <typeparam name="TBaseEvent">Base <see cref="Event"/> for <see cref="IEventStore{TBaseEvent}"/></typeparam>
 public interface IEventStore<TBaseEvent> where TBaseEvent : Event, new()
 {
   /// <summary>
@@ -24,20 +22,22 @@ public interface IEventStore<TBaseEvent> where TBaseEvent : Event, new()
   IQueryable<TBaseEvent> Events { get; }
     
   /// <summary>
-  /// Add <see cref="Events"/>s to the <see cref="IEventStore{TBaseEvent}"/>
+  /// Add <see cref="Event"/>s to the <see cref="IEventStore{TBaseEvent}"/>
   /// </summary>
-  /// <remarks>
-  /// When adding events an <see cref="EventStoreException"/> will occur when
-  /// <list type="bullet">
-  /// <item>An <see cref="Events"/> with the same <see cref="Event.EventId"/> already exists</item>
-  /// <item>An <see cref="Events"/> with the same combination of <see cref="Event.AggregateId"/> and <see cref="Event.AggregateVersion"/> already exists</item>
-  /// <item>The added <see cref="Events"/>s do not all share the same <see cref="Event.AggregateId"/></item>
-  /// </list>
-  /// </remarks>
-  /// <param name="events"><see cref="Events"/>s to add</param>
+  /// <param name="events"><see cref="Event"/>s to add</param>
   /// <param name="cancellationToken">Cancellation Token</param>
   Task AddAsync(IList<TBaseEvent> events, CancellationToken cancellationToken = default);
 
+  /// <summary>
+  /// Create Event Transaction
+  /// </summary>
+  /// <param name="partitionId">Transaction Partition identifier</param>
+  /// <returns></returns>
   IEventTransaction<TBaseEvent> CreateTransaction(Guid partitionId);
+  
+  /// <summary>
+  /// Create Event Transaction for <see cref="Guid.Empty"/> partition
+  /// </summary>
+  /// <returns></returns>
   IEventTransaction<TBaseEvent> CreateTransaction();
 }

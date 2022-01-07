@@ -41,9 +41,19 @@ public interface IAggregateService<TBaseEvent> where TBaseEvent : Event, new()
   Task<TAggregate> PersistAsync<TAggregate>(TAggregate aggregate,
     CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new();
   
-  IAggregateTransaction<TBaseEvent> CreateTransaction();
+  /// <summary>
+  /// Create Aggregate Transaction
+  /// </summary>
+  /// <param name="partitionId">Transaction Partition identifier</param>
+  /// <returns></returns>
   IAggregateTransaction<TBaseEvent> CreateTransaction(Guid partitionId);
-
+  
+  /// <summary>
+  /// Create Aggregate Transaction for <see cref="Guid.Empty"/> partition
+  /// </summary>
+  /// <returns></returns>
+  IAggregateTransaction<TBaseEvent> CreateTransaction();
+  
   /// <summary>
   /// Rehydrate <see cref="Aggregate"/>
   /// </summary>
