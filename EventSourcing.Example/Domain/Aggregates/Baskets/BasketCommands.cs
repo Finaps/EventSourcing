@@ -32,7 +32,7 @@ namespace EventSourcing.Example.Domain.Aggregates.Baskets
             return basket;
         };
         
-        public static Func<Basket, AddProductToBasket, Basket> RemoveProductFromBasket = (basket, cmd) =>
+        public static Func<Basket, RemoveProductFromBasket, Basket> RemoveProductFromBasket = (basket, cmd) =>
         {
             if (basket == null)
                 throw new InvalidOperationException($"Basket with id: {cmd.AggregateId} does not exist");
@@ -41,7 +41,7 @@ namespace EventSourcing.Example.Domain.Aggregates.Baskets
             return basket;
         };
         
-        public static Func<Basket, AddProductToBasket, Basket> CheckoutBasket = (basket, cmd) =>
+        public static Func<Basket, CheckoutBasket, Basket> CheckoutBasket = (basket, cmd) =>
         {
             if (basket == null)
                 throw new InvalidOperationException($"Basket with id: {cmd.AggregateId} does not exist");
