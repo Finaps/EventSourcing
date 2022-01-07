@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using EventSourcing.Core;
 using EventSourcing.Core.Exceptions;
 using EventSourcing.Core.Tests;
-using EventSourcing.Core.Tests.MockAggregates;
+using EventSourcing.Core.Tests.Mocks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Xunit;
@@ -15,9 +15,8 @@ namespace EventSourcing.Cosmos.Tests;
 public class CosmosEventStoreTests : EventStoreTests
 {
   private readonly IOptions<CosmosEventStoreOptions> _options;
-    
-  protected override IEventStore GetEventStore() =>
-    new CosmosEventStore(_options);
+
+  protected override IEventStore EventStore { get; }
 
   protected override IEventStore<TBaseEvent> GetEventStore<TBaseEvent>() =>
     new CosmosEventStore<TBaseEvent>(_options);
@@ -37,6 +36,8 @@ public class CosmosEventStoreTests : EventStoreTests
       EventsContainer = configuration["Cosmos:EventsContainer"],
       SnapshotsContainer = configuration["Cosmos:SnapshotsContainer"]
     });
+
+    EventStore = new CosmosEventStore(_options);
   }
 
   [Fact]
@@ -125,7 +126,11 @@ public class CosmosEventStoreTests : EventStoreTests
     }));
       
     var exception = await Assert.ThrowsAsync<EventStoreException>(async () =>
-      await store.Events.Where(x => x.AggregateId == Guid.NewGuid()).ToListAsync());
+      await store.Events
+        .Where(x => x.AggregateId == Guid.NewGuid())
+        .AsAsyncEnumerable()
+        .ToListAsync()
+      );
     Assert.Contains("401", exception.Message);
   }
     
@@ -140,7 +145,11 @@ public class CosmosEventStoreTests : EventStoreTests
     }));
 
     var exception = await Assert.ThrowsAsync<EventStoreException>(async () =>
-      await store.Events.Where(x => x.AggregateId == Guid.NewGuid()).ToListAsync());
+      await store.Events
+        .Where(x => x.AggregateId == Guid.NewGuid())
+        .AsAsyncEnumerable()
+        .ToListAsync()
+      );
     Assert.Contains("404", exception.Message);
   }
     
@@ -155,7 +164,11 @@ public class CosmosEventStoreTests : EventStoreTests
     }));
 
     var exception = await Assert.ThrowsAsync<EventStoreException>(async () =>
-      await store.Events.Where(x => x.AggregateId == Guid.NewGuid()).ToListAsync());
+      await store.Events
+        .Where(x => x.AggregateId == Guid.NewGuid())
+        .AsAsyncEnumerable()
+        .ToListAsync()
+      );
     Assert.Contains("404", exception.Message);
   }
 }

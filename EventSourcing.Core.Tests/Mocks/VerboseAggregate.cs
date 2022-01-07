@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace EventSourcing.Core.Tests.MockAggregates;
+namespace EventSourcing.Core.Tests.Mocks;
 
 public class VerboseAggregate : Aggregate
 {

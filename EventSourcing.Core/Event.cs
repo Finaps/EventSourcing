@@ -6,10 +6,25 @@ namespace EventSourcing.Core;
 public record Event
 {
   /// <summary>
+  /// Unique Partition identifier
+  /// </summary>
+  public Guid PartitionId { get; init; }
+  
+  /// <summary>
+  /// Unique Aggregate identifier
+  /// </summary>
+  public Guid AggregateId { get; init; }
+  
+  /// <summary>
+  /// Aggregate type
+  /// </summary>
+  public string AggregateType { get; init; }
+
+  /// <summary>
   /// Unique Event identifier
   /// </summary>
   public Guid EventId { get; init; }
-    
+  
   /// <summary>
   /// Event type
   /// </summary>
@@ -19,23 +34,13 @@ public record Event
   /// Event creation time
   /// </summary>
   public DateTimeOffset Timestamp { get; init; }
-
-  /// <summary>
-  /// Unique Aggregate identifier
-  /// </summary>
-  public Guid AggregateId { get; init; }
-
-  /// <summary>
-  /// Aggregate type
-  /// </summary>
-  public string AggregateType { get; init; }
-    
+  
   /// <summary>
   /// Index of this Event in the Aggregate Event Stream
   /// </summary>
   public ulong AggregateVersion { get; init; }
     
-  public string id => AggregateVersion.ToString();
+  public string id => $"{AggregateId}|{AggregateVersion}";
     
   public Event()
   {

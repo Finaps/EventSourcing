@@ -42,12 +42,11 @@ public class CosmosSnapshotStore<TBaseEvent> : CosmosClientBase<TBaseEvent>, ISn
     {
         if (snapshot == null) throw new ArgumentNullException(nameof(snapshot));
         if (snapshot.AggregateId == Guid.Empty)
-            throw new ArgumentException(
-                "AggregateId should be set", nameof(snapshot));
+            throw new ArgumentException("AggregateId should be set", nameof(snapshot));
         try
         {
             await _snapshots.CreateItemAsync(snapshot,
-                new PartitionKey(snapshot.AggregateId.ToString()), null, cancellationToken);
+                new PartitionKey(snapshot.PartitionId.ToString()), null, cancellationToken);
         }
         catch (CosmosException e)
         {

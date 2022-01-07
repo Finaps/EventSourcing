@@ -12,7 +12,7 @@ public class AggregateService : AggregateService<Event>, IAggregateService
 /// Aggregate Service: Rehydrating and Persisting <see cref="Aggregate"/>s from <see cref="Event"/>s
 /// </summary>
 /// <typeparam name="TBaseEvent"></typeparam>
-public class AggregateService<TBaseEvent> : IAggregateService<TBaseEvent> where TBaseEvent : Event
+public class AggregateService<TBaseEvent> : IAggregateService<TBaseEvent> where TBaseEvent : Event, new()
 {
   private readonly IEventStore<TBaseEvent> _eventStore;
   private readonly ISnapshotStore<TBaseEvent> _snapshotStore;
@@ -28,101 +28,72 @@ public class AggregateService<TBaseEvent> : IAggregateService<TBaseEvent> where 
     _logger = logger;
   }
 
-  public async Task<TAggregate> RehydrateAsync<TAggregate>(Guid aggregateId,
+  public async Task<TAggregate> RehydrateAsync<TAggregate>(Guid partitionId, Guid aggregateId,
     CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
   {
     if (new TAggregate() is ISnapshottable)
     {
       if (_snapshotStore != null)
-        return await RehydrateFromSnapshotAsync<TAggregate>(aggregateId, cancellationToken);
+        return await RehydrateFromSnapshotAsync<TAggregate>(partitionId, aggregateId, cancellationToken);
 
       _logger?.LogWarning("{SnapshotStore} not provided while {TAggregate} implements {ISnapshottable}. Rehydrating from events only", 
         typeof(ISnapshotStore<TBaseEvent>),typeof(TAggregate),typeof(ISnapshottable));
     }
 
     var events = _eventStore.Events
-      .Where(x => x.AggregateId == aggregateId)
+      .Where(x => x.PartitionId == partitionId && x.AggregateId == aggregateId)
       .OrderBy(x => x.AggregateVersion)
-      .ToAsyncEnumerable();
+      .AsAsyncEnumerable();
 
-    return await Aggregate<TBaseEvent>.RehydrateAsync<TAggregate>(aggregateId, events, cancellationToken);
+    return await Aggregate<TBaseEvent>.RehydrateAsync<TAggregate>(partitionId, aggregateId, events, cancellationToken);
   }
 
-  public async Task<TAggregate> RehydrateAsync<TAggregate>(Guid aggregateId, DateTimeOffset date,
+  public async Task<TAggregate> RehydrateAsync<TAggregate>(Guid partitionId, Guid aggregateId, DateTimeOffset date,
     CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
   {
     var events = _eventStore.Events
-      .Where(x => x.AggregateId == aggregateId && x.Timestamp <= date)
+      .Where(x => x.PartitionId == partitionId && x.AggregateId == aggregateId && x.Timestamp <= date)
       .OrderBy(x => x.AggregateVersion)
-      .ToAsyncEnumerable();
+      .AsAsyncEnumerable();
       
-    return await Aggregate<TBaseEvent>.RehydrateAsync<TAggregate>(aggregateId, events, cancellationToken);
+    return await Aggregate<TBaseEvent>.RehydrateAsync<TAggregate>(partitionId, aggregateId, events, cancellationToken);
   }
     
-  private async Task<TAggregate> RehydrateFromSnapshotAsync<TAggregate>(Guid aggregateId,
+  private async Task<TAggregate> RehydrateFromSnapshotAsync<TAggregate>(Guid partitionId, Guid aggregateId,
     CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
   {
     if (_snapshotStore == null)
       throw new InvalidOperationException("Snapshot store not provided");
       
-    var latestSnapshot = _snapshotStore.Snapshots
-      .Where(x => x.AggregateId == aggregateId)
+    var latestSnapshot = await _snapshotStore.Snapshots
+      .Where(x => x.PartitionId == partitionId && x.AggregateId == aggregateId)
       .OrderBy(x => x.AggregateVersion)
-      .LastOrDefault();
-      
+      .AsAsyncEnumerable()
+      .LastOrDefaultAsync(cancellationToken);
+
+    var version = latestSnapshot?.AggregateVersion ?? 0;
+
     var events = _eventStore.Events
-      .Where(x => x.AggregateId == aggregateId);
+      .Where(x => x.PartitionId == partitionId && x.AggregateId == aggregateId && x.AggregateVersion >= version)
+      .OrderBy(x => x.AggregateVersion)
+      .AsAsyncEnumerable();
 
     if (latestSnapshot != null)
-      events = events
-        .Where(x => x.AggregateVersion >= latestSnapshot.AggregateVersion)
-        .Prepend(latestSnapshot);
+      events = events.Prepend(latestSnapshot);
 
-    var orderedEvents = events.OrderBy(x => x.AggregateVersion).ToAsyncEnumerable();
-    return await Aggregate<TBaseEvent>.RehydrateAsync<TAggregate>(aggregateId, orderedEvents, cancellationToken);
+    return await Aggregate<TBaseEvent>.RehydrateAsync<TAggregate>(partitionId, aggregateId, events, cancellationToken);
   }
 
   public async Task<TAggregate> PersistAsync<TAggregate>(TAggregate aggregate,
     CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
   {
-    if (aggregate.Id == Guid.Empty)
-      throw new ArgumentException("Aggregate.Id cannot be empty", nameof(aggregate));
-
-    await _eventStore.AddAsync(aggregate.UncommittedEvents.ToList(), cancellationToken);
-
-    if (aggregate is ISnapshottable s && s.IntervalExceeded<TBaseEvent>())
-    {
-      aggregate.ClearUncommittedEvents();
-        
-      if (_snapshotStore != null) 
-        return await CreateAndPersistSnapshotAsync(aggregate, cancellationToken);
-        
-      _logger?.LogWarning(
-        "{SnapshotStore} not provided while {TAggregate} implements {ISnapshottable}. No snapshot created",
-        typeof(ISnapshotStore<TBaseEvent>), typeof(TAggregate), typeof(ISnapshottable));
-        
-      return aggregate;
-    }
-      
-    aggregate.ClearUncommittedEvents();
-    return aggregate;
+    var transaction = CreateTransaction(aggregate.PartitionId);
+    var result = await transaction.PersistAsync(aggregate, cancellationToken);
+    await transaction.CommitAsync(cancellationToken);
+    return result;
   }
 
-  private async Task<TAggregate> CreateAndPersistSnapshotAsync<TAggregate>(TAggregate aggregate,
-    CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
-  {
-    if (_snapshotStore == null)
-      throw new InvalidOperationException("Snapshot store not provided");
-    if (aggregate is not ISnapshottable s)
-      throw new InvalidOperationException(
-        $"{aggregate.GetType().Name} does not implement {typeof(ISnapshottable)}");
-    if (s.CreateSnapshot() is not TBaseEvent snapshot)
-      throw new InvalidOperationException(
-        $"Snapshot created for {s.GetType().Name} is not of type {nameof(TBaseEvent)}");
-      
-    aggregate.Add(snapshot);
-    await _snapshotStore.AddSnapshotAsync(aggregate.UncommittedEvents.Single(), cancellationToken);
-    aggregate.ClearUncommittedEvents();
-    return aggregate;
-  }
+  public IAggregateTransaction<TBaseEvent> CreateTransaction() => CreateTransaction(Guid.Empty);
+  public IAggregateTransaction<TBaseEvent> CreateTransaction(Guid partitionId) =>
+    new AggregateTransaction<TBaseEvent>(_eventStore.CreateTransaction(partitionId), _snapshotStore, _logger);
 }

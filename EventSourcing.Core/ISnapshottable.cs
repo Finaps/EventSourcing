@@ -5,8 +5,7 @@ public interface ISnapshottable
     public uint IntervalLength { get; }
     public SnapshotEvent CreateSnapshot();
 
-    public bool IntervalExceeded<TBaseEvent>()
-        where TBaseEvent: Event
+    public bool IntervalExceeded<TBaseEvent>() where TBaseEvent: Event
     {
         if (this is not Aggregate<TBaseEvent> aggregate)
             throw new InvalidOperationException($"Cannot check aggregate version of type {GetType()}");
