@@ -11,7 +11,7 @@ public interface IEventStore : IEventStore<Event> { }
 /// The <c>TBaseEvent</c> type parameter determines which <see cref="Events"/> fields are queryable on a database Level
 /// </remarks>
 /// <typeparam name="TBaseEvent">Base <see cref="Events"/> for <see cref="IEventStore{TBaseEvent}"/></typeparam>
-public interface IEventStore<TBaseEvent> where TBaseEvent : Event
+public interface IEventStore<TBaseEvent> where TBaseEvent : Event, new()
 {
   /// <summary>
   /// Queryable and AsyncEnumerable Collection of <see cref="Events"/>s
@@ -37,5 +37,7 @@ public interface IEventStore<TBaseEvent> where TBaseEvent : Event
   /// <param name="events"><see cref="Events"/>s to add</param>
   /// <param name="cancellationToken">Cancellation Token</param>
   Task AddAsync(IList<TBaseEvent> events, CancellationToken cancellationToken = default);
-    
+
+  IEventTransaction<TBaseEvent> CreateTransaction(Guid partitionId);
+  IEventTransaction<TBaseEvent> CreateTransaction();
 }

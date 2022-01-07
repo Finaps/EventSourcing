@@ -11,8 +11,8 @@ namespace EventSourcing.Cosmos.Tests;
 public class CosmosSnapshotStoreTests : SnapshotStoreTests
 {
     private readonly IOptions<CosmosEventStoreOptions> _options;
-    protected override ISnapshotStore GetSnapshotStore() =>
-        new CosmosSnapshotStore(_options);
+
+    protected override ISnapshotStore SnapshotStore { get; }
 
     protected override ISnapshotStore<TBaseEvent> GetSnapshotStore<TBaseEvent>() =>
         new CosmosSnapshotStore<TBaseEvent>(_options);
@@ -31,6 +31,8 @@ public class CosmosSnapshotStoreTests : SnapshotStoreTests
             Database = configuration["Cosmos:Database"],
             SnapshotsContainer = configuration["Cosmos:SnapshotsContainer"]
         });
+        
+        SnapshotStore = new CosmosSnapshotStore(_options);
     }
         
     [Fact]

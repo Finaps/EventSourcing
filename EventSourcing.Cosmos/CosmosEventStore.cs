@@ -1,4 +1,3 @@
-using System.Reflection;
 using EventSourcing.Core;
 using EventSourcing.Core.Exceptions;
 
@@ -16,19 +15,14 @@ public class CosmosEventStore : CosmosEventStore<Event>, IEventStore
 public class CosmosEventStore<TBaseEvent> : CosmosClientBase<TBaseEvent>, IEventStore<TBaseEvent>
   where TBaseEvent : Event, new()
 {
-  private readonly TransactionalBatchItemRequestOptions _batchItemRequestOptions = new()
-  {
-    EnableContentResponseOnWrite = false
-  };
-
-  private readonly Container _events;
+  private readonly Container _container;
 
   public CosmosEventStore(IOptions<CosmosEventStoreOptions> options) : base(options)
   {
     if (string.IsNullOrWhiteSpace(options.Value.EventsContainer))
       throw new ArgumentException("CosmosEventStoreOptions.EventsContainer should not be empty", nameof(options));
 
-    _events = _database.GetContainer(options.Value.EventsContainer);
+    _container = _database.GetContainer(options.Value.EventsContainer);
   }
 
   /// <summary>
@@ -36,7 +30,7 @@ public class CosmosEventStore<TBaseEvent> : CosmosClientBase<TBaseEvent>, IEvent
   /// </summary>
   /// <typeparam name="TBaseEvent"></typeparam>
   public IQueryable<TBaseEvent> Events =>
-    new CosmosAsyncQueryable<TBaseEvent>(_events.GetItemLinqQueryable<TBaseEvent>());
+    new CosmosAsyncQueryable<TBaseEvent>(_container.GetItemLinqQueryable<TBaseEvent>());
 
   /// <summary>
   /// AddAsync: Store <see cref="TBaseEvent"/>s to the Cosmos Event Store
@@ -51,63 +45,26 @@ public class CosmosEventStore<TBaseEvent> : CosmosClientBase<TBaseEvent>, IEvent
   {
     if (events == null) throw new ArgumentNullException(nameof(events));
     if (events.Count == 0) return;
-
-    await VerifyAsync(events);
-
-    var batch = _events.CreateTransactionalBatch(new PartitionKey(events.First().AggregateId.ToString()));
-    foreach (var @event in events) batch.CreateItem(@event, _batchItemRequestOptions);
-    var response = await batch.ExecuteAsync(cancellationToken);
-
-    if (!response.IsSuccessStatusCode) Throw(response, events);
+    
+    var transaction = CreateTransaction(events.First().PartitionId);
+    await transaction.AddAsync(events, cancellationToken);
+    await transaction.CommitAsync(cancellationToken);
   }
 
-  private async Task<bool> ExistsAsync(Guid aggregateId, ulong version)
+  public async Task<bool> ExistsAsync(Guid aggregateId, ulong version, CancellationToken cancellationToken = default) =>
+    await ExistsAsync(Guid.Empty, aggregateId, version, cancellationToken);
+  
+  public async Task<bool> ExistsAsync(Guid partitionId, Guid aggregateId, ulong version, CancellationToken cancellationToken = default)
   {
-    var result =
-      await _events.ReadItemStreamAsync(version.ToString(), new PartitionKey(aggregateId.ToString()));
+    var result = await _container.ReadItemStreamAsync(
+      $"{aggregateId}|{version}",
+      new PartitionKey(partitionId.ToString()),
+      cancellationToken: cancellationToken);
     return result.IsSuccessStatusCode;
   }
 
-  private async Task VerifyAsync(IList<TBaseEvent> events)
-  {
-    var aggregateIds = events.Select(x => x.AggregateId).Distinct().ToList();
+  public IEventTransaction<TBaseEvent> CreateTransaction() => CreateTransaction(Guid.Empty);
+  public IEventTransaction<TBaseEvent> CreateTransaction(Guid partitionId) => 
+    new CosmosEventTransaction<TBaseEvent>(_container, partitionId);
 
-    if (aggregateIds.Count > 1)
-      throw new ArgumentException("All Events should have the same AggregateId", nameof(events));
-
-    if (aggregateIds.Single() == Guid.Empty)
-      throw new ArgumentException(
-        "AggregateId should be set, did you forget to Add Events to an Aggregate?", nameof(events));
-
-    if (!Utils.IsConsecutive(events.Select(e => e.AggregateVersion).ToList()))
-      throw new InvalidOperationException("Event versions should be consecutive");
-
-    if (events[0].AggregateVersion != 0 && !await ExistsAsync(events[0].AggregateId, events[0].AggregateVersion - 1))
-      throw new InvalidOperationException(
-        $"Attempted to add nonconsecutive Event '{events[0].Type}' with Version {events[0].AggregateVersion} for Aggregate '{events[0].AggregateType}' with Id '{events[0].AggregateId}': " +
-        $"no Event with Version {events[0].AggregateVersion - 1} exists");
-  }
-
-  private static void Throw(TransactionalBatchResponse response, IEnumerable<TBaseEvent> events)
-  {
-    if (response.StatusCode != HttpStatusCode.Conflict)
-      throw new EventStoreException(
-        $"Encountered error while adding events: {(int)response.StatusCode} {response.StatusCode.ToString()}",
-        CreateCosmosException(response));
-
-    throw new ConcurrencyException(response.Zip(events)
-      .Where(x => x.First.StatusCode == HttpStatusCode.Conflict)
-      .Select(x => x.Second)
-      .FirstOrDefault(), CreateCosmosException(response));
-  }
-
-  private static CosmosException CreateCosmosException(TransactionalBatchResponse response)
-  {
-    var subStatusCode = (int) response
-      .GetType()
-      .GetProperty("SubStatusCode", BindingFlags.NonPublic | BindingFlags.Instance)?
-      .GetValue(response)!;
-      
-    return new CosmosException(response.ErrorMessage, response.StatusCode, subStatusCode, response.ActivityId, response.RequestCharge);
-  }
 }

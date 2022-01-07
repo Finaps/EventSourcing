@@ -9,6 +9,11 @@ public abstract class Aggregate : Aggregate<Event> { }
 public abstract class Aggregate<TBaseEvent> where TBaseEvent : Event
 {
   /// <summary>
+  /// Unique Partition identifier
+  /// </summary>
+  public Guid PartitionId { get; init; }
+  
+  /// <summary>
   /// Unique Aggregate identifier
   /// </summary>
   public Guid Id { get; init; }
@@ -29,12 +34,12 @@ public abstract class Aggregate<TBaseEvent> where TBaseEvent : Event
   /// <summary>
   /// Create new Aggregate
   /// </summary>
-  public Aggregate()
+  protected Aggregate()
   {
     Id = Guid.NewGuid();
     Type = GetType().Name;
   }
-    
+
   /// <summary>
   /// Apply Event
   /// </summary>
@@ -63,6 +68,7 @@ public abstract class Aggregate<TBaseEvent> where TBaseEvent : Event
   {
     e = e with
     {
+      PartitionId = PartitionId,
       AggregateId = Id,
       AggregateType = Type,
       AggregateVersion = Version
@@ -76,19 +82,21 @@ public abstract class Aggregate<TBaseEvent> where TBaseEvent : Event
   /// <summary>
   /// Rehydrate <see cref="Aggregate{TBaseEvent}"/> from <see cref="Event"/> stream.
   /// </summary>
+  /// <param name="partitionId">Unique Aggregate Partition identifier</param>
   /// <param name="id">Unique Aggregate identifier</param>
   /// <param name="events"><see cref="Event"/> stream</param>
   /// <param name="cancellationToken">Cancellation Token</param>
   /// <typeparam name="TAggregate"><see cref="Aggregate{TBaseEvent}"/> Type</typeparam>
   /// <returns><see cref="Aggregate{TBaseEvent}"/> of type <c>TAggregate</c></returns>
   /// <exception cref="ArgumentException">Thrown when <c>id</c> or <c>events</c> are invalid</exception>
-  public static async Task<TAggregate> RehydrateAsync<TAggregate>(Guid id, IAsyncEnumerable<TBaseEvent> events,
-    CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
+  public static async Task<TAggregate> RehydrateAsync<TAggregate>(Guid partitionId, Guid id,
+    IAsyncEnumerable<TBaseEvent> events, CancellationToken cancellationToken = default)
+    where TAggregate : Aggregate<TBaseEvent>, new()
   {
     if (id == Guid.Empty)
       throw new ArgumentException("Aggregate Id should not be empty", nameof(id));
 
-    var aggregate = new TAggregate { Id = id };
+    var aggregate = new TAggregate { PartitionId = partitionId, Id = id };
     await foreach (var e in events.WithCancellation(cancellationToken))
       aggregate.ValidateAndApply(e);
 
@@ -124,6 +132,9 @@ public abstract class Aggregate<TBaseEvent> where TBaseEvent : Event
 
     if (e.AggregateType != GetType().Name)
       throw new ArgumentException($"Event.AggregateType ({e.AggregateType}) does not correspond with typeof(Aggregate) ({GetType().Name})", nameof(e));
+    
+    if (e.PartitionId != PartitionId)
+      throw new ArgumentException($"Event.PartitionId ({e.PartitionId}) does not correspond with Aggregate.PartitionId ({PartitionId})", nameof(e));
       
     if (e is SnapshotEvent && this is not ISnapshottable)
       throw new InvalidOperationException($"Cannot apply snapshot {e.GetType().Name} to non-snapshottable aggregate {GetType().Name}");

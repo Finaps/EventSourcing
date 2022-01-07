@@ -22,6 +22,7 @@ public abstract class CosmosClientBase<TBaseEvent>
       Converters = { new EventConverter<TBaseEvent>() }
     })
   };
+  
   private protected readonly IOptions<CosmosEventStoreOptions> _options;
   private protected readonly Database _database;
 

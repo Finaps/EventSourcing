@@ -1,4 +1,4 @@
-namespace EventSourcing.Core.Tests.MockAggregates;
+namespace EventSourcing.Core.Tests.Mocks;
 
 public class SnapshotAggregate : Aggregate<Event>, ISnapshottable
 {
@@ -23,6 +23,6 @@ public class SnapshotAggregate : Aggregate<Event>, ISnapshottable
         
     public SnapshotEvent CreateSnapshot()
     {
-        return new MockSnapshot{Counter = this.Counter};
+        return new MockSnapshot{ Counter = Counter };
     }
 }
