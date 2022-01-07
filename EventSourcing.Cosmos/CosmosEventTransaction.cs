@@ -14,6 +14,7 @@ public class CosmosEventTransaction<TBaseEvent> : IEventTransaction<TBaseEvent> 
   private readonly Container _container;
   private readonly Guid _partitionId;
   private readonly TransactionalBatch _batch;
+  private bool _hasItemsToCommit;
 
   public CosmosEventTransaction(Container container, Guid partitionId)
   {
@@ -30,10 +31,14 @@ public class CosmosEventTransaction<TBaseEvent> : IEventTransaction<TBaseEvent> 
     await VerifyAsync(events, cancellationToken);
     
     foreach (var e in events) _batch.CreateItem(e, BatchItemRequestOptions);
+
+    _hasItemsToCommit = true;
   }
 
   public async Task CommitAsync(CancellationToken cancellationToken = default)
   {
+    if (!_hasItemsToCommit) return;
+    
     var response = await _batch.ExecuteAsync(cancellationToken);
     if (!response.IsSuccessStatusCode) Throw(response);
   }
@@ -49,14 +54,14 @@ public class CosmosEventTransaction<TBaseEvent> : IEventTransaction<TBaseEvent> 
 
   private async Task VerifyAsync(IList<TBaseEvent> events, CancellationToken cancellationToken = default)
   {
-    var tenantIds = events.Select(x => x.PartitionId).Distinct().ToList();
+    var partitionIds = events.Select(x => x.PartitionId).Distinct().ToList();
     
-    if (tenantIds.Count > 1)
-      throw new ArgumentException("All Events should have the same TenantId", nameof(events));
+    if (partitionIds.Count > 1)
+      throw new ArgumentException("All Events should have the same PartitionId", nameof(events));
     
-    if (tenantIds.Single() != _partitionId)
-      throw new ArgumentException("All Events in a Transaction should have the same TenantId: " +
-                                  $"expected: '{_partitionId}', found '{tenantIds.Single()}'", nameof(events));
+    if (partitionIds.Single() != _partitionId)
+      throw new ArgumentException("All Events in a Transaction should have the same PartitionId: " +
+                                  $"expected: '{_partitionId}', found '{partitionIds.Single()}'", nameof(events));
     
     var aggregateIds = events.Select(x => x.AggregateId).Distinct().ToList();
 

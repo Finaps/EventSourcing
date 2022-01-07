@@ -1,8 +1,5 @@
-using System.Linq;
-using System.Threading.Tasks;
 using EventSourcing.Core.Exceptions;
 using EventSourcing.Core.Tests.Mocks;
-using Xunit;
 
 namespace EventSourcing.Core.Tests;
 
@@ -15,7 +12,7 @@ public abstract class SnapshotStoreTests
   public async Task Can_Add_Snapshot()
   {
     var aggregate = new SnapshotAggregate();
-    aggregate.Add(aggregate.CreateSnapshot() as SnapshotEvent);
+    aggregate.Add(aggregate.CreateSnapshot());
     var snapshot = aggregate.UncommittedEvents.First();
     await SnapshotStore.AddSnapshotAsync(snapshot);
   }

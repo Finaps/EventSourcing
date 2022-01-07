@@ -21,14 +21,14 @@ public class InMemoryEventTransaction<TBaseEvent> : IEventTransaction<TBaseEvent
     if (events == null) throw new ArgumentNullException(nameof(events));
     if (events.Count == 0) return Task.CompletedTask;
     
-    var tenantIds = events.Select(x => x.PartitionId).Distinct().ToList();
+    var partitionIds = events.Select(x => x.PartitionId).Distinct().ToList();
     
-    if (tenantIds.Count > 1)
-      throw new ArgumentException("All Events should have the same TenantId", nameof(events));
+    if (partitionIds.Count > 1)
+      throw new ArgumentException("All Events should have the same PartitionId", nameof(events));
     
-    if (tenantIds.Single() != _partitionId)
-      throw new ArgumentException("All Events in a Transaction should have the same TenantId: " +
-                                  $"expected: '{_partitionId}', found '{tenantIds.Single()}'", nameof(events));
+    if (partitionIds.Single() != _partitionId)
+      throw new ArgumentException("All Events in a Transaction should have the same PartitionId: " +
+                                  $"expected: '{_partitionId}', found '{partitionIds.Single()}'", nameof(events));
     
     var aggregateIds = events.Select(x => x.AggregateId).Distinct().ToList();
 

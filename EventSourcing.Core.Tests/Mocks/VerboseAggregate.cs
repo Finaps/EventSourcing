@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace EventSourcing.Core.Tests.Mocks;
 
 public class VerboseAggregate : Aggregate

@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using EventSourcing.Core.Tests.Mocks;
-using Xunit;
 
 namespace EventSourcing.Core.Tests;
 
