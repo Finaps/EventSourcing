@@ -6,7 +6,7 @@ public interface IAggregateService : IAggregateService<Event> { }
 /// Aggregate Service Interface: Rehydrating and Persisting <see cref="Aggregate"/>s from <see cref="Event"/>s
 /// </summary>
 /// <typeparam name="TBaseEvent">Base <see cref="Event"/> for <see cref="IAggregateService{TBaseEvent}"/></typeparam>
-public interface IAggregateService<TBaseEvent> where TBaseEvent : Event
+public interface IAggregateService<TBaseEvent> where TBaseEvent : Event, new()
 {
   /// <summary>
   /// Rehydrate <see cref="Aggregate"/>
@@ -40,6 +40,9 @@ public interface IAggregateService<TBaseEvent> where TBaseEvent : Event
   /// <returns>Persisted <see cref="Aggregate"/></returns>
   Task<TAggregate> PersistAsync<TAggregate>(TAggregate aggregate,
     CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new();
+  
+  IAggregateTransaction<TBaseEvent> CreateTransaction();
+  IAggregateTransaction<TBaseEvent> CreateTransaction(Guid partitionId);
 
   /// <summary>
   /// Rehydrate <see cref="Aggregate"/>

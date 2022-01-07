@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using EventSourcing.Core.Exceptions;
 using EventSourcing.Core.Tests.Mocks;
-using Xunit;
 
 namespace EventSourcing.Core.Tests;
 
@@ -330,5 +326,78 @@ public abstract class AggregateServiceTests
     Assert.Equal((int) eventsCount - 1, result.EventsAppliedAfterHydration);
     Assert.Equal(1, result.SnapshotsAppliedAfterHydration);
     Assert.Equal(4, snapshotCount);
+  }
+
+  [Fact]
+  public async Task Can_Persist_Aggregates_In_Transaction()
+  {
+    var transaction = AggregateService.CreateTransaction();
+    
+    var aggregate1 = new SimpleAggregate();
+    foreach (var _ in new int[3])
+      aggregate1.Add(new EmptyEvent());
+
+    await transaction.PersistAsync(aggregate1);
+
+    var aggregate2 = new SimpleAggregate();
+    foreach (var _ in new int[4])
+      aggregate2.Add(new EmptyEvent());
+    
+    await transaction.PersistAsync(aggregate2);
+
+    await transaction.CommitAsync();
+
+    var result1 = await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate1.Id);
+    Assert.Equal(3, result1.Counter);
+
+    var result2 = await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate2.Id);
+    Assert.Equal(4, result2.Counter);
+  }
+  
+  [Fact]
+  public async Task Cannot_Persist_Aggregates_In_Transaction_With_Conflicting_Event()
+  {
+    var transaction = AggregateService.CreateTransaction();
+    
+    var aggregate1 = new SimpleAggregate();
+    foreach (var _ in new int[3])
+      aggregate1.Add(new EmptyEvent());
+
+    await transaction.PersistAsync(aggregate1);
+
+    var aggregate2 = new SimpleAggregate();
+    foreach (var _ in new int[4])
+      aggregate2.Add(new EmptyEvent());
+    
+    await transaction.PersistAsync(aggregate2);
+
+    // Sneakily commit first event of first aggregate before committing transaction
+    await EventStore.AddAsync(new List<Event> { aggregate1.UncommittedEvents.First() });
+
+    await Assert.ThrowsAsync<ConcurrencyException>(async () => await transaction.CommitAsync());
+
+    // Since we manually committed the first event of aggregate1, we still expect one here
+    var result1 = await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate1.Id);
+    Assert.Equal(1, result1.Counter);
+
+    // aggregate2 should not have been committed
+    Assert.Null(await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate2.Id));
+  }
+  
+  [Fact]
+  public async Task Cannot_Persist_Aggregates_With_Multiple_PartitionIds_In_Transaction()
+  {
+    var transaction = AggregateService.CreateTransaction(Guid.NewGuid());
+    
+    var aggregate = new SimpleAggregate { PartitionId = Guid.NewGuid() };
+    foreach (var _ in new int[3])
+      aggregate.Add(new EmptyEvent());
+
+    await Assert.ThrowsAsync<ArgumentException>(async () => await transaction.PersistAsync(aggregate));
+
+    await transaction.CommitAsync();
+
+    // aggregate should not have been committed
+    Assert.Null(await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate.Id));
   }
 }
