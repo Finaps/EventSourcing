@@ -54,28 +54,21 @@ public class BasketsController : Controller
     public async Task<ObjectResult> CheckoutBasket([FromRoute] Guid basketId)
     {
         var basket = await _aggregateService.RehydrateAsync<Basket>(basketId);
-        var successfullyCheckedOut = new List<Item>();
-
-        try
+        var transaction = _aggregateService.CreateTransaction();
+        
+        foreach (var item in basket.Items)
         {
-            foreach (var item in basket.Items)
-            {
-                await _commandBus.ExecuteCommand<Product>(new Purchase(item.ProductId, basketId,
-                    item.Quantity));
-                successfullyCheckedOut.Add(item);
-            }
-
-            await _commandBus.ExecuteCommand<Basket>(new CheckoutBasket(basketId));
+            var product = await _commandBus.ExecuteCommand<Product>(new Purchase(item.ProductId, basketId,
+                item.Quantity));
+            await transaction.PersistAsync(product);
         }
-        catch (Exception e)
-        {
-            // Rollback of all product purchases that were successful
-            foreach(var item in successfullyCheckedOut)
-                await _commandBus.ExecuteCommand<Product>(new AddStock(item.ProductId, item.Quantity));
-            return BadRequest(e);
-        }
-            
+        await _commandBus.ExecuteCommand<Basket>(new CheckoutBasket(basketId));
         var order = await _commandBus.ExecuteCommand<Order>(new CreateOrder(Guid.NewGuid(), basketId));
-        return Ok(order);
+        
+        await transaction.PersistAsync(basket);
+        await transaction.PersistAsync(order);
+        await transaction.CommitAsync();
+        
+        return Ok(order.Id);
     }
 }
