@@ -35,7 +35,7 @@ namespace EventSourcing.Example.Domain.Aggregates.Products
             return product;
         };
         
-        public static Func<Product, Reserve, Product> Purchase = (product, cmd) =>
+        public static Func<Product, Purchase, Product> Purchase = (product, cmd) =>
         {
             if (product == null)
                 throw new InvalidOperationException($"Product with id: {cmd.AggregateId} does not exist");
@@ -44,7 +44,7 @@ namespace EventSourcing.Example.Domain.Aggregates.Products
             return product;
         };
         
-        public static Func<Product, Reserve, Product> RemoveReservation = (product, cmd) =>
+        public static Func<Product, RemoveReservation, Product> RemoveReservation = (product, cmd) =>
         {
             if (product == null)
                 throw new InvalidOperationException($"Product with id: {cmd.AggregateId} does not exist");
@@ -53,7 +53,7 @@ namespace EventSourcing.Example.Domain.Aggregates.Products
             return product;
         };
         
-        public static Func<Product, Reserve, Product> AddStock = (product, cmd) =>
+        public static Func<Product, AddStock, Product> AddStock = (product, cmd) =>
         {
             if (product == null)
                 throw new InvalidOperationException($"Product with id: {cmd.AggregateId} does not exist");

@@ -23,19 +23,18 @@ namespace EventSourcing.Example.CommandBus
         public void RegisterCommandHandler<TCommand, TAggregate>(Func<TAggregate, TCommand, TAggregate> handler) where TCommand : ICommand where TAggregate : Aggregate
         {
             if (_commandHandlers.ContainsKey(typeof(TCommand)))
-                throw new ArgumentException($"A command handler for command: {typeof(ICommand)} is already registered");
+                throw new ArgumentException($"A command handler for command: {typeof(TCommand)} is already registered");
             
             _commandHandlers.Add(typeof(TCommand), (agg, cmd) => handler(agg as TAggregate, (TCommand) cmd));
         }
         
         public async Task<TAggregate> ExecuteCommand<TAggregate>(ICommand command) where TAggregate : Aggregate, new()
         {
-            
-            if (_commandHandlers[command.GetType()] is not Func<TAggregate, ICommand, TAggregate> handler)
+            if (_commandHandlers[command.GetType()] is not { } handler)
                 throw new ArgumentOutOfRangeException($"No valid handler registered for command: {command.GetType()}");
             
             var aggregate = await _aggregateService.RehydrateAsync<TAggregate>(command.AggregateId);
-            aggregate = handler(aggregate, command);
+            aggregate = handler(aggregate, command) as TAggregate;
             await _aggregateService.PersistAsync(aggregate);
             return aggregate;
         }

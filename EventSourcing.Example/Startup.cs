@@ -1,5 +1,6 @@
 using EventSourcing.Core;
 using EventSourcing.Cosmos;
+using EventSourcing.Example.CommandBus;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -17,7 +18,6 @@ public class Startup
   {
     Configuration = new ConfigurationBuilder()
       .SetBasePath(env.ContentRootPath)
-      .AddJsonFile("appsettings.json", false)
       .AddJsonFile("appsettings.local.json", true)
       .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true)
       .AddEnvironmentVariables()
@@ -33,11 +33,13 @@ public class Startup
       c.SwaggerDoc("v1", new OpenApiInfo { Title = "EventSourcing.Example", Version = "v1" });
     });
       
-    // Configure Cosmos EventStore
+    // Configure Cosmos connections
     services.Configure<CosmosEventStoreOptions>(Configuration.GetSection("Cosmos"));
     services.AddSingleton<IEventStore, CosmosEventStore>();
     services.AddSingleton<ISnapshotStore, CosmosSnapshotStore>();
+    // Configure AggregateService and CommandBus
     services.AddScoped<IAggregateService, AggregateService>();
+    services.AddScoped<ICommandBus, Domain.CommandBus.CommandBus>();
   }
 
   // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
