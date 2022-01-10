@@ -1,24 +1,23 @@
 using System;
 using EventSourcing.Core;
 
-namespace EventSourcing.Example.Domain.Aggregates.Orders
+namespace EventSourcing.Example.Domain.Aggregates.Orders;
+
+public class Order : Aggregate
 {
-    public class Order : Aggregate
+    public Guid BasketId;
+    protected override void Apply<TEvent>(TEvent e)
     {
-        public Guid BasketId;
-        protected override void Apply<TEvent>(TEvent e)
+        switch(e)
         {
-            switch(e)
-            {
-                case OrderCreatedEvent createdEvent:
-                    BasketId = createdEvent.BasketId;
-                    break;
-            }
+            case OrderCreatedEvent createdEvent:
+                BasketId = createdEvent.BasketId;
+                break;
         }
+    }
         
-        public void Create(Guid basketId)
-        {
-            Add(new OrderCreatedEvent(basketId));
-        }
+    public void Create(Guid basketId)
+    {
+        Add(new OrderCreatedEvent(basketId));
     }
 }

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using EventSourcing.Core;
 using EventSourcing.Example.CommandBus;
@@ -26,7 +25,7 @@ public class BasketsController : Controller
     public async Task<OkObjectResult> CreateBasket()
     {
         var basketId = Guid.NewGuid();
-        var basket = await _commandBus.ExecuteCommand<Basket>(new CreateBasket(basketId));
+        var basket = await _commandBus.ExecuteCommandAndSaveChanges<Basket>(new CreateBasket(basketId));
         return Ok(basket.Id);
     }
     
@@ -40,12 +39,12 @@ public class BasketsController : Controller
     [HttpPost("{basketId:guid}/{productId:guid}/{amount:int}")]
     public async Task<ObjectResult> AddItemToBasket([FromRoute] Guid basketId,[FromRoute] Guid productId,[FromRoute] int amount)
     {
-        var product = await _commandBus.ExecuteCommand<Product>(new Reserve(productId ,basketId, amount, Constants.ProductReservationExpires));
+        var product = await _commandBus.ExecuteCommandAndSaveChanges<Product>(new Reserve(productId ,basketId, amount, Constants.ProductReservationExpires));
             
         if (product.Reservations.Find(x => x.BasketId == basketId && x.Quantity >= amount) == null)
             return BadRequest($"Reservation of product {productId} failed");
 
-        var basket = await _commandBus.ExecuteCommand<Basket>(new AddProductToBasket(basketId, productId, amount));
+        var basket = await _commandBus.ExecuteCommandAndSaveChanges<Basket>(new AddProductToBasket(basketId, productId, amount));
             
         return Ok(basket);
     }
