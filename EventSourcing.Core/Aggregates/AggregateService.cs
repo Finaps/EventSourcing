@@ -93,6 +93,21 @@ public class AggregateService<TBaseEvent> : IAggregateService<TBaseEvent> where 
     return result;
   }
 
+  public async Task PersistAsync<TAggregate>(IEnumerable<TAggregate> aggregates, CancellationToken cancellationToken = default)
+    where TAggregate : Aggregate<TBaseEvent>, new()
+  {
+    IAggregateTransaction<TBaseEvent> transaction = null;
+    
+    foreach (var aggregate in aggregates)
+    {
+      transaction ??= CreateTransaction(aggregate.PartitionId);
+      await transaction.PersistAsync(aggregate, cancellationToken);
+    }
+
+    if (transaction != null)
+      await transaction.CommitAsync(cancellationToken);
+  }
+
   public IAggregateTransaction<TBaseEvent> CreateTransaction() => CreateTransaction(Guid.Empty);
   public IAggregateTransaction<TBaseEvent> CreateTransaction(Guid partitionId) =>
     new AggregateTransaction<TBaseEvent>(_eventStore.CreateTransaction(partitionId), _snapshotStore, _logger);
