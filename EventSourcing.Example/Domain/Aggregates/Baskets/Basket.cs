@@ -10,6 +10,7 @@ public class Basket : Aggregate
 {
     public List<Item> Items = new();
     public bool CheckedOut;
+    public bool Expired => BasketExpires <= DateTimeOffset.Now;
     public DateTimeOffset BasketCreated { get; set; }
     public DateTimeOffset BasketExpires => BasketCreated + Constants.BasketExpires;
         
@@ -17,7 +18,10 @@ public class Basket : Aggregate
     {
         if (CheckedOut)
             throw new InvalidOperationException("Cannot apply new events to basket that is checked out");
-            
+        
+        if (Expired)
+            throw new InvalidOperationException("Cannot apply new events to basket that is expired");
+        
         switch (e)
         {
             case BasketCreatedEvent:
