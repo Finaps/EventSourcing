@@ -1,9 +1,8 @@
 using System;
 
-namespace EventSourcing.Example.CommandBus
+namespace EventSourcing.Example.CommandBus;
+
+public interface ICommand
 {
-    public interface ICommand
-    {
-        Guid AggregateId { get; }
-    }
+    Guid AggregateId { get; }
 }

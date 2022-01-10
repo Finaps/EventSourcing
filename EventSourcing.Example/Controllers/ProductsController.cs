@@ -24,7 +24,19 @@ public class ProductsController : Controller
     public async Task<OkObjectResult> CreateProduct([FromBody] CreateProduct request)
     {
         var productId = Guid.NewGuid();
-        var product = await _commandBus.ExecuteCommand<Product>(request with {AggregateId = productId});
+        var product = await _commandBus.ExecuteCommandAndSaveChanges<Product>(request with {AggregateId = productId});
         return Ok(product.Id);
+    }
+    
+    [HttpGet("{id:Guid}")]
+    public async Task<OkObjectResult> GetProduct([FromRoute] Guid id)
+    {
+        return Ok(await _aggregateService.RehydrateAsync<Product>(id));
+    }
+    
+    [HttpPost("{id:Guid}/setStock")]
+    public async Task<OkObjectResult> SetStock([FromRoute] Guid id, [FromBody] AddStock request)
+    {
+        return Ok(await _commandBus.ExecuteCommandAndSaveChanges<Product>(request with {AggregateId = id}));
     }
 }
