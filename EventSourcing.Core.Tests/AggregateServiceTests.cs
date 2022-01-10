@@ -3,7 +3,7 @@ using EventSourcing.Core.Tests.Mocks;
 
 namespace EventSourcing.Core.Tests;
 
-public abstract class AggregateServiceTests
+public abstract partial class AggregateServiceTests
 {
   protected abstract IEventStore EventStore { get; }
   protected abstract ISnapshotStore SnapshotStore { get; }
