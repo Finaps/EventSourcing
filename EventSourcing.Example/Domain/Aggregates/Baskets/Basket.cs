@@ -8,7 +8,7 @@ namespace EventSourcing.Example.Domain.Aggregates.Baskets;
 
 public class Basket : Aggregate
 {
-    public List<Item> Items = new();
+    public List<Item> Items { get; set; } = new();
     public bool CheckedOut;
     public DateTimeOffset BasketCreated { get; set; }
     public DateTimeOffset BasketExpires { get; set; }
