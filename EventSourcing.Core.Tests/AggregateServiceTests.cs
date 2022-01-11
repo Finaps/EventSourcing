@@ -359,13 +359,13 @@ public abstract partial class AggregateServiceTests
     foreach (var _ in new int[3])
       aggregate1.Add(new EmptyEvent());
 
-    await transaction.PersistAsync(aggregate1);
+    await transaction.AddAsync(aggregate1);
 
     var aggregate2 = new SimpleAggregate();
     foreach (var _ in new int[4])
       aggregate2.Add(new EmptyEvent());
     
-    await transaction.PersistAsync(aggregate2);
+    await transaction.AddAsync(aggregate2);
 
     await transaction.CommitAsync();
 
@@ -385,13 +385,13 @@ public abstract partial class AggregateServiceTests
     foreach (var _ in new int[3])
       aggregate1.Add(new EmptyEvent());
 
-    await transaction.PersistAsync(aggregate1);
+    await transaction.AddAsync(aggregate1);
 
     var aggregate2 = new SimpleAggregate();
     foreach (var _ in new int[4])
       aggregate2.Add(new EmptyEvent());
     
-    await transaction.PersistAsync(aggregate2);
+    await transaction.AddAsync(aggregate2);
 
     // Sneakily commit first event of first aggregate before committing transaction
     await EventStore.AddAsync(new List<Event> { aggregate1.UncommittedEvents.First() });
@@ -415,7 +415,7 @@ public abstract partial class AggregateServiceTests
     foreach (var _ in new int[3])
       aggregate.Add(new EmptyEvent());
 
-    await Assert.ThrowsAsync<ArgumentException>(async () => await transaction.PersistAsync(aggregate));
+    await Assert.ThrowsAsync<ArgumentException>(async () => await transaction.AddAsync(aggregate));
 
     await transaction.CommitAsync();
 
