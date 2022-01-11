@@ -34,8 +34,7 @@ public class BasketsController : Controller
     [HttpGet("{basketId:guid}")]
     public async Task<ActionResult<Basket>> GetBasket([FromRoute] Guid basketId)
     {
-        var basket = await _aggregateService.RehydrateAsync<Basket>(basketId);
-        return basket;
+        return await _aggregateService.RehydrateAsync<Basket>(basketId);
     }
         
     [HttpPost("{basketId:guid}/addItem")]
@@ -44,7 +43,7 @@ public class BasketsController : Controller
         var product = await _commandBus.ExecuteCommand<Product>(new Reserve(request.ProductId ,basketId, request.Quantity, Constants.ProductReservationExpires));
         
         if (!product.Reservations.Any(x => x.BasketId == basketId && x.Quantity >= request.Quantity))
-            return BadRequest($"Reservation of product {request.ProductId} failed");
+            return BadRequest($"Reservation of product {request.ProductId} failed: Out of stock");
 
         var basket = await _commandBus.ExecuteCommand<Basket>(request with {AggregateId = basketId});
 
