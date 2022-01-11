@@ -14,6 +14,7 @@ public class CommandBus : CommandBusBase
         RegisterCommandHandler(BasketCommandHandlers.CheckoutBasket);
         RegisterCommandHandler(BasketCommandHandlers.AddProductToBasket);
         RegisterCommandHandler(BasketCommandHandlers.RemoveProductFromBasket);
+        RegisterCommandHandler(ProductCommandHandlers.Create);
         RegisterCommandHandler(ProductCommandHandlers.Purchase);
         RegisterCommandHandler(ProductCommandHandlers.Reserve);
         RegisterCommandHandler(ProductCommandHandlers.AddStock);

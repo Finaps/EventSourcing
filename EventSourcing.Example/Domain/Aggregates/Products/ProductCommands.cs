@@ -15,7 +15,7 @@ public record AddStock(Guid AggregateId, int Quantity) : CommandBase(AggregateId
     
 public static class ProductCommandHandlers
 {
-    private static Func<Product, CreateProduct, Product> Create = (product, cmd) =>
+    public static Func<Product, CreateProduct, Product> Create = (product, cmd) =>
     {
         if (product != null)
             throw new ConcurrencyException($"Order with id: {product.Id} already exists");

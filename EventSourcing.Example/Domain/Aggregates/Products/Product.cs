@@ -11,7 +11,7 @@ public class Product : Aggregate, ISnapshottable
     public string Name { get; private set; }
     public int Quantity { get; private set; }
     public List<Reservation> Reservations { get; private set; } = new();
-    public uint SnapshotIntervalLength => 100;
+    public uint SnapshotIntervalLength => 10;
 
     protected override void Apply<TEvent>(TEvent e)
     {
