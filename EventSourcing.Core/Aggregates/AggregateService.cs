@@ -88,20 +88,19 @@ public class AggregateService<TBaseEvent> : IAggregateService<TBaseEvent> where 
     CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
   {
     var transaction = CreateTransaction(aggregate.PartitionId);
-    var result = await transaction.PersistAsync(aggregate, cancellationToken);
+    await transaction.AddAsync(aggregate, cancellationToken);
     await transaction.CommitAsync(cancellationToken);
-    return result;
+    return aggregate;
   }
 
-  public async Task PersistAsync<TAggregate>(IEnumerable<TAggregate> aggregates, CancellationToken cancellationToken = default)
-    where TAggregate : Aggregate<TBaseEvent>, new()
+  public async Task PersistAsync(IEnumerable<Aggregate<TBaseEvent>> aggregates, CancellationToken cancellationToken = default)
   {
     IAggregateTransaction<TBaseEvent> transaction = null;
     
     foreach (var aggregate in aggregates)
     {
       transaction ??= CreateTransaction(aggregate.PartitionId);
-      await transaction.PersistAsync(aggregate, cancellationToken);
+      await transaction.AddAsync(aggregate, cancellationToken);
     }
 
     if (transaction != null)

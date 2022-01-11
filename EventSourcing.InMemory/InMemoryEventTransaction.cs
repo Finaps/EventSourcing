@@ -57,13 +57,17 @@ public class InMemoryEventTransaction<TBaseEvent> : IEventTransaction<TBaseEvent
 
   public Task CommitAsync(CancellationToken cancellationToken = default)
   {
-    foreach (var e in _addedEvents.Values)
-      if (_events.ContainsKey((_partitionId, e.AggregateId, e.AggregateVersion)))
-        throw new ConcurrencyException(e);
+    lock (_events)
+    {
+      foreach (var e in _addedEvents.Values)
+        if (_events.ContainsKey((_partitionId, e.AggregateId, e.AggregateVersion)))
+          throw new ConcurrencyException(e);
 
-    foreach (var e in _addedEvents.Values.Where(e => !_events.TryAdd((_partitionId, e.AggregateId, e.AggregateVersion), e)))
-      throw new ConcurrencyException(e);
-    
+      foreach (var e in _addedEvents.Values.Where(e =>
+                 !_events.TryAdd((_partitionId, e.AggregateId, e.AggregateVersion), e)))
+        throw new ConcurrencyException(e);
+    }
+
     return Task.CompletedTask;
   }
 }

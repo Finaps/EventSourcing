@@ -19,8 +19,7 @@ public class AggregateTransaction<TBaseEvent> : IAggregateTransaction<TBaseEvent
     _logger = logger;
   }
   
-  public async Task<TAggregate> PersistAsync<TAggregate>(TAggregate aggregate, CancellationToken cancellationToken = default)
-    where TAggregate : Aggregate<TBaseEvent>, new()
+  public async Task AddAsync(Aggregate<TBaseEvent> aggregate, CancellationToken cancellationToken = default)
   {
     if (aggregate.Id == Guid.Empty)
       throw new ArgumentException("Aggregate.Id cannot be empty", nameof(aggregate));
@@ -28,8 +27,6 @@ public class AggregateTransaction<TBaseEvent> : IAggregateTransaction<TBaseEvent
     await _eventTransaction.AddAsync(aggregate.UncommittedEvents.ToList(), cancellationToken);
     
     _aggregates.Add(aggregate);
-
-    return aggregate;
   }
 
   public async Task CommitAsync(CancellationToken cancellationToken)
