@@ -10,23 +10,26 @@ public class Basket : Aggregate
 {
     public List<Item> Items = new();
     public bool CheckedOut;
-    public bool Expired => BasketExpires <= DateTimeOffset.Now;
     public DateTimeOffset BasketCreated { get; set; }
-    public DateTimeOffset BasketExpires => BasketCreated + Constants.BasketExpires;
-        
+    public DateTimeOffset BasketExpires { get; set; }
+
     protected override void Apply<TEvent>(TEvent e)
     {
+        if (e is BasketCreatedEvent created)
+        {
+            BasketCreated = created.Timestamp;
+            BasketExpires = BasketCreated + created.ExpirationTime;
+            return;
+        }
+
         if (CheckedOut)
             throw new InvalidOperationException("Cannot apply new events to basket that is checked out");
         
-        if (Expired)
+        if (BasketExpires < e.Timestamp)
             throw new InvalidOperationException("Cannot apply new events to basket that is expired");
         
         switch (e)
         {
-            case BasketCreatedEvent:
-                BasketCreated = e.Timestamp;
-                break;
             case ProductAddedToBasketEvent addedToBasketEvent:
                 var existingItem = Items.SingleOrDefault(x => x.ProductId == addedToBasketEvent.ProductId);
                 if (existingItem != null)
@@ -50,7 +53,7 @@ public class Basket : Aggregate
 
     public void Create()
     {
-        Add(new BasketCreatedEvent());
+        Add(new BasketCreatedEvent(Constants.BasketExpires));
     }
     public void AddProduct(int quantity, Guid productId)
     {

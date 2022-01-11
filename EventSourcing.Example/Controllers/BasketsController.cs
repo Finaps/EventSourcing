@@ -24,37 +24,37 @@ public class BasketsController : Controller
         _aggregateService = aggregateService;
     }
     [HttpPost]
-    public async Task<OkObjectResult> CreateBasket()
+    public async Task<ActionResult<Guid>> CreateBasket()
     {
         var basketId = Guid.NewGuid();
         var basket = await _commandBus.ExecuteCommandAndSaveChanges<Basket>(new CreateBasket(basketId));
-        return Ok(basket.Id);
+        return basket.Id;
     }
     
     [HttpGet("{basketId:guid}")]
-    public async Task<OkObjectResult> GetBasket([FromRoute] Guid basketId)
+    public async Task<ActionResult<Basket>> GetBasket([FromRoute] Guid basketId)
     {
         var basket = await _aggregateService.RehydrateAsync<Basket>(basketId);
-        return Ok(basket);
+        return basket;
     }
         
-    [HttpPost("{basketId:guid}/{productId:guid}/{amount:int}")]
-    public async Task<ObjectResult> AddItemToBasket([FromRoute] Guid basketId,[FromRoute] Guid productId,[FromRoute] int amount)
+    [HttpPost("{basketId:guid}/addItem")]
+    public async Task<ActionResult<Basket>> AddItemToBasket([FromRoute] Guid basketId,[FromBody] AddProductToBasket request)
     {
-        var product = await _commandBus.ExecuteCommand<Product>(new Reserve(productId ,basketId, amount, Constants.ProductReservationExpires));
-            
-        if (product.Reservations.Any(x => x.BasketId == basketId && x.Quantity >= amount))
-            return BadRequest($"Reservation of product {productId} failed");
+        var product = await _commandBus.ExecuteCommand<Product>(new Reserve(request.ProductId ,basketId, request.Quantity, Constants.ProductReservationExpires));
+        
+        if (!product.Reservations.Any(x => x.BasketId == basketId && x.Quantity >= request.Quantity))
+            return BadRequest($"Reservation of product {request.ProductId} failed");
 
-        var basket = await _commandBus.ExecuteCommand<Basket>(new AddProductToBasket(basketId, productId, amount));
+        var basket = await _commandBus.ExecuteCommand<Basket>(request with {AggregateId = basketId});
 
         await _aggregateService.PersistAsync(new List<Aggregate> { product, basket });
-            
-        return Ok(basket);
+
+        return basket;
     }
         
     [HttpPost("{basketId:guid}/checkout")]
-    public async Task<ObjectResult> CheckoutBasket([FromRoute] Guid basketId)
+    public async Task<ActionResult<Guid>> CheckoutBasket([FromRoute] Guid basketId)
     {
         var basket = await _aggregateService.RehydrateAsync<Basket>(basketId);
         var transaction = _aggregateService.CreateTransaction();
@@ -72,6 +72,6 @@ public class BasketsController : Controller
         await transaction.AddAsync(order);
         await transaction.CommitAsync();
         
-        return Ok(order.Id);
+        return order.Id;
     }
 }

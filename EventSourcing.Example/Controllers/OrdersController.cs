@@ -21,8 +21,8 @@ public class OrdersController : Controller
     }
     
     [HttpGet("{id:Guid}")]
-    public async Task<OkObjectResult> GetOrder([FromRoute] Guid id)
+    public async Task<ActionResult<Order>> GetOrder([FromRoute] Guid id)
     {
-        return Ok(await _aggregateService.RehydrateAsync<Order>(id));
+        return await _aggregateService.RehydrateAsync<Order>(id);
     }
 }
