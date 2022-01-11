@@ -14,8 +14,8 @@ public interface IAggregateTransaction<TBaseEvent> where TBaseEvent : Event, new
   /// <param name="cancellationToken">Cancellation Token</param>
   /// <typeparam name="TAggregate">Type of <see cref="Aggregate"/></typeparam>
   /// <returns>Persisted <see cref="Aggregate"/></returns>
-  Task<TAggregate> PersistAsync<TAggregate>(TAggregate aggregate,
-    CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new();
+  Task AddAsync(Aggregate<TBaseEvent> aggregate,
+    CancellationToken cancellationToken = default);
   
   /// <summary>
   /// Commit <see cref="Aggregate"/>s to the <see cref="IEventStore{TBaseEvent}"/>
