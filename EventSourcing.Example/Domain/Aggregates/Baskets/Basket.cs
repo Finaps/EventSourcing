@@ -33,7 +33,10 @@ public class Basket : Aggregate
             case ProductAddedToBasketEvent addedToBasketEvent:
                 var existingItem = Items.SingleOrDefault(x => x.ProductId == addedToBasketEvent.ProductId);
                 if (existingItem != null)
-                    existingItem.Quantity += addedToBasketEvent.Quantity;
+                {
+                    Items.Add(new Item(existingItem.ProductId, existingItem.Quantity + addedToBasketEvent.Quantity));
+                    Items.Remove(existingItem);
+                }
                 else 
                     Items.Add(new Item(addedToBasketEvent.ProductId, addedToBasketEvent.Quantity));
                 break;
@@ -41,9 +44,10 @@ public class Basket : Aggregate
                 var itemToRemove = Items.SingleOrDefault(x => x.ProductId == removedFromBasketEvent.ProductId);
                 if (itemToRemove == null)
                     break;
-                itemToRemove.Quantity -= removedFromBasketEvent.Quantity;
-                if (itemToRemove.Quantity <= 0)
-                    Items.Remove(itemToRemove);
+                var updated = new Item(itemToRemove.ProductId, itemToRemove.Quantity - removedFromBasketEvent.Quantity);
+                Items.Remove(itemToRemove);
+                if (itemToRemove.Quantity > 0)
+                    Items.Add(updated);
                 break;
             case BasketCheckedOutEvent:
                 CheckedOut = true;
