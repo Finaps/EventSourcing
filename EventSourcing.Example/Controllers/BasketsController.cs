@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using EventSourcing.Core;
@@ -40,16 +41,14 @@ public class BasketsController : Controller
     [HttpPost("{basketId:guid}/{productId:guid}/{amount:int}")]
     public async Task<ObjectResult> AddItemToBasket([FromRoute] Guid basketId,[FromRoute] Guid productId,[FromRoute] int amount)
     {
-        var transaction = _aggregateService.CreateTransaction();
         var product = await _commandBus.ExecuteCommand<Product>(new Reserve(productId ,basketId, amount, Constants.ProductReservationExpires));
             
         if (product.Reservations.Any(x => x.BasketId == basketId && x.Quantity >= amount))
             return BadRequest($"Reservation of product {productId} failed");
 
-        await transaction.PersistAsync(product);
         var basket = await _commandBus.ExecuteCommand<Basket>(new AddProductToBasket(basketId, productId, amount));
-        await transaction.PersistAsync(basket);
-        await transaction.CommitAsync();
+
+        await _aggregateService.PersistAsync(new List<Aggregate> { product, basket });
             
         return Ok(basket);
     }
@@ -64,13 +63,13 @@ public class BasketsController : Controller
         {
             var product = await _commandBus.ExecuteCommand<Product>(new Purchase(item.ProductId, basketId,
                 item.Quantity));
-            await transaction.PersistAsync(product);
+            await transaction.AddAsync(product);
         }
         await _commandBus.ExecuteCommand<Basket>(new CheckoutBasket(basketId));
         var order = await _commandBus.ExecuteCommand<Order>(new CreateOrder(Guid.NewGuid(), basketId));
         
-        await transaction.PersistAsync(basket);
-        await transaction.PersistAsync(order);
+        await transaction.AddAsync(basket);
+        await transaction.AddAsync(order);
         await transaction.CommitAsync();
         
         return Ok(order.Id);
