@@ -1,3 +1,5 @@
+using EventSourcing.Core.Migrations;
+
 namespace EventSourcing.Core;
 
 /// <summary>
@@ -12,7 +14,7 @@ public class EventConverter<TEvent> : JsonConverter<TEvent> where TEvent : Event
   {
     public string Type { get; set; }
   }
-
+    
   /// <summary>
   /// Dictionary containing mapping between <see cref="Event"/>.<see cref="Event.Type"/> string and actual <see cref="Event"/> type
   /// </summary>
@@ -21,7 +23,17 @@ public class EventConverter<TEvent> : JsonConverter<TEvent> where TEvent : Event
       .SelectMany(assembly => assembly.GetTypes())
       .Where(type => typeof(Event).IsAssignableFrom(type) && type.IsClass && !type.IsAbstract)
       .ToDictionary(type => type.Name);
-
+  
+  /// <summary>
+  /// Dictionary containing mapping between <see cref="Event"/>.<see cref="Event.Type"/> string and their <see cref="IEventMigrator"/>
+  /// </summary>
+  private static readonly Dictionary<string, IEventMigrator> Migrators =
+    AppDomain.CurrentDomain.GetAssemblies()
+      .SelectMany(assembly => assembly.GetTypes())
+      .Where(type => typeof(IEventMigrator).IsAssignableFrom(type) && type.IsClass && !type.IsAbstract)
+      .Select(type => Activator.CreateInstance(type) as IEventMigrator)
+      .ToDictionary(migrator => migrator!.Source.Name, migrator => migrator);
+  
   /// <summary>
   /// Use <see cref="EventConverter"/> for all Types inheriting from <see cref="Event"/>
   /// </summary>
@@ -44,7 +56,21 @@ public class EventConverter<TEvent> : JsonConverter<TEvent> where TEvent : Event
     var readerClone = reader;
     var typeString = JsonSerializer.Deserialize<EventType>(ref readerClone)?.Type;
     var type = EventTypes[typeString ?? throw new JsonException($"Can't decode Event with type {typeString}")];
+      
+    var e = (TBaseEvent) JsonSerializer.Deserialize(ref reader, type);
+    return Migrate(e);
+  }
+  
+  /// <summary>
+  /// Migrate Event to latest event version
+  /// </summary>
+  private TBaseEvent Migrate(TBaseEvent e)
+  {
+    Event converted = e;
+    
+    while (Migrators.TryGetValue(converted.GetType().Name, out var migrator))
+      converted = migrator.Convert(converted);
 
-    return (TEvent) JsonSerializer.Deserialize(ref reader, type);
+    return (TBaseEvent) converted;
   }
 }
