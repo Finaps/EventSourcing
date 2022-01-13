@@ -43,7 +43,7 @@ public class BasketsController : Controller
         var product = await _commandBus.ExecuteCommand<Product>(new Reserve(request.ProductId ,basketId, request.Quantity, Constants.ProductReservationExpires));
         
         if (!product.Reservations.Any(x => x.BasketId == basketId && x.Quantity >= request.Quantity))
-            return BadRequest($"Reservation of product {request.ProductId} failed: Out of stock");
+            return BadRequest($"Reservation of product {request.ProductId} failed: Insufficient stock");
 
         var basket = await _commandBus.ExecuteCommand<Basket>(request with {AggregateId = basketId});
 
