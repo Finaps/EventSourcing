@@ -10,11 +10,15 @@ namespace EventSourcing.Core;
 /// </remarks>
 public class EventConverter<TEvent> : JsonConverter<TEvent> where TEvent : Event
 {
+  public EventConverter()
+  {
+    ValidateMigrators();
+  }
   private class EventType
   {
     public string Type { get; set; }
   }
-    
+  
   /// <summary>
   /// Dictionary containing mapping between <see cref="Event"/>.<see cref="Event.Type"/> string and actual <see cref="Event"/> type
   /// </summary>
@@ -61,9 +65,6 @@ public class EventConverter<TEvent> : JsonConverter<TEvent> where TEvent : Event
     return Migrate(e);
   }
   
-  /// <summary>
-  /// Migrate Event to latest event version
-  /// </summary>
   private TBaseEvent Migrate(TBaseEvent e)
   {
     Event converted = e;
@@ -72,5 +73,17 @@ public class EventConverter<TEvent> : JsonConverter<TEvent> where TEvent : Event
       converted = migrator.Convert(converted);
 
     return (TBaseEvent) converted;
+  }
+  
+  private void ValidateMigrators()
+  {
+    foreach (var (source, m) in Migrators)
+    {
+      var migrator = m;
+      
+      while (Migrators.TryGetValue(migrator.Target.Name, out migrator))
+        if (migrator.Target.Name == source)
+          throw new InvalidOperationException($"Loop detected in event migrators containing {source}");
+    }
   }
 }
