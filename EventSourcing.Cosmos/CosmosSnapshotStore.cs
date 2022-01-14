@@ -1,14 +1,8 @@
 using EventSourcing.Core;
-using EventSourcing.Core.Exceptions;
 
 namespace EventSourcing.Cosmos;
 
-public class CosmosSnapshotStore : CosmosSnapshotStore<Event>, ISnapshotStore
-{
-    public CosmosSnapshotStore(IOptions<CosmosEventStoreOptions> options) : base(options) { }
-}
-
-public class CosmosSnapshotStore<TBaseEvent> : CosmosClientBase<TBaseEvent>, ISnapshotStore<TBaseEvent> where TBaseEvent : Event, new()
+public class CosmosSnapshotStore : CosmosClientBase<SnapshotEvent>, ISnapshotStore
 {
     private readonly Container _snapshots;
 
@@ -22,39 +16,27 @@ public class CosmosSnapshotStore<TBaseEvent> : CosmosClientBase<TBaseEvent>, ISn
     }
 
     /// <summary>
-    /// Snapshots: Queryable and AsyncEnumerable Collection of <see cref="TBaseEvent"/>s
+    /// Snapshots: Queryable and AsyncEnumerable Collection of <see cref="Event"/>s
     /// </summary>
-    /// <typeparam name="TBaseEvent"></typeparam>
     /// <exception cref="InvalidOperationException">Thrown when snapshot container is not provided</exception>
-    public IQueryable<TBaseEvent> Snapshots =>
-        new CosmosAsyncQueryable<TBaseEvent>(_snapshots.GetItemLinqQueryable<TBaseEvent>());
-        
+    public IQueryable<SnapshotEvent> Snapshots => _snapshots.AsCosmosAsyncQueryable<SnapshotEvent>();
+
     /// <summary>
-    /// AddSnapshotAsync: Store snapshot as a <see cref="TBaseEvent"/>s to the Cosmos Event Store
+    /// AddSnapshotAsync: Store snapshot as a <see cref="Event"/>s to the Cosmos Event Store
     /// </summary>
-    /// <param name="snapshot"><see cref="TBaseEvent"/>s to add</param>
+    /// <param name="snapshot"><see cref="Event"/>s to add</param>
     /// <param name="cancellationToken">Cancellation Token</param>
     /// <exception cref="InvalidOperationException">Thrown when snapshot container is not provided</exception>
-    /// <exception cref="ArgumentException">Thrown when trying to add <see cref="TBaseEvent"/>s with empty AggregateId</exception>
-    /// <exception cref="EventStoreException">Thrown when conflicts occur when storing <see cref="TBaseEvent"/>s</exception>
-    /// <exception cref="ConcurrencyException">Thrown when storing <see cref="TBaseEvent"/>s</exception> with existing partition key and version combination
-    public async Task AddSnapshotAsync(TBaseEvent snapshot, CancellationToken cancellationToken = default)
+    /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with empty AggregateId</exception>
+    /// <exception cref="EventStoreException">Thrown when conflicts occur when storing <see cref="Event"/>s</exception>
+    public async Task AddAsync(SnapshotEvent snapshot, CancellationToken cancellationToken = default)
     {
-        if (snapshot == null) throw new ArgumentNullException(nameof(snapshot));
-        if (snapshot.AggregateId == Guid.Empty)
-            throw new ArgumentException("AggregateId should be set", nameof(snapshot));
-        try
-        {
-            await _snapshots.CreateItemAsync(snapshot,
-                new PartitionKey(snapshot.PartitionId.ToString()), null, cancellationToken);
-        }
-        catch (CosmosException e)
-        {
-            if (e.StatusCode == HttpStatusCode.Conflict)
-                throw new ConcurrencyException(snapshot, e);
-                
-            throw new EventStoreException(
-                $"Encountered error while adding events: {(int)e.StatusCode} {e.StatusCode.ToString()}", e);
-        }
+        EventValidation.Validate(snapshot.PartitionId, new List<SnapshotEvent> { snapshot });
+
+        var transaction = _snapshots.CreateTransactionalBatch(new PartitionKey(snapshot.PartitionId.ToString()));
+        transaction.CreateItem(snapshot);
+        
+        var response = await transaction.ExecuteAsync(cancellationToken);
+        if (!response.IsSuccessStatusCode) CosmosExceptionHelpers.Throw(response);
     }
 }

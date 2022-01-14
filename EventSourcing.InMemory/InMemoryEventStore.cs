@@ -3,15 +3,13 @@ using EventSourcing.Core;
 
 namespace EventSourcing.InMemory;
 
-public class InMemoryEventStore : InMemoryEventStore<Event>, IEventStore { }
-
-public class InMemoryEventStore<TBaseEvent> : IEventStore<TBaseEvent> where TBaseEvent : Event, new()
+public class InMemoryEventStore : IEventStore
 {
-  private readonly ConcurrentDictionary<(Guid, Guid, ulong), TBaseEvent> _events = new();
+  private readonly ConcurrentDictionary<(Guid, Guid, long), Event> _events = new();
     
-  public IQueryable<TBaseEvent> Events => new MockAsyncQueryable<TBaseEvent>(_events.Values.AsQueryable());
+  public IQueryable<Event> Events => new MockAsyncQueryable<Event>(_events.Values.AsQueryable());
 
-  public async Task AddAsync(IList<TBaseEvent> events, CancellationToken cancellationToken = default)
+  public async Task AddAsync(IList<Event> events, CancellationToken cancellationToken = default)
   {
     if (events == null) throw new ArgumentNullException(nameof(events));
     if (events.Count == 0) return;
@@ -31,7 +29,7 @@ public class InMemoryEventStore<TBaseEvent> : IEventStore<TBaseEvent> where TBas
   public Task DeleteAsync(Guid aggregateId, CancellationToken cancellationToken = default) =>
     DeleteAsync(Guid.Empty, aggregateId, cancellationToken);
 
-  public IEventTransaction<TBaseEvent> CreateTransaction() => CreateTransaction(Guid.Empty);
-  public IEventTransaction<TBaseEvent> CreateTransaction(Guid partitionId) =>
-    new InMemoryEventTransaction<TBaseEvent>(_events, partitionId);
+  public IEventTransaction CreateTransaction() => CreateTransaction(Guid.Empty);
+  public IEventTransaction CreateTransaction(Guid partitionId) =>
+    new InMemoryEventTransaction(_events, partitionId);
 }

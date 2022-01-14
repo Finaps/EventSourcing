@@ -1,24 +1,22 @@
-using EventSourcing.Core.Exceptions;
-
 namespace EventSourcing.Core;
 
-public interface IAggregateTransaction<TBaseEvent> where TBaseEvent : Event, new()
+public interface IAggregateTransaction
 {
   /// <summary>
-  /// Persist <see cref="Aggregate"/> to the <see cref="IAggregateTransaction{TBaseEvent}"/>
+  /// Persist <see cref="Aggregate"/> to the <see cref="IAggregateTransaction"/>
   /// </summary>
   /// <remarks>
   /// When all <see cref="Aggregate"/>s have been added, call <see cref="CommitAsync"/> to commit them
   /// </remarks>
   /// <param name="aggregate"><see cref="Aggregate"/> to persist</param>
   /// <param name="cancellationToken">Cancellation Token</param>
-  /// <typeparam name="TAggregate">Type of <see cref="Aggregate"/></typeparam>
   /// <returns>Persisted <see cref="Aggregate"/></returns>
-  Task AddAsync(Aggregate<TBaseEvent> aggregate,
-    CancellationToken cancellationToken = default);
+  Task AddAsync(Aggregate aggregate, CancellationToken cancellationToken = default);
+  
+  Task DeleteAsync(Guid aggregateId, CancellationToken cancellationToken = default);
   
   /// <summary>
-  /// Commit <see cref="Aggregate"/>s to the <see cref="IEventStore{TBaseEvent}"/>
+  /// Commit <see cref="Aggregate"/>s to the <see cref="IEventStore"/>
   /// </summary>
   /// <exception cref="ConcurrencyException">
   /// Thrown when a conflict occurs when commiting transaction,

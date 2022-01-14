@@ -2,24 +2,21 @@ using Microsoft.Extensions.Logging;
 
 namespace EventSourcing.Core;
 
-public class AggregateTransaction<TBaseEvent> : IAggregateTransaction<TBaseEvent> where TBaseEvent : Event, new()
+public class AggregateTransaction : IAggregateTransaction
 {
-  private readonly IEventTransaction<TBaseEvent> _eventTransaction;
-  private readonly ISnapshotStore<TBaseEvent> _snapshotStore;
-  private readonly ILogger<AggregateService<TBaseEvent>> _logger;
-  private readonly List<Aggregate<TBaseEvent>> _aggregates = new();
+  private readonly IEventTransaction _eventTransaction;
+  private readonly ISnapshotStore _snapshotStore;
+  private readonly ILogger<AggregateService> _logger;
+  private readonly List<Aggregate> _aggregates = new();
 
-  public AggregateTransaction(
-    IEventTransaction<TBaseEvent> eventTransaction,
-    ISnapshotStore<TBaseEvent> snapshotStore,
-    ILogger<AggregateService<TBaseEvent>> logger)
+  public AggregateTransaction(IEventTransaction eventTransaction, ISnapshotStore snapshotStore, ILogger<AggregateService> logger)
   {
     _eventTransaction = eventTransaction;
     _snapshotStore = snapshotStore;
     _logger = logger;
   }
   
-  public async Task AddAsync(Aggregate<TBaseEvent> aggregate, CancellationToken cancellationToken = default)
+  public async Task AddAsync(Aggregate aggregate, CancellationToken cancellationToken = default)
   {
     if (aggregate.Id == Guid.Empty)
       throw new ArgumentException("Aggregate.Id cannot be empty", nameof(aggregate));
@@ -29,44 +26,42 @@ public class AggregateTransaction<TBaseEvent> : IAggregateTransaction<TBaseEvent
     _aggregates.Add(aggregate);
   }
 
+  public async Task DeleteAsync(Guid aggregateId, CancellationToken cancellationToken = default) =>
+    await _eventTransaction.DeleteAsync(aggregateId, cancellationToken);
+
   public async Task CommitAsync(CancellationToken cancellationToken)
   {
     await _eventTransaction.CommitAsync(cancellationToken);
-    
-    foreach (var aggregate in _aggregates)
+
+    try
     {
-      if (aggregate is ISnapshottable s && s.IntervalExceeded<TBaseEvent>())
-        if (_snapshotStore != null)
-        {
-          aggregate.ClearUncommittedEvents();
-          await CreateAndPersistSnapshotAsync(aggregate, cancellationToken);
-        }
-        else
-        {
-          _logger?.LogWarning(
-            "{SnapshotStore} not provided while {TAggregate} implements {ISnapshottable}. No snapshot created",
-            typeof(ISnapshotStore<TBaseEvent>), aggregate.GetType(), typeof(ISnapshottable));
-        }
-      else
+      foreach (var aggregate in _aggregates)
       {
-        aggregate.ClearUncommittedEvents();
+        if (
+          // If the Snapshot Store was provided
+          _snapshotStore != null &&
+
+          // If Aggregate is includes snapshots
+          aggregate.SnapshotInterval > 0 &&
+
+          // If the Snapshot Interval Threshold has been met
+          aggregate.SnapshotIntervalExceeded)
+        {
+          // Create Snapshot
+          await _snapshotStore.AddAsync(aggregate.CreateLinkedSnapshot(), cancellationToken);
+        }
+        
+        // Warn when Aggregate can create snapshots, but no Snapshot Store has been provided
+        if (aggregate.SnapshotInterval > 0 && _snapshotStore == null)
+          _logger?.LogWarning(
+            "{SnapshotStore} not provided while {TAggregate} has snapshot interval {interval}. Rehydrating from events only",
+            typeof(ISnapshotStore), aggregate.GetType(), aggregate.SnapshotInterval);
       }
     }
-  }
-  
-  private async Task CreateAndPersistSnapshotAsync(Aggregate<TBaseEvent> aggregate,
-    CancellationToken cancellationToken = default)
-  {
-    if (_snapshotStore == null)
-      throw new InvalidOperationException("Snapshot store not provided");
-    if (aggregate is not ISnapshottable s)
-      throw new InvalidOperationException(
-        $"{aggregate.GetType().Name} does not implement {typeof(ISnapshottable)}");
-    if (s.CreateSnapshot() is not TBaseEvent snapshot)
-      throw new InvalidOperationException(
-        $"Snapshot created for {s.GetType().Name} is not of type {nameof(TBaseEvent)}");
-    
-    await _snapshotStore.AddSnapshotAsync(aggregate.Add(snapshot), cancellationToken);
-    aggregate.ClearUncommittedEvents();
+    finally
+    {
+      foreach (var aggregate in _aggregates)
+        aggregate.ClearUncommittedEvents();
+    }
   }
 }

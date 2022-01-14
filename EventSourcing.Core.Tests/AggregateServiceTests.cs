@@ -1,4 +1,3 @@
-using EventSourcing.Core.Exceptions;
 using EventSourcing.Core.Tests.Mocks;
 
 namespace EventSourcing.Core.Tests;
@@ -169,7 +168,7 @@ public abstract partial class AggregateServiceTests
   public async Task Can_Snapshot_Aggregate()
   {
     var aggregate = new SnapshotAggregate();
-    var eventsCount = aggregate.IntervalLength;
+    var eventsCount = aggregate.SnapshotInterval;
     foreach (var _ in new int[eventsCount])
       aggregate.Add(new EmptyEvent());
 
@@ -186,14 +185,14 @@ public abstract partial class AggregateServiceTests
       .CountAsync();
       
     Assert.NotNull(snapshotResult);
-    Assert.Equal((int) aggregate.IntervalLength, eventCount);
+    Assert.Equal((int) aggregate.SnapshotInterval, eventCount);
   }
     
   [Fact]
   public async Task Cannot_Snapshot_When_Interval_Is_Not_Exceeded()
   {
     var aggregate = new SnapshotAggregate();
-    var eventsCount = aggregate.IntervalLength - 1;
+    var eventsCount = aggregate.SnapshotInterval - 1;
     foreach (var _ in new int[eventsCount])
       aggregate.Add(new EmptyEvent());
 
@@ -217,7 +216,7 @@ public abstract partial class AggregateServiceTests
   public async Task One_Snapshot_When_Interval_Is_Exceeded_Twice()
   {
     var aggregate = new SnapshotAggregate();
-    var eventsCount = 2 * aggregate.IntervalLength;
+    var eventsCount = 2 * aggregate.SnapshotInterval;
     foreach (var _ in new int[eventsCount])
       aggregate.Add(new EmptyEvent());
 
@@ -241,7 +240,7 @@ public abstract partial class AggregateServiceTests
   public async Task Can_Rehydrate_Snapshotted_Aggregate()
   {
     var aggregate = new SnapshotAggregate();
-    var eventsCount = aggregate.IntervalLength;
+    var eventsCount = aggregate.SnapshotInterval;
     foreach (var _ in new int[eventsCount])
       aggregate.Add(new EmptyEvent());
 
@@ -258,7 +257,7 @@ public abstract partial class AggregateServiceTests
   public async Task Can_Rehydrate_Twice_Snapshotted_Aggregate()
   {
     var aggregate = new SnapshotAggregate();
-    var eventsCount = aggregate.IntervalLength;
+    var eventsCount = aggregate.SnapshotInterval;
       
     foreach (var _ in new int[eventsCount])
       aggregate.Add(new EmptyEvent());
@@ -286,7 +285,7 @@ public abstract partial class AggregateServiceTests
   public async Task Can_Rehydrate_From_Snapshot_And_Events()
   {
     var aggregate = new SnapshotAggregate();
-    var eventsCount = aggregate.IntervalLength;
+    var eventsCount = aggregate.SnapshotInterval;
       
     foreach (var _ in new int[eventsCount])
       aggregate.Add(new EmptyEvent());
@@ -314,7 +313,7 @@ public abstract partial class AggregateServiceTests
   public async Task Can_Rehydrate_Multiple_Snapshotted_Aggregate()
   {
     var aggregate = new SnapshotAggregate();
-    var eventsCount = aggregate.IntervalLength;
+    var eventsCount = aggregate.SnapshotInterval;
       
     foreach (var _ in new int[eventsCount])
       aggregate.Add(new EmptyEvent());
@@ -396,7 +395,7 @@ public abstract partial class AggregateServiceTests
     // Sneakily commit first event of first aggregate before committing transaction
     await EventStore.AddAsync(new List<Event> { aggregate1.UncommittedEvents.First() });
 
-    await Assert.ThrowsAsync<ConcurrencyException>(async () => await transaction.CommitAsync());
+    await Assert.ThrowsAsync<EventStoreException>(async () => await transaction.CommitAsync());
 
     // Since we manually committed the first event of aggregate1, we still expect one here
     var result1 = await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate1.Id);

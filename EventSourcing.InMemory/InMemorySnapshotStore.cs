@@ -1,27 +1,23 @@
 using System.Collections.Concurrent;
 using EventSourcing.Core;
-using EventSourcing.Core.Exceptions;
 
 namespace EventSourcing.InMemory;
 
-public class InMemorySnapshotStore : InMemorySnapshotStore<Event>, ISnapshotStore { }
-
-public class InMemorySnapshotStore<TBaseEvent> : ISnapshotStore<TBaseEvent>
-  where TBaseEvent : Event, new()
+public class InMemorySnapshotStore : ISnapshotStore
 {
-  private readonly ConcurrentDictionary<(Guid, Guid, ulong), TBaseEvent> _storedSnapshots = new();
-  public IQueryable<TBaseEvent> Snapshots => new MockAsyncQueryable<TBaseEvent>(_storedSnapshots.Values.AsQueryable());
+  private readonly ConcurrentDictionary<(Guid, Guid, long), SnapshotEvent> _storedSnapshots = new();
+  public IQueryable<SnapshotEvent> Snapshots => new MockAsyncQueryable<SnapshotEvent>(_storedSnapshots.Values.AsQueryable());
 
-  public Task AddSnapshotAsync(TBaseEvent snapshot, CancellationToken cancellationToken = default)
+  public Task AddAsync(SnapshotEvent snapshot, CancellationToken cancellationToken = default)
   {
     if (snapshot == null)
       throw new ArgumentNullException(nameof(snapshot));
 
     if (_storedSnapshots.ContainsKey((snapshot.PartitionId, snapshot.AggregateId, snapshot.AggregateVersion)))
-      throw new ConcurrencyException(snapshot);
+      throw new EventStoreException(snapshot);
 
     if (!_storedSnapshots.TryAdd((snapshot.PartitionId, snapshot.AggregateId, snapshot.AggregateVersion), snapshot))
-      throw new ConcurrencyException(snapshot);
+      throw new EventStoreException(snapshot);
 
     return Task.CompletedTask;
   }

@@ -3,23 +3,16 @@ using EventSourcing.Core;
 
 namespace EventSourcing.Cosmos;
 
-public abstract class CosmosClientBase : CosmosClientBase<Event>
-{
-  protected CosmosClientBase(IOptions<CosmosEventStoreOptions> options) : base(options) { }
-}
-
 /// <summary>
-/// Cosmos Client Base: Cosmos Connection for Querying and Storing <see cref="TBaseEvent"/>s
+/// Cosmos Client Base: Cosmos Connection for Querying and Storing <see cref="Event"/>s
 /// </summary>
-/// <typeparam name="TBaseEvent"></typeparam>
-public abstract class CosmosClientBase<TBaseEvent>
-  where TBaseEvent : Event, new()
+public abstract class CosmosClientBase<TEvent> where TEvent : Event
 {
   private readonly CosmosClientOptions _clientOptions = new()
   {
     Serializer = new CosmosEventSerializer(new JsonSerializerOptions
     {
-      Converters = { new EventConverter<TBaseEvent>() }
+      Converters = { new EventConverter<TEvent>() }
     })
   };
   

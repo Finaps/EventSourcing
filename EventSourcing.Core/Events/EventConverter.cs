@@ -6,13 +6,13 @@ namespace EventSourcing.Core;
 /// <remarks>
 /// Enables Polymorphic Serialization and Deserialization using the <see cref="Event"/>.<see cref="Event.Type"/> property
 /// </remarks>
-public class EventConverter<TBaseEvent> : JsonConverter<TBaseEvent> where TBaseEvent : Event
+public class EventConverter<TEvent> : JsonConverter<TEvent> where TEvent : Event
 {
   private class EventType
   {
     public string Type { get; set; }
   }
-    
+
   /// <summary>
   /// Dictionary containing mapping between <see cref="Event"/>.<see cref="Event.Type"/> string and actual <see cref="Event"/> type
   /// </summary>
@@ -32,19 +32,19 @@ public class EventConverter<TBaseEvent> : JsonConverter<TBaseEvent> where TBaseE
   /// <summary>
   /// Serialize Event
   /// </summary>
-  public override void Write(Utf8JsonWriter writer, TBaseEvent value, JsonSerializerOptions options) =>
+  public override void Write(Utf8JsonWriter writer, TEvent value, JsonSerializerOptions options) =>
     JsonSerializer.Serialize(writer, value, EventTypes[value.Type]);
 
   /// <summary>
   /// Deserialize Event
   /// </summary>
   /// <exception cref="JsonException">Thrown when <see cref="Event"/> type cannot be found.</exception>
-  public override TBaseEvent Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+  public override TEvent Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
   {
     var readerClone = reader;
     var typeString = JsonSerializer.Deserialize<EventType>(ref readerClone)?.Type;
     var type = EventTypes[typeString ?? throw new JsonException($"Can't decode Event with type {typeString}")];
 
-    return (TBaseEvent) JsonSerializer.Deserialize(ref reader, type);
+    return (TEvent) JsonSerializer.Deserialize(ref reader, type);
   }
 }

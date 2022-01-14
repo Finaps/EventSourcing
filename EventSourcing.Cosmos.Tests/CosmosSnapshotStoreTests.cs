@@ -10,13 +10,8 @@ namespace EventSourcing.Cosmos.Tests;
 
 public class CosmosSnapshotStoreTests : SnapshotStoreTests
 {
-    private readonly IOptions<CosmosEventStoreOptions> _options;
-
     protected override ISnapshotStore SnapshotStore { get; }
 
-    protected override ISnapshotStore<TBaseEvent> GetSnapshotStore<TBaseEvent>() =>
-        new CosmosSnapshotStore<TBaseEvent>(_options);
-        
     public CosmosSnapshotStoreTests()
     {
         var configuration = new ConfigurationBuilder()
@@ -25,14 +20,14 @@ public class CosmosSnapshotStoreTests : SnapshotStoreTests
             .AddEnvironmentVariables()
             .Build();
 
-        _options = Options.Create(new CosmosEventStoreOptions
+        var options = Options.Create(new CosmosEventStoreOptions
         {
             ConnectionString = configuration["Cosmos:ConnectionString"],
             Database = configuration["Cosmos:Database"],
             SnapshotsContainer = configuration["Cosmos:SnapshotsContainer"]
         });
         
-        SnapshotStore = new CosmosSnapshotStore(_options);
+        SnapshotStore = new CosmosSnapshotStore(options);
     }
         
     [Fact]

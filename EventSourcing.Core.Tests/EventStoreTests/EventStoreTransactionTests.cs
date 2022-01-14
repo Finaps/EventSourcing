@@ -1,4 +1,3 @@
-using EventSourcing.Core.Exceptions;
 using EventSourcing.Core.Tests.Mocks;
 
 namespace EventSourcing.Core.Tests;

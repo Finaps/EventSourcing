@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using EventSourcing.Core;
-using EventSourcing.Core.Exceptions;
 using EventSourcing.Core.Tests;
 using EventSourcing.Core.Tests.Mocks;
 using Microsoft.Extensions.Configuration;
@@ -17,9 +16,6 @@ public class CosmosEventStoreTests : EventStoreTests
   private readonly IOptions<CosmosEventStoreOptions> _options;
 
   protected override IEventStore EventStore { get; }
-
-  protected override IEventStore<TBaseEvent> GetEventStore<TBaseEvent>() =>
-    new CosmosEventStore<TBaseEvent>(_options);
 
   public CosmosEventStoreTests()
   {

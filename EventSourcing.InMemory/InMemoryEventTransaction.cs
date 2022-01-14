@@ -1,24 +1,23 @@
 using System.Collections.Concurrent;
 using EventSourcing.Core;
-using EventSourcing.Core.Exceptions;
 
 namespace EventSourcing.InMemory;
 
-public class InMemoryEventTransaction<TBaseEvent> : IEventTransaction<TBaseEvent> where TBaseEvent : Event, new()
+public class InMemoryEventTransaction : IEventTransaction
 {
   public Guid PartitionId { get; }
 
-  private readonly ConcurrentDictionary<(Guid, Guid, ulong), TBaseEvent> _events;
-  private readonly List<TBaseEvent> _addedEvents = new();
-  private readonly Dictionary<Guid, ulong> _removedAggregateIds = new();
+  private readonly ConcurrentDictionary<(Guid, Guid, long), Event> _events;
+  private readonly List<Event> _addedEvents = new();
+  private readonly Dictionary<Guid, long> _removedAggregateIds = new();
 
-  public InMemoryEventTransaction(ConcurrentDictionary<(Guid, Guid, ulong), TBaseEvent> events, Guid partitionId)
+  public InMemoryEventTransaction(ConcurrentDictionary<(Guid, Guid, long), Event> events, Guid partitionId)
   {
     PartitionId = partitionId;
     _events = events;
   }
 
-  public Task AddAsync(IList<TBaseEvent> events, CancellationToken cancellationToken = default)
+  public Task AddAsync(IList<Event> events, CancellationToken cancellationToken = default)
   {
     EventValidation.Validate(PartitionId, events);
 
@@ -29,7 +28,7 @@ public class InMemoryEventTransaction<TBaseEvent> : IEventTransaction<TBaseEvent
       foreach (var e in events)
       {
         if (_addedEvents.Any(x => x.AggregateId == e.AggregateId && x.AggregateVersion == e.AggregateVersion))
-          throw new ConcurrencyException(e);
+          throw new EventStoreException(e);
 
         _addedEvents.Add(e);
       }
@@ -67,14 +66,14 @@ public class InMemoryEventTransaction<TBaseEvent> : IEventTransaction<TBaseEvent
         
         // When this event version is already present, throw
         if (!_events.TryAdd((PartitionId, e.AggregateId, e.AggregateVersion), e))
-          throw new ConcurrencyException(e);
+          throw new EventStoreException(e);
       }
 
       foreach (var (aggregateId, version) in _removedAggregateIds)
       {
         // if there are more events than deletion expected, throw (events might have been added in the meantime)
         if (_events.ContainsKey((PartitionId, aggregateId, version+1)))
-          throw new ConcurrencyException(_events.Values
+          throw new EventStoreException(_events.Values
             .SingleOrDefault(x =>
               x.PartitionId == PartitionId &&
               x.AggregateId == aggregateId &&

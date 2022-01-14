@@ -1,12 +1,14 @@
 namespace EventSourcing.Core.Tests.Mocks;
 
-public class SnapshotAggregate : Aggregate<Event>, ISnapshottable
+public class SnapshotAggregate : Aggregate
 {
-    public uint IntervalLength => 10;
+    public override long SnapshotInterval => 10;
+
     public int Counter;
     public int EventsAppliedAfterHydration;
     public int SnapshotsAppliedAfterHydration;
-    protected override void Apply<TEvent>(TEvent e)
+    
+    protected override void Apply(Event e)
     {
         switch (e)
         {
@@ -20,9 +22,7 @@ public class SnapshotAggregate : Aggregate<Event>, ISnapshottable
                 break;
         }
     }
-        
-    public SnapshotEvent CreateSnapshot()
-    {
-        return new MockSnapshot{ Counter = Counter };
-    }
+
+    protected override SnapshotEvent CreateSnapshot() =>
+        new MockSnapshot { Counter = Counter };
 }

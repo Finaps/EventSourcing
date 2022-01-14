@@ -1,8 +1,5 @@
 namespace EventSourcing.Core;
 
-/// <summary>
-/// Base Event
-/// </summary>
 public record Event
 {
   /// <summary>
@@ -38,10 +35,16 @@ public record Event
   /// <summary>
   /// Index of this Event in the Aggregate Event Stream
   /// </summary>
-  public ulong AggregateVersion { get; init; }
+  public long AggregateVersion { get; init; }
 
+  /// <summary>
+  /// Unique Database Identifier
+  /// </summary>
   public string id => GetId(AggregateId, AggregateVersion);
     
+  /// <summary>
+  /// Create new Event
+  /// </summary>
   public Event()
   {
     EventId = Guid.NewGuid();
@@ -49,5 +52,11 @@ public record Event
     Timestamp = DateTimeOffset.Now;
   }
   
-  public static string GetId(Guid aggregateId, ulong aggregateVersion) => $"{aggregateId}|{aggregateVersion}";
+  /// <summary>
+  /// Construct Database Id from <see cref="Event.AggregateId"/> and <see cref="Event.AggregateVersion"/>
+  /// </summary>
+  /// <param name="aggregateId"></param>
+  /// <param name="aggregateVersion"></param>
+  /// <returns></returns>
+  public static string GetId(Guid aggregateId, long aggregateVersion) => $"{aggregateId}|{aggregateVersion}";
 }

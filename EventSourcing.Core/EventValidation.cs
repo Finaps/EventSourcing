@@ -21,7 +21,7 @@ public static class EventValidation
       throw new ArgumentException("Event versions should be consecutive");
   }
   
-  private static bool IsConsecutive(IList<ulong> numbers)
+  private static bool IsConsecutive(IList<long> numbers)
   {
     if (numbers.Count == 0) return true;
 

@@ -1,4 +1,3 @@
-using EventSourcing.Core.Exceptions;
 using EventSourcing.Core.Tests.Mocks;
 
 namespace EventSourcing.Core.Tests;
@@ -16,7 +15,7 @@ public abstract partial class EventStoreTests
 
     await EventStore.AddAsync(new Event[] { e1 });
 
-    await Assert.ThrowsAnyAsync<ConcurrencyException>(
+    await Assert.ThrowsAnyAsync<EventStoreException>(
       async () => await EventStore.AddAsync(new Event[] { e2 }));
   }
   
@@ -48,7 +47,7 @@ public abstract partial class EventStoreTests
     await transaction.AddAsync(new List<Event> { e2 });
 
     // Check commit throws a concurrency exception
-    await Assert.ThrowsAsync<ConcurrencyException>(async () => await transaction.CommitAsync());
+    await Assert.ThrowsAsync<EventStoreException>(async () => await transaction.CommitAsync());
 
     // Ensure e2 was not committed
     var count = await EventStore.Events
@@ -78,8 +77,8 @@ public abstract partial class EventStoreTests
     var concurrentEvent = aggregate.Add(new EmptyEvent());
     await EventStore.AddAsync(new List<Event> { concurrentEvent });
   
-    // Check if committing transaction throws ConcurrencyException
-    await Assert.ThrowsAsync<ConcurrencyException>(async () => await transaction.CommitAsync());
+    // Check if committing transaction throws EventStoreException
+    await Assert.ThrowsAsync<EventStoreException>(async () => await transaction.CommitAsync());
   
     // Check if events were left untouched by transaction
     var count = await EventStore.Events

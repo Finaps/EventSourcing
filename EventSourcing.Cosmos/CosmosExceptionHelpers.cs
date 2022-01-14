@@ -1,22 +1,14 @@
 using System.Reflection;
-using EventSourcing.Core.Exceptions;
+using EventSourcing.Core;
 
 namespace EventSourcing.Cosmos;
 
 internal static class CosmosExceptionHelpers
 {
-  public static void Throw(TransactionalBatchResponse response)
-  {
-    var inner = CreateCosmosException(response);
+  public static void Throw(TransactionalBatchResponse response) =>
+    throw new EventStoreException(response.StatusCode, CreateCosmosException(response));
 
-    throw response.StatusCode switch
-    {
-      HttpStatusCode.Conflict => new ConcurrencyException(inner),
-      _ => new EventStoreException(response.StatusCode, inner)
-    };
-  }
-  
-  public static CosmosException CreateCosmosException(TransactionalBatchResponse response)
+  private static CosmosException CreateCosmosException(TransactionalBatchResponse response)
   {
     var subStatusCode = (int) response
       .GetType()

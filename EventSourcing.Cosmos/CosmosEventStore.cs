@@ -1,22 +1,19 @@
 using EventSourcing.Core;
-using EventSourcing.Core.Exceptions;
 
 namespace EventSourcing.Cosmos;
 
-public class CosmosEventStore : CosmosEventStore<Event>, IEventStore
-{
-  public CosmosEventStore(IOptions<CosmosEventStoreOptions> options) : base(options) { }
-}
-
 /// <summary>
-/// Cosmos Event Store: Cosmos Connection for Querying and Storing <see cref="TBaseEvent"/>s
+/// Cosmos Event Store: Cosmos Connection for Querying and Storing <see cref="Event"/>s
 /// </summary>
-/// <typeparam name="TBaseEvent"></typeparam>
-public class CosmosEventStore<TBaseEvent> : CosmosClientBase<TBaseEvent>, IEventStore<TBaseEvent>
-  where TBaseEvent : Event, new()
+public class CosmosEventStore : CosmosClientBase<Event>, IEventStore
 {
   private readonly Container _container;
-
+  
+  /// <summary>
+  /// Initialize Cosmos Event Store
+  /// </summary>
+  /// <param name="options">Cosmos Event Store Options</param>
+  /// <exception cref="ArgumentException"></exception>
   public CosmosEventStore(IOptions<CosmosEventStoreOptions> options) : base(options)
   {
     if (string.IsNullOrWhiteSpace(options.Value.EventsContainer))
@@ -24,23 +21,10 @@ public class CosmosEventStore<TBaseEvent> : CosmosClientBase<TBaseEvent>, IEvent
 
     _container = _database.GetContainer(options.Value.EventsContainer);
   }
-
-  /// <summary>
-  /// Events: Queryable and AsyncEnumerable Collection of <see cref="TBaseEvent"/>s
-  /// </summary>
-  /// <typeparam name="TBaseEvent"></typeparam>
-  public IQueryable<TBaseEvent> Events => _container.AsCosmosAsyncQueryable<TBaseEvent>();
-
-  /// <summary>
-  /// AddAsync: Store <see cref="TBaseEvent"/>s to the Cosmos Event Store
-  /// </summary>
-  /// <param name="events"><see cref="TBaseEvent"/>s to add</param>
-  /// <param name="cancellationToken">Cancellation Token</param>
-  /// <exception cref="ArgumentException">Thrown when trying to add <see cref="TBaseEvent"/>s with empty AggregateId</exception>
-  /// <exception cref="ArgumentException">Thrown when trying to add <see cref="TBaseEvent"/>s with equal AggregateVersions</exception>
-  /// <exception cref="EventStoreException">Thrown when conflicts occur when storing <see cref="TBaseEvent"/>s</exception>
-  /// <exception cref="ConcurrencyException">Thrown when storing <see cref="TBaseEvent"/>s</exception> with existing partition key and version combination
-  public async Task AddAsync(IList<TBaseEvent> events, CancellationToken cancellationToken = default)
+  
+  public IQueryable<Event> Events => _container.AsCosmosAsyncQueryable<Event>();
+  
+  public async Task AddAsync(IList<Event> events, CancellationToken cancellationToken = default)
   {
     if (events == null) throw new ArgumentNullException(nameof(events));
     if (events.Count == 0) return;
@@ -60,8 +44,8 @@ public class CosmosEventStore<TBaseEvent> : CosmosClientBase<TBaseEvent>, IEvent
   public async Task DeleteAsync(Guid aggregateId, CancellationToken cancellationToken = default) =>
     await DeleteAsync(Guid.Empty, aggregateId, cancellationToken);
 
-  public IEventTransaction<TBaseEvent> CreateTransaction() => CreateTransaction(Guid.Empty);
-  public IEventTransaction<TBaseEvent> CreateTransaction(Guid partitionId) => 
-    new CosmosEventTransaction<TBaseEvent>(_container, partitionId);
+  public IEventTransaction CreateTransaction() => CreateTransaction(Guid.Empty);
+  public IEventTransaction CreateTransaction(Guid partitionId) => 
+    new CosmosEventTransaction(_container, partitionId);
 
 }
