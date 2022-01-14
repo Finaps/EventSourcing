@@ -13,7 +13,7 @@ public class Basket : Aggregate
     public DateTimeOffset BasketCreated { get; set; }
     public DateTimeOffset BasketExpires { get; set; }
 
-    protected override void Apply<TEvent>(TEvent e)
+    protected override void Apply(Event e)
     {
         if (e is BasketCreatedEvent created)
         {
