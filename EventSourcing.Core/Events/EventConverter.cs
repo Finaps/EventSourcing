@@ -58,8 +58,9 @@ public class EventConverter<TEvent> : JsonConverter<TEvent> where TEvent : Event
   public override TEvent Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
   {
     var readerClone = reader;
-    var typeString = JsonSerializer.Deserialize<EventType>(ref readerClone)?.Type;
-    var type = EventTypes[typeString ?? throw new JsonException($"Can't decode Event with type {typeString}")];
+    var typeString = JsonSerializer.Deserialize<EventType>(ref readerClone)?.Type
+      ?? throw new JsonException($"Error while extracting event type string. Does the JSON contain a {nameof(EventType.Type)} field");
+    var type = EventTypes[typeString];
       
     var e = (TBaseEvent) JsonSerializer.Deserialize(ref reader, type);
     return Migrate(e);
