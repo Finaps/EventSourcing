@@ -21,6 +21,16 @@ public class InMemoryEventStore<TBaseEvent> : IEventStore<TBaseEvent> where TBas
     await transaction.CommitAsync(cancellationToken);
   }
 
+  public async Task DeleteAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
+  {
+    var transaction = CreateTransaction(partitionId);
+    await transaction.DeleteAsync(aggregateId, cancellationToken);
+    await transaction.CommitAsync(cancellationToken);
+  }
+
+  public Task DeleteAsync(Guid aggregateId, CancellationToken cancellationToken = default) =>
+    DeleteAsync(Guid.Empty, aggregateId, cancellationToken);
+
   public IEventTransaction<TBaseEvent> CreateTransaction() => CreateTransaction(Guid.Empty);
   public IEventTransaction<TBaseEvent> CreateTransaction(Guid partitionId) =>
     new InMemoryEventTransaction<TBaseEvent>(_events, partitionId);

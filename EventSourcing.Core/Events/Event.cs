@@ -39,8 +39,8 @@ public record Event
   /// Index of this Event in the Aggregate Event Stream
   /// </summary>
   public ulong AggregateVersion { get; init; }
-    
-  public string id => $"{AggregateId}|{AggregateVersion}";
+
+  public string id => GetId(AggregateId, AggregateVersion);
     
   public Event()
   {
@@ -48,4 +48,6 @@ public record Event
     Type = GetType().Name;
     Timestamp = DateTimeOffset.Now;
   }
+  
+  public static string GetId(Guid aggregateId, ulong aggregateVersion) => $"{aggregateId}|{aggregateVersion}";
 }

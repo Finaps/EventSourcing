@@ -29,8 +29,7 @@ public class CosmosEventStore<TBaseEvent> : CosmosClientBase<TBaseEvent>, IEvent
   /// Events: Queryable and AsyncEnumerable Collection of <see cref="TBaseEvent"/>s
   /// </summary>
   /// <typeparam name="TBaseEvent"></typeparam>
-  public IQueryable<TBaseEvent> Events =>
-    new CosmosAsyncQueryable<TBaseEvent>(_container.GetItemLinqQueryable<TBaseEvent>());
+  public IQueryable<TBaseEvent> Events => _container.AsCosmosAsyncQueryable<TBaseEvent>();
 
   /// <summary>
   /// AddAsync: Store <see cref="TBaseEvent"/>s to the Cosmos Event Store
@@ -51,17 +50,15 @@ public class CosmosEventStore<TBaseEvent> : CosmosClientBase<TBaseEvent>, IEvent
     await transaction.CommitAsync(cancellationToken);
   }
 
-  public async Task<bool> ExistsAsync(Guid aggregateId, ulong version, CancellationToken cancellationToken = default) =>
-    await ExistsAsync(Guid.Empty, aggregateId, version, cancellationToken);
-  
-  public async Task<bool> ExistsAsync(Guid partitionId, Guid aggregateId, ulong version, CancellationToken cancellationToken = default)
+  public async Task DeleteAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
   {
-    var result = await _container.ReadItemStreamAsync(
-      $"{aggregateId}|{version}",
-      new PartitionKey(partitionId.ToString()),
-      cancellationToken: cancellationToken);
-    return result.IsSuccessStatusCode;
+    var transaction = CreateTransaction(partitionId);
+    await transaction.DeleteAsync(aggregateId, cancellationToken);
+    await transaction.CommitAsync(cancellationToken);
   }
+
+  public async Task DeleteAsync(Guid aggregateId, CancellationToken cancellationToken = default) =>
+    await DeleteAsync(Guid.Empty, aggregateId, cancellationToken);
 
   public IEventTransaction<TBaseEvent> CreateTransaction() => CreateTransaction(Guid.Empty);
   public IEventTransaction<TBaseEvent> CreateTransaction(Guid partitionId) => 
