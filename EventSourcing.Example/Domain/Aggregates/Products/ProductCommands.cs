@@ -1,5 +1,4 @@
 using System;
-using EventSourcing.Core.Exceptions;
 using EventSourcing.Example.CommandBus;
 
 namespace EventSourcing.Example.Domain.Aggregates.Products;
@@ -18,7 +17,7 @@ public static class ProductCommandHandlers
     public static Func<Product, CreateProduct, Product> Create = (product, cmd) =>
     {
         if (product != null)
-            throw new ConcurrencyException($"Order with id: {product.Id} already exists");
+            throw new InvalidOperationException($"Order with id: {product.Id} already exists");
 
         product = new Product();
         product.Create(cmd.Name, cmd.Quantity);

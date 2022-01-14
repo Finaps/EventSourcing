@@ -1,5 +1,4 @@
 using System;
-using EventSourcing.Core.Exceptions;
 using EventSourcing.Example.CommandBus;
 
 namespace EventSourcing.Example.Domain.Aggregates.Baskets;
@@ -16,7 +15,7 @@ public static class BasketCommandHandlers
     public static Func<Basket, CreateBasket, Basket> Create = (basket, _) =>
     {
         if (basket != null)
-            throw new ConcurrencyException($"Basket with id: {basket.Id} already exists");
+            throw new InvalidOperationException($"Basket with id: {basket.Id} already exists");
 
         basket = new Basket();
         basket.Create();
