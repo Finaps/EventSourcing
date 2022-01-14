@@ -62,21 +62,19 @@ public class EventConverter<TEvent> : JsonConverter<TEvent> where TEvent : Event
       ?? throw new JsonException($"Error while extracting event type string. Does the JSON contain a {nameof(EventType.Type)} field?");
     var type = EventTypes[typeString];
       
-    var e = (TBaseEvent) JsonSerializer.Deserialize(ref reader, type);
-    return Migrate(e);
+    var e = (Event) JsonSerializer.Deserialize(ref reader, type);
+    return (TEvent) Migrate(e);
   }
   
-  private TBaseEvent Migrate(TBaseEvent e)
+  private static Event Migrate(Event e)
   {
-    Event converted = e;
-    
-    while (Migrators.TryGetValue(converted.GetType().Name, out var migrator))
-      converted = migrator.Convert(converted);
+    while (Migrators.TryGetValue(e.GetType().Name, out var migrator))
+      e = migrator.Convert(e);
 
-    return (TBaseEvent) converted;
+    return e;
   }
   
-  private void ValidateMigrators()
+  private static void ValidateMigrators()
   {
     foreach (var (source, m) in Migrators)
     {
