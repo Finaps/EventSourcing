@@ -29,12 +29,27 @@ public interface IEventStore<TBaseEvent> where TBaseEvent : Event, new()
   Task AddAsync(IList<TBaseEvent> events, CancellationToken cancellationToken = default);
 
   /// <summary>
+  /// Delete <see cref="Event"/>s for an <see cref="Aggregate"/> from the <see cref="IEventStore{TBaseEvent}"/>
+  /// </summary>
+  /// <param name="partitionId">Aggregate Partition Id</param>
+  /// <param name="aggregateId">Aggregate Id</param>
+  /// <param name="cancellationToken">Cancellation Token</param>
+  Task DeleteAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default);
+  
+    /// <summary>
+  /// Delete <see cref="Event"/>s for an <see cref="Aggregate"/> from the <see cref="IEventStore{TBaseEvent}"/>
+  /// </summary>
+    /// <param name="aggregateId">Aggregate Id</param>
+  /// <param name="cancellationToken">Cancellation Token</param>
+  Task DeleteAsync(Guid aggregateId, CancellationToken cancellationToken = default);
+
+  /// <summary>
   /// Create Event Transaction
   /// </summary>
   /// <param name="partitionId">Transaction Partition identifier</param>
   /// <returns></returns>
   IEventTransaction<TBaseEvent> CreateTransaction(Guid partitionId);
-  
+
   /// <summary>
   /// Create Event Transaction for <see cref="Guid.Empty"/> partition
   /// </summary>

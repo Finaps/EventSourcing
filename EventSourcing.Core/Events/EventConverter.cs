@@ -44,7 +44,7 @@ public class EventConverter<TBaseEvent> : JsonConverter<TBaseEvent> where TBaseE
     var readerClone = reader;
     var typeString = JsonSerializer.Deserialize<EventType>(ref readerClone)?.Type;
     var type = EventTypes[typeString ?? throw new JsonException($"Can't decode Event with type {typeString}")];
-      
+
     return (TBaseEvent) JsonSerializer.Deserialize(ref reader, type);
   }
 }
