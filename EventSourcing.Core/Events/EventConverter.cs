@@ -59,7 +59,7 @@ public class EventConverter<TEvent> : JsonConverter<TEvent> where TEvent : Event
   {
     var readerClone = reader;
     var typeString = JsonSerializer.Deserialize<EventType>(ref readerClone)?.Type
-      ?? throw new JsonException($"Error while extracting event type string. Does the JSON contain a {nameof(EventType.Type)} field");
+      ?? throw new JsonException($"Error while extracting event type string. Does the JSON contain a {nameof(EventType.Type)} field?");
     var type = EventTypes[typeString];
       
     var e = (TBaseEvent) JsonSerializer.Deserialize(ref reader, type);
