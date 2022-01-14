@@ -2,7 +2,7 @@ using EventSourcing.Core;
 
 namespace EventSourcing.Cosmos;
 
-public class CosmosEventTransaction<TBaseEvent> : IEventTransaction<TBaseEvent> where TBaseEvent : Event, new()
+public class CosmosEventTransaction : IEventTransaction
 {
   private static readonly TransactionalBatchItemRequestOptions BatchItemRequestOptions = new()
   {
@@ -17,9 +17,6 @@ public class CosmosEventTransaction<TBaseEvent> : IEventTransaction<TBaseEvent> 
   private readonly HashSet<Guid> _addedAggregateIds = new();
   private readonly HashSet<Guid> _deletedAggregateIds = new();
 
-
-  private bool _hasItemsToCommit;
-
   public CosmosEventTransaction(Container container, Guid partitionId)
   {
     PartitionId = partitionId;
@@ -28,7 +25,7 @@ public class CosmosEventTransaction<TBaseEvent> : IEventTransaction<TBaseEvent> 
     _batch = container.CreateTransactionalBatch(new PartitionKey(partitionId.ToString()));
   }
 
-  public Task AddAsync(IList<TBaseEvent> events, CancellationToken cancellationToken = default)
+  public Task AddAsync(IList<Event> events, CancellationToken cancellationToken = default)
   {
     EventValidation.Validate(PartitionId, events);
 
@@ -52,18 +49,18 @@ public class CosmosEventTransaction<TBaseEvent> : IEventTransaction<TBaseEvent> 
   public async Task DeleteAsync(Guid aggregateId, CancellationToken cancellationToken = default)
   {
     var aggregateVersion = await _container
-      .AsCosmosAsyncQueryable<TBaseEvent>()
+      .AsCosmosAsyncQueryable<Event>()
       .Where(x => x.PartitionId == PartitionId && x.AggregateId == aggregateId)
       .Select(x => x.AggregateVersion)
       .OrderByDescending(version => version)
       .AsAsyncEnumerable()
       .FirstAsync(cancellationToken);
 
-    for (ulong i = 0; i <= aggregateVersion; i++)
+    for (long i = 0; i <= aggregateVersion; i++)
       _batch.DeleteItem(Event.GetId(aggregateId, i));
     
     // Create and Delete Event with AggregateVersion+1 to check if no events were added concurrently
-    var check = new TBaseEvent
+    var check = new Event
     {
       PartitionId = PartitionId,
       AggregateId = aggregateId,

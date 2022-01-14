@@ -27,7 +27,7 @@ public abstract partial class AggregateServiceTests
     public void Withdraw(decimal amount) =>
       Add(new FundsWithdrawnEvent { Amount = amount });
 
-    protected override void Apply<TEvent>(TEvent e)
+    protected override void Apply(Event e)
     {
       switch (e)
       {

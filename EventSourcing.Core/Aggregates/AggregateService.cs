@@ -2,26 +2,16 @@ using Microsoft.Extensions.Logging;
 
 namespace EventSourcing.Core;
 
-public class AggregateService : AggregateService<Event>, IAggregateService
+public class AggregateService : IAggregateService
 {
-  public AggregateService(IEventStore eventStore, ISnapshotStore snapshotStore, ILogger<AggregateService> logger) 
-    : base(eventStore, snapshotStore, logger) { }
-}
-
-/// <summary>
-/// Aggregate Service: Rehydrating and Persisting <see cref="Aggregate"/>s from <see cref="Event"/>s
-/// </summary>
-/// <typeparam name="TBaseEvent"></typeparam>
-public class AggregateService<TBaseEvent> : IAggregateService<TBaseEvent> where TBaseEvent : Event, new()
-{
-  private readonly IEventStore<TBaseEvent> _eventStore;
-  private readonly ISnapshotStore<TBaseEvent> _snapshotStore;
-  private readonly ILogger<AggregateService<TBaseEvent>> _logger;
+  private readonly IEventStore _eventStore;
+  private readonly ISnapshotStore _snapshotStore;
+  private readonly ILogger<AggregateService> _logger;
     
   public AggregateService(
-    IEventStore<TBaseEvent> eventStore,
-    ISnapshotStore<TBaseEvent> snapshotStore,
-    ILogger<AggregateService<TBaseEvent>> logger)
+    IEventStore eventStore,
+    ISnapshotStore snapshotStore,
+    ILogger<AggregateService> logger)
   {
     _eventStore = eventStore;
     _snapshotStore = snapshotStore;
@@ -29,15 +19,17 @@ public class AggregateService<TBaseEvent> : IAggregateService<TBaseEvent> where 
   }
 
   public async Task<TAggregate> RehydrateAsync<TAggregate>(Guid partitionId, Guid aggregateId,
-    CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
+    CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
   {
-    if (new TAggregate() is ISnapshottable)
+    var interval = new TAggregate().SnapshotInterval;
+    
+    if (interval > 0)
     {
       if (_snapshotStore != null)
         return await RehydrateFromSnapshotAsync<TAggregate>(partitionId, aggregateId, cancellationToken);
 
-      _logger?.LogWarning("{SnapshotStore} not provided while {TAggregate} implements {ISnapshottable}. Rehydrating from events only", 
-        typeof(ISnapshotStore<TBaseEvent>),typeof(TAggregate),typeof(ISnapshottable));
+      _logger?.LogWarning("{SnapshotStore} not provided while {TAggregate} has snapshot interval {interval}. Rehydrating from events only", 
+        typeof(ISnapshotStore), typeof(TAggregate), interval);
     }
 
     var events = _eventStore.Events
@@ -45,22 +37,22 @@ public class AggregateService<TBaseEvent> : IAggregateService<TBaseEvent> where 
       .OrderBy(x => x.AggregateVersion)
       .AsAsyncEnumerable();
 
-    return await Aggregate<TBaseEvent>.RehydrateAsync<TAggregate>(partitionId, aggregateId, events, cancellationToken);
+    return await Aggregate.RehydrateAsync<TAggregate>(partitionId, aggregateId, events, cancellationToken);
   }
 
   public async Task<TAggregate> RehydrateAsync<TAggregate>(Guid partitionId, Guid aggregateId, DateTimeOffset date,
-    CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
+    CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
   {
     var events = _eventStore.Events
       .Where(x => x.PartitionId == partitionId && x.AggregateId == aggregateId && x.Timestamp <= date)
       .OrderBy(x => x.AggregateVersion)
       .AsAsyncEnumerable();
       
-    return await Aggregate<TBaseEvent>.RehydrateAsync<TAggregate>(partitionId, aggregateId, events, cancellationToken);
+    return await Aggregate.RehydrateAsync<TAggregate>(partitionId, aggregateId, events, cancellationToken);
   }
     
   private async Task<TAggregate> RehydrateFromSnapshotAsync<TAggregate>(Guid partitionId, Guid aggregateId,
-    CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
+    CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
   {
     if (_snapshotStore == null)
       throw new InvalidOperationException("Snapshot store not provided");
@@ -81,11 +73,11 @@ public class AggregateService<TBaseEvent> : IAggregateService<TBaseEvent> where 
     if (latestSnapshot != null)
       events = events.Prepend(latestSnapshot);
 
-    return await Aggregate<TBaseEvent>.RehydrateAsync<TAggregate>(partitionId, aggregateId, events, cancellationToken);
+    return await Aggregate.RehydrateAsync<TAggregate>(partitionId, aggregateId, events, cancellationToken);
   }
 
   public async Task<TAggregate> PersistAsync<TAggregate>(TAggregate aggregate,
-    CancellationToken cancellationToken = default) where TAggregate : Aggregate<TBaseEvent>, new()
+    CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
   {
     var transaction = CreateTransaction(aggregate.PartitionId);
     await transaction.AddAsync(aggregate, cancellationToken);
@@ -93,9 +85,9 @@ public class AggregateService<TBaseEvent> : IAggregateService<TBaseEvent> where 
     return aggregate;
   }
 
-  public async Task PersistAsync(IEnumerable<Aggregate<TBaseEvent>> aggregates, CancellationToken cancellationToken = default)
+  public async Task PersistAsync(IEnumerable<Aggregate> aggregates, CancellationToken cancellationToken = default)
   {
-    IAggregateTransaction<TBaseEvent> transaction = null;
+    IAggregateTransaction transaction = null;
     
     foreach (var aggregate in aggregates)
     {
@@ -107,7 +99,14 @@ public class AggregateService<TBaseEvent> : IAggregateService<TBaseEvent> where 
       await transaction.CommitAsync(cancellationToken);
   }
 
-  public IAggregateTransaction<TBaseEvent> CreateTransaction() => CreateTransaction(Guid.Empty);
-  public IAggregateTransaction<TBaseEvent> CreateTransaction(Guid partitionId) =>
-    new AggregateTransaction<TBaseEvent>(_eventStore.CreateTransaction(partitionId), _snapshotStore, _logger);
+  public async Task DeleteAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
+  {
+    var transaction = CreateTransaction(partitionId);
+    await transaction.DeleteAsync(aggregateId, cancellationToken);
+    await transaction.CommitAsync(cancellationToken);
+  }
+
+  public IAggregateTransaction CreateTransaction() => CreateTransaction(Guid.Empty);
+  public IAggregateTransaction CreateTransaction(Guid partitionId) =>
+    new AggregateTransaction(_eventStore.CreateTransaction(partitionId), _snapshotStore, _logger);
 }

@@ -1,8 +1,6 @@
-using EventSourcing.Core.Exceptions;
-
 namespace EventSourcing.Core;
 
-public interface IEventTransaction<TBaseEvent> where TBaseEvent : Event, new()
+public interface IEventTransaction
 {
   /// <summary>
   /// Partition Id Transaction is scoped to
@@ -17,10 +15,15 @@ public interface IEventTransaction<TBaseEvent> where TBaseEvent : Event, new()
   /// </remarks>
   /// <param name="events"><see cref="Event"/>s to add</param>
   /// <param name="cancellationToken">Cancellation Token</param>
-  Task AddAsync(IList<TBaseEvent> events, CancellationToken cancellationToken = default);
+  /// <exception cref="ArgumentNullException">Thrown when <c>events</c> is <c>null</c></exception>
+  /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with more than one unique <see cref="Event.PartitionId"/></exception>
+  /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with more than one unique <see cref="Event.AggregateId"/></exception>
+  /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with <see cref="Guid.Empty"/> <see cref="Event.AggregateId"/></exception>
+  /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with nonconsecutive <see cref="Event.AggregateVersion"/>s</exception>
+  Task AddAsync(IList<Event> events, CancellationToken cancellationToken = default);
 
   /// <summary>
-  /// Delete all <see cref="Event"/>s for a given <see cref="Aggregate"/>
+  /// Delete all <see cref="Event"/>s for a given <see cref="Aggregate"/>.<see cref="Aggregate.Id"/>
   /// </summary>
   /// <param name="aggregateId"><see cref="Aggregate"/>.<see cref="Aggregate.Id"/></param>
   /// <param name="cancellationToken">Cancellation Token</param>
@@ -34,6 +37,7 @@ public interface IEventTransaction<TBaseEvent> where TBaseEvent : Event, new()
   /// in which case none of the added or deleted <see cref="Event"/>s will be committed
   /// </exception>
   /// <param name="cancellationToken">Cancellation Token</param>
-  /// <returns></returns>
+  /// <exception cref="EventStoreException">Thrown when conflicts occur when storing <see cref="Event"/>s</exception>
+  /// <exception cref="ConcurrencyException">Thrown when concurrency conflicts occur when storing <see cref="Event"/>s</exception>
   Task CommitAsync(CancellationToken cancellationToken = default);
 }

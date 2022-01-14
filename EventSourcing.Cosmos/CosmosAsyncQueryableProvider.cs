@@ -1,5 +1,5 @@
-using EventSourcing.Core.Exceptions;
 using System.Linq.Expressions;
+using EventSourcing.Core;
 using Microsoft.Azure.Cosmos.Linq;
 
 namespace EventSourcing.Cosmos;
