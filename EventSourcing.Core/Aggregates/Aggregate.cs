@@ -37,7 +37,7 @@ public abstract class Aggregate
   protected Aggregate()
   {
     Id = Guid.NewGuid();
-    Type = GetType().FullName;
+    Type = GetType().Name;
   }
 
   /// <summary>

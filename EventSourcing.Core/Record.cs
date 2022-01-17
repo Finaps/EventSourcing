@@ -48,7 +48,7 @@ public record Record
   public Record()
   {
     RecordId = Guid.NewGuid();
-    Type = GetType().FullName;
+    Type = GetType().Name;
     Timestamp = DateTimeOffset.Now;
   }
   

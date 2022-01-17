@@ -24,7 +24,7 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
     AppDomain.CurrentDomain.GetAssemblies()
       .SelectMany(assembly => assembly.GetTypes())
       .Where(type => typeof(Record).IsAssignableFrom(type) && type.IsClass && !type.IsAbstract)
-      .ToDictionary(type => type.FullName);
+      .ToDictionary(type => type.Name);
   
   /// <summary>
   /// Dictionary containing mapping between <see cref="Event"/>.<see cref="Event.Type"/> string and their <see cref="IRecordMigrator"/>
