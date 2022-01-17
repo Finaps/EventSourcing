@@ -18,7 +18,7 @@ public record Record
   public Guid RecordId { get; init; }
   
   /// <summary>
-  /// Index of this Event in the Aggregate Event Stream
+  /// Index of this Record in the Aggregate Record Stream
   /// </summary>
   public long Index { get; init; }
   
@@ -43,9 +43,9 @@ public record Record
   public string id => GetId(AggregateId, Index);
   
   /// <summary>
-  /// Create new Event
+  /// Create new Record
   /// </summary>
-  public Record()
+  protected Record()
   {
     RecordId = Guid.NewGuid();
     Type = GetType().Name;
