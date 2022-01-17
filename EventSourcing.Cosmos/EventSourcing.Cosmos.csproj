@@ -4,7 +4,7 @@
         <TargetFramework>net6.0</TargetFramework>
         <OutputType>Library</OutputType>
         <PackageId>Finaps.EventSourcing.Cosmos</PackageId>
-        <Version>0.1.0</Version>
+        <Version>0.2.0</Version>
         <Authors>Niels Disveld, Bram Kraaijeveld</Authors>
         <Company>Finaps B.V.</Company>
         <RepositoryUrl>https://github.com/Finaps/EventSourcing</RepositoryUrl>
