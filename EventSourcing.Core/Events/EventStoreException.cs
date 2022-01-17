@@ -11,7 +11,7 @@ public class EventStoreException : Exception
     base($"Encountered error while adding events: {(int)status} {status.ToString()}", inner) { }
   public EventStoreException(Record r, Exception inner = null) : base(r == null
     ? "Conflict while adding Records"
-    : $"{r.Type} with Version {r.AggregateVersion} already exists for Aggregate '{r.AggregateType}' with Id '{r.AggregateId}'", inner)
+    : $"{r.Type} with Version {r.Index} already exists for Aggregate '{r.AggregateType}' with Id '{r.AggregateId}'", inner)
   {
   }
 }

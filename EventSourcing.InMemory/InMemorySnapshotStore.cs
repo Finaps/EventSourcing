@@ -13,10 +13,10 @@ public class InMemorySnapshotStore : ISnapshotStore
     if (snapshot == null)
       throw new ArgumentNullException(nameof(snapshot));
 
-    if (_storedSnapshots.ContainsKey((snapshot.PartitionId, snapshot.AggregateId, snapshot.AggregateVersion)))
+    if (_storedSnapshots.ContainsKey((snapshot.PartitionId, snapshot.AggregateId, snapshot.Index)))
       throw new EventStoreException(snapshot);
 
-    if (!_storedSnapshots.TryAdd((snapshot.PartitionId, snapshot.AggregateId, snapshot.AggregateVersion), snapshot))
+    if (!_storedSnapshots.TryAdd((snapshot.PartitionId, snapshot.AggregateId, snapshot.Index), snapshot))
       throw new EventStoreException(snapshot);
 
     return Task.CompletedTask;

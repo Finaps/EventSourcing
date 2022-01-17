@@ -27,7 +27,7 @@ public class InMemoryEventTransaction : IEventTransaction
     {
       foreach (var e in events)
       {
-        if (_addedEvents.Any(x => x.AggregateId == e.AggregateId && x.AggregateVersion == e.AggregateVersion))
+        if (_addedEvents.Any(x => x.AggregateId == e.AggregateId && x.Index == e.Index))
           throw new EventStoreException(e);
 
         _addedEvents.Add(e);
@@ -43,7 +43,7 @@ public class InMemoryEventTransaction : IEventTransaction
     {
       _removedAggregateIds.Add(aggregateId, _events.Values
         .Where(x => x.AggregateId == aggregateId)
-        .Max(x => x.AggregateVersion));
+        .Max(x => x.Index));
     }
     
     return Task.CompletedTask;
@@ -61,11 +61,11 @@ public class InMemoryEventTransaction : IEventTransaction
       foreach (var e in _addedEvents)
       {
         // When previous event version is not present, throw
-        if (e.AggregateVersion != 0 && !_events.ContainsKey((PartitionId, e.AggregateId, e.AggregateVersion - 1)))
-          throw new EventStoreException($"Couldn't find Event with version {e.AggregateVersion-1} when adding Event with version {e.AggregateVersion} for {e.AggregateType} with Id '{e.AggregateId}'");
+        if (e.Index != 0 && !_events.ContainsKey((PartitionId, e.AggregateId, e.Index - 1)))
+          throw new EventStoreException($"Couldn't find Event with version {e.Index-1} when adding Event with version {e.Index} for {e.AggregateType} with Id '{e.AggregateId}'");
         
         // When this event version is already present, throw
-        if (!_events.TryAdd((PartitionId, e.AggregateId, e.AggregateVersion), e))
+        if (!_events.TryAdd((PartitionId, e.AggregateId, e.Index), e))
           throw new EventStoreException(e);
       }
 
@@ -77,7 +77,7 @@ public class InMemoryEventTransaction : IEventTransaction
             .SingleOrDefault(x =>
               x.PartitionId == PartitionId &&
               x.AggregateId == aggregateId &&
-              x.AggregateVersion == version)
+              x.Index == version)
           );
         
         // Remove all events with the specified aggregateId

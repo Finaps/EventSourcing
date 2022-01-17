@@ -30,8 +30,8 @@ public static class RecordValidation
     if (events.Select(x => x.RecordId).Distinct().Count() != events.Count)
       throw new ArgumentException(message + "All Events should have unique RecordIds");
 
-    if (!IsConsecutive(events.Select(e => e.AggregateVersion).ToList()))
-      throw new ArgumentException(message + "Event versions must be consecutive");
+    if (!IsConsecutive(events.Select(e => e.Index).ToList()))
+      throw new ArgumentException(message + "Event indices must be consecutive");
   }
 
   public static void ValidateRecord(Record r)
@@ -47,8 +47,8 @@ public static class RecordValidation
     if (r.Type != recordType)
       Throw(r, $"Type ({r.Type}) does not correspond with record Type ({recordType})");
 
-    if (r.AggregateVersion < 0)
-      Throw(r, "AggregateVersion must be a non-negative integer");
+    if (r.Index < 0)
+      Throw(r, "Index must be a non-negative integer");
   }
 
   public static void ValidateSnapshotForAggregate(Aggregate a, Snapshot s)
@@ -63,15 +63,14 @@ public static class RecordValidation
     
     ValidateRecordForAggregate(a, e);
     
-    if (e.AggregateVersion != a.Version)
-      Throw(e, $"{eventType}.AggregateVersion ({e.AggregateVersion}) does not correspond with {aggregateType}.Version ({a.Version})");
+    if (e.Index != a.Version)
+      Throw(e, $"{eventType}.Index ({e.Index}) does not correspond with {aggregateType}.Version ({a.Version})");
   }
 
   public static void ValidateRecordForAggregate(Aggregate a, Record r)
   {
     var aggregateType = a.GetType().FullName;
-    var recordType = r.GetType().FullName;
-    
+
     ValidateRecord(r);
 
     if (r.AggregateId != a.Id)

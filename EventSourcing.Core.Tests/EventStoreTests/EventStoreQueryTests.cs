@@ -70,7 +70,7 @@ public abstract partial class EventStoreTests
 
     var result = await EventStore.Events
       .Where(x => x.AggregateId == aggregate.Id)
-      .Where(x => x.AggregateVersion > 0)
+      .Where(x => x.Index > 0)
       .AsAsyncEnumerable()
       .ToListAsync();
 

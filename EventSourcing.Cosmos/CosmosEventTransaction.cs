@@ -33,10 +33,10 @@ public class CosmosEventTransaction : IEventTransaction
 
     var first = events.First();
 
-    if (events.First().AggregateVersion != 0)
+    if (events.First().Index != 0)
       // Check if the event before the current event is present in the Database
       // If not, this could be due to user error or the events being deleted during this transaction
-      _batch.ReadItem(Event.GetId(first.AggregateId, first.AggregateVersion - 1));
+      _batch.ReadItem(Event.GetId(first.AggregateId, first.Index - 1));
     
     foreach (var e in events)
       _batch.CreateItem(e, BatchItemRequestOptions);
@@ -51,7 +51,7 @@ public class CosmosEventTransaction : IEventTransaction
     var aggregateVersion = await _container
       .AsCosmosAsyncQueryable<Event>()
       .Where(x => x.PartitionId == PartitionId && x.AggregateId == aggregateId)
-      .Select(x => x.AggregateVersion)
+      .Select(x => x.Index)
       .OrderByDescending(version => version)
       .AsAsyncEnumerable()
       .FirstAsync(cancellationToken);
@@ -64,7 +64,7 @@ public class CosmosEventTransaction : IEventTransaction
     {
       PartitionId = PartitionId,
       AggregateId = aggregateId,
-      AggregateVersion = aggregateVersion + 1
+      Index = aggregateVersion + 1
     };
     
     _batch.CreateItem(check);     // If events were added concurrently, this will cause a concurrency exception

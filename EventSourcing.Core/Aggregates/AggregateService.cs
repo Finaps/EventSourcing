@@ -36,19 +36,19 @@ public class AggregateService : IAggregateService
         x.PartitionId == partitionId &&
         x.AggregateId == aggregateId &&
         x.Timestamp <= date)
-      .OrderBy(x => x.AggregateVersion)
+      .OrderBy(x => x.Index)
       .AsAsyncEnumerable()
       .LastOrDefaultAsync(cancellationToken);
 
-    var version = snapshot?.AggregateVersion ?? 0;
+    var index = snapshot?.Index ?? -1;
 
     var events = _eventStore.Events
       .Where(x =>
         x.PartitionId == partitionId &&
         x.AggregateId == aggregateId &&
         x.Timestamp <= date &&
-        x.AggregateVersion >= version)
-      .OrderBy(x => x.AggregateVersion)
+        x.Index > index)
+      .OrderBy(x => x.Index)
       .AsAsyncEnumerable();
 
     return await Aggregate.RehydrateAsync<TAggregate>(partitionId, aggregateId, snapshot, events, cancellationToken);
