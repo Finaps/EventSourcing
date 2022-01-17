@@ -45,14 +45,16 @@ public class Product : Aggregate
                     });
                 }
                 break;
-            case ProductSnapshot snapshot:
-                Name = snapshot.Name;
-                Quantity = snapshot.Quantity;
-                Reservations = snapshot.Reservations;
-                break;
         }
     }
-        
+
+    protected override void ApplySnapshot(Snapshot s)
+    {
+        var snapshot = s as ProductSnapshot;
+        Name = snapshot.Name;
+        Quantity = snapshot.Quantity;
+        Reservations = snapshot.Reservations;
+    }
     public void Create(string name, int initialQuantity)
     {
         Add(new ProductCreatedEvent(name, initialQuantity));
@@ -84,7 +86,7 @@ public class Product : Aggregate
     private bool CheckAvailabilityForBasket(Guid basketId, int quantity) => 
         Quantity - Reservations.Where(x => x.BasketId != basketId).Select(x => x.Quantity).Sum() >= quantity;
 
-    protected override SnapshotEvent CreateSnapshot()
+    protected override Snapshot CreateSnapshot()
     {
         return new ProductSnapshot(Name, Quantity, Reservations);
     }
