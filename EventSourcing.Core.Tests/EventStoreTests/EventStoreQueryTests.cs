@@ -4,7 +4,7 @@ namespace EventSourcing.Core.Tests;
 
 public abstract partial class EventStoreTests
 {
-    [Fact]
+  [Fact]
   public async Task Can_Query_Events_By_PartitionId()
   {
     var aggregate1 = new EmptyAggregate { PartitionId = Guid.NewGuid() };
