@@ -18,6 +18,11 @@ public record Record
   public Guid RecordId { get; init; }
   
   /// <summary>
+  /// Index of this Event in the Aggregate Event Stream
+  /// </summary>
+  public long Index { get; init; }
+  
+  /// <summary>
   /// Aggregate type
   /// </summary>
   public string AggregateType { get; init; }
@@ -31,16 +36,11 @@ public record Record
   /// Record creation time
   /// </summary>
   public DateTimeOffset Timestamp { get; init; }
-  
-  /// <summary>
-  /// Index of this Event in the Aggregate Event Stream
-  /// </summary>
-  public long AggregateVersion { get; init; }
 
   /// <summary>
   /// Unique Database Identifier
   /// </summary>
-  public string id => GetId(AggregateId, AggregateVersion);
+  public string id => GetId(AggregateId, Index);
   
   /// <summary>
   /// Create new Event
@@ -53,10 +53,10 @@ public record Record
   }
   
   /// <summary>
-  /// Construct Database Id from <see cref="Event.AggregateId"/> and <see cref="Event.AggregateVersion"/>
+  /// Construct Database Id from <see cref="Event.AggregateId"/> and <see cref="Index"/>
   /// </summary>
-  /// <param name="aggregateId"></param>
-  /// <param name="aggregateVersion"></param>
-  /// <returns></returns>
-  public static string GetId(Guid aggregateId, long aggregateVersion) => $"{aggregateId}|{aggregateVersion}";
+  /// <param name="aggregateId">Aggregate Id</param>
+  /// <param name="index">Record Index</param>
+  /// <returns>Record 'id' string</returns>
+  public static string GetId(Guid aggregateId, long index) => $"{aggregateId}[{index}]";
 }

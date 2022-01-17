@@ -41,7 +41,7 @@ public abstract partial class EventStoreTests
     var e1 = aggregate.Add(new EmptyEvent());
     var e2 = aggregate.Add(new EmptyEvent());
 
-    e2 = e2 with { AggregateVersion = 0 };
+    e2 = e2 with { Index = 0 };
 
     await Assert.ThrowsAnyAsync<ArgumentException>(
       async () => await EventStore.AddAsync(new Event[] { e1, e2 }));
@@ -65,7 +65,7 @@ public abstract partial class EventStoreTests
   {
     var aggregate = new EmptyAggregate();
     var e1 = aggregate.Add(new EmptyEvent());
-    var e2 = aggregate.Add(new EmptyEvent()) with { AggregateVersion = 2 };
+    var e2 = aggregate.Add(new EmptyEvent()) with { Index = 2 };
 
     await Assert.ThrowsAnyAsync<ArgumentException>(
       async () => await EventStore.AddAsync(new Event[] { e1, e2 }));

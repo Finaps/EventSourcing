@@ -68,12 +68,24 @@ public abstract class Aggregate
   /// </summary>
   /// <param name="s"><see cref="Snapshot"/> to apply</param>
   protected virtual void ApplySnapshot(Snapshot s) => throw new NotImplementedException();
-  
+
   /// <summary>
   /// Create Snapshot
   /// </summary>
   /// <returns></returns>
-  public Snapshot CreateLinkedSnapshot() => Link(CreateSnapshot());
+  public Snapshot CreateLinkedSnapshot()
+  {
+    if (Version == 0)
+      throw new InvalidOperationException($"Cannot create Snapshot for {Type} with Version 0");
+    
+    return CreateSnapshot() with
+    {
+      PartitionId = PartitionId,
+      AggregateId = Id,
+      AggregateType = Type,
+      Index = Version - 1
+    };
+  } 
     
   /// <summary>
   /// Add Event to Aggregate
@@ -88,26 +100,17 @@ public abstract class Aggregate
   /// <exception cref="ArgumentException">Thrown when an invalid <see cref="Event"/> is added.</exception>
   public TEvent Add<TEvent>(TEvent e) where TEvent : Event
   {
-    e = Link(e);
+    e = e with
+    {
+      PartitionId = PartitionId,
+      AggregateId = Id,
+      AggregateType = Type,
+      Index = Version
+    };
+    
     ValidateAndApplyEvent(e);
     _uncommittedEvents.Add(e);
     return e;
-  }
-
-  /// <summary>
-  /// Rehydrate <see cref="Aggregate"/> from <see cref="Event"/> stream.
-  /// </summary>
-  /// <param name="partitionId">Unique Aggregate Partition identifier</param>
-  /// <param name="aggregateId">Unique Aggregate identifier</param>
-  /// <param name="events"><see cref="Event"/> stream</param>
-  /// <param name="cancellationToken">Cancellation Token</param>
-  /// <typeparam name="TAggregate"><see cref="Aggregate"/> Type</typeparam>
-  /// <returns><see cref="Aggregate"/> of type <c>TAggregate</c></returns>
-  /// <exception cref="ArgumentException">Thrown when <c>id</c> or <c>events</c> are invalid</exception>
-  public static async Task<TAggregate> RehydrateAsync<TAggregate>(Guid partitionId, Guid aggregateId,
-    IAsyncEnumerable<Event> events, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
-  {
-    return await RehydrateAsync<TAggregate>(partitionId, aggregateId, null, events, cancellationToken);
   }
 
   /// <summary>
@@ -148,17 +151,9 @@ public abstract class Aggregate
   public void ClearUncommittedEvents() => _uncommittedEvents.Clear();
   
   public bool SnapshotIntervalExceeded => SnapshotInterval != 0 &&
-                                          (UncommittedEvents.First().AggregateVersion + 1) / SnapshotInterval !=
-                                          (UncommittedEvents.Last().AggregateVersion + 1) / SnapshotInterval;
+                                          (UncommittedEvents.First().Index + 1) / SnapshotInterval !=
+                                          (UncommittedEvents.Last().Index + 1) / SnapshotInterval;
 
-  private TRecord Link<TRecord>(TRecord record) where TRecord : Record => record with
-  {
-    PartitionId = PartitionId,
-    AggregateId = Id,
-    AggregateType = Type,
-    AggregateVersion = Version
-  };
-  
   private void ValidateAndApplyEvent(Event e)
   {
     RecordValidation.ValidateEventForAggregate(this, e);
@@ -170,6 +165,6 @@ public abstract class Aggregate
   {
     RecordValidation.ValidateSnapshotForAggregate(this, s);
     ApplySnapshot(s);
-    Version = s.AggregateVersion;
+    Version = s.Index + 1;
   }
 }
