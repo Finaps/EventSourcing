@@ -36,7 +36,7 @@ public static class RecordValidation
 
   public static void ValidateRecord(Record r)
   {
-    var recordType = r.GetType().FullName;
+    var recordType = r.GetType().Name;
     
     if (r.AggregateId == Guid.Empty)
       Throw(r, "AggregateId should not be empty");
@@ -58,8 +58,8 @@ public static class RecordValidation
 
   public static void ValidateEventForAggregate(Aggregate a, Event e)
   {
-    var aggregateType = a.GetType().FullName;
-    var eventType = e.GetType().FullName;
+    var aggregateType = a.GetType().Name;
+    var eventType = e.GetType().Name;
     
     ValidateRecordForAggregate(a, e);
     
@@ -69,7 +69,7 @@ public static class RecordValidation
 
   public static void ValidateRecordForAggregate(Aggregate a, Record r)
   {
-    var aggregateType = a.GetType().FullName;
+    var aggregateType = a.GetType().Name;
 
     ValidateRecord(r);
 
@@ -84,7 +84,7 @@ public static class RecordValidation
   }
 
   private static void Throw(Record r, string message) =>
-    throw new ArgumentException($"Error Validating {r.GetType().FullName} with RecordId '{r.RecordId}': {message}");
+    throw new ArgumentException($"Error Validating {r.GetType().Name} with RecordId '{r.RecordId}': {message}");
   
   private static bool IsConsecutive(IList<long> numbers)
   {

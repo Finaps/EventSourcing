@@ -278,8 +278,10 @@ public abstract partial class AggregateServiceTests
     foreach (var _ in new int[3])
       aggregate.Add(new EmptyEvent());
     await AggregateService.PersistAsync(aggregate);
-
+    
+    await Task.Delay(100);
     var date = DateTimeOffset.Now;
+    await Task.Delay(100);
 
     foreach (var _ in new int[aggregate.SnapshotInterval])
       aggregate.Add(new EmptyEvent());

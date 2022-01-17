@@ -9,10 +9,10 @@ public abstract class RecordMigrator<TSource, TTarget> : IRecordMigrator where T
         Convert(record as TSource) with
         {
             Timestamp = record.Timestamp,
-            Type = typeof(TTarget).FullName,
+            Type = typeof(TTarget).Name,
             AggregateId = record.AggregateId,
             AggregateType = record.AggregateType,
-            AggregateVersion = record.AggregateVersion,
+            Index = record.Index,
             RecordId = record.RecordId,
             PartitionId = record.PartitionId
         };
