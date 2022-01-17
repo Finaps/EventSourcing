@@ -7,11 +7,8 @@ public class AggregateService : IAggregateService
   private readonly IEventStore _eventStore;
   private readonly ISnapshotStore _snapshotStore;
   private readonly ILogger<AggregateService> _logger;
-    
-  public AggregateService(
-    IEventStore eventStore,
-    ISnapshotStore snapshotStore,
-    ILogger<AggregateService> logger)
+  
+  public AggregateService(IEventStore eventStore, ISnapshotStore snapshotStore, ILogger<AggregateService> logger)
   {
     _eventStore = eventStore;
     _snapshotStore = snapshotStore;
@@ -19,46 +16,26 @@ public class AggregateService : IAggregateService
   }
 
   public async Task<TAggregate> RehydrateAsync<TAggregate>(Guid partitionId, Guid aggregateId,
-    CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
-  {
-    var interval = new TAggregate().SnapshotInterval;
-    
-    if (interval > 0)
-    {
-      if (_snapshotStore != null)
-        return await RehydrateFromSnapshotAsync<TAggregate>(partitionId, aggregateId, cancellationToken);
-
-      _logger?.LogWarning("{SnapshotStore} not provided while {TAggregate} has snapshot interval {interval}. Rehydrating from events only", 
-        typeof(ISnapshotStore), typeof(TAggregate), interval);
-    }
-
-    var events = _eventStore.Events
-      .Where(x => x.PartitionId == partitionId && x.AggregateId == aggregateId)
-      .OrderBy(x => x.AggregateVersion)
-      .AsAsyncEnumerable();
-
-    return await Aggregate.RehydrateAsync<TAggregate>(partitionId, aggregateId, events, cancellationToken);
-  }
+    CancellationToken cancellationToken = default) where TAggregate : Aggregate, new() =>
+    await RehydrateAsync<TAggregate>(partitionId, aggregateId, DateTimeOffset.MaxValue, cancellationToken);
 
   public async Task<TAggregate> RehydrateAsync<TAggregate>(Guid partitionId, Guid aggregateId, DateTimeOffset date,
     CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
   {
-    var events = _eventStore.Events
-      .Where(x => x.PartitionId == partitionId && x.AggregateId == aggregateId && x.Timestamp <= date)
-      .OrderBy(x => x.AggregateVersion)
-      .AsAsyncEnumerable();
-      
-    return await Aggregate.RehydrateAsync<TAggregate>(partitionId, aggregateId, events, cancellationToken);
-  }
+    var interval = new TAggregate().SnapshotInterval;
     
-  private async Task<TAggregate> RehydrateFromSnapshotAsync<TAggregate>(Guid partitionId, Guid aggregateId,
-    CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
-  {
-    if (_snapshotStore == null)
-      throw new InvalidOperationException("Snapshot store not provided");
-      
-    var snapshot = await _snapshotStore.Snapshots
-      .Where(x => x.PartitionId == partitionId && x.AggregateId == aggregateId)
+    if (interval > 0 && _snapshotStore == null)
+      _logger?.LogWarning("{SnapshotStore} not provided while {TAggregate} has snapshot interval {interval}. " +
+                          "Rehydrating from events only", typeof(ISnapshotStore), typeof(TAggregate), interval);
+
+    Snapshot snapshot = null;
+    
+    if (interval > 0 && _snapshotStore != null)
+      snapshot = await _snapshotStore.Snapshots
+      .Where(x => 
+        x.PartitionId == partitionId &&
+        x.AggregateId == aggregateId &&
+        x.Timestamp <= date)
       .OrderBy(x => x.AggregateVersion)
       .AsAsyncEnumerable()
       .LastOrDefaultAsync(cancellationToken);
@@ -66,7 +43,11 @@ public class AggregateService : IAggregateService
     var version = snapshot?.AggregateVersion ?? 0;
 
     var events = _eventStore.Events
-      .Where(x => x.PartitionId == partitionId && x.AggregateId == aggregateId && x.AggregateVersion >= version)
+      .Where(x =>
+        x.PartitionId == partitionId &&
+        x.AggregateId == aggregateId &&
+        x.Timestamp <= date &&
+        x.AggregateVersion >= version)
       .OrderBy(x => x.AggregateVersion)
       .AsAsyncEnumerable();
 
