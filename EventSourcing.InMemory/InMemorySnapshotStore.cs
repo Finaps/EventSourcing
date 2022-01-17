@@ -5,10 +5,10 @@ namespace EventSourcing.InMemory;
 
 public class InMemorySnapshotStore : ISnapshotStore
 {
-  private readonly ConcurrentDictionary<(Guid, Guid, long), SnapshotEvent> _storedSnapshots = new();
-  public IQueryable<SnapshotEvent> Snapshots => new MockAsyncQueryable<SnapshotEvent>(_storedSnapshots.Values.AsQueryable());
+  private readonly ConcurrentDictionary<(Guid, Guid, long), Snapshot> _storedSnapshots = new();
+  public IQueryable<Snapshot> Snapshots => new MockAsyncQueryable<Snapshot>(_storedSnapshots.Values.AsQueryable());
 
-  public Task AddAsync(SnapshotEvent snapshot, CancellationToken cancellationToken = default)
+  public Task AddAsync(Snapshot snapshot, CancellationToken cancellationToken = default)
   {
     if (snapshot == null)
       throw new ArgumentNullException(nameof(snapshot));

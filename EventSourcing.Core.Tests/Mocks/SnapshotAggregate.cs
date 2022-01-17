@@ -16,13 +16,18 @@ public class SnapshotAggregate : Aggregate
                 EventsAppliedAfterHydration++;
                 Counter++;
                 break;
-            case MockSnapshot snapshot:
-                SnapshotsAppliedAfterHydration++;
-                Counter = snapshot.Counter;
-                break;
         }
     }
 
-    protected override SnapshotEvent CreateSnapshot() =>
+    protected override Snapshot CreateSnapshot() =>
         new MockSnapshot { Counter = Counter };
+
+    protected override void ApplySnapshot(Snapshot s)
+    {
+        if (s is not MockSnapshot snapshot)
+            throw new InvalidOperationException();
+        
+        SnapshotsAppliedAfterHydration++;
+        Counter = snapshot.Counter;
+    }
 }

@@ -28,9 +28,7 @@ public abstract partial class AggregateServiceTests
   public async Task Cannot_Persist_With_Empty_Id()
   {
     var aggregate = new SimpleAggregate { Id = Guid.Empty };
-    aggregate.Add(new EmptyEvent());
-
-    await Assert.ThrowsAsync<ArgumentException>(async () => await AggregateService.PersistAsync(aggregate));
+    Assert.Throws<ArgumentException>(() => aggregate.Add(new EmptyEvent()));
   }
 
   [Fact]

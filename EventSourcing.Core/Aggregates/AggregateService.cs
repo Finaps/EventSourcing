@@ -57,23 +57,20 @@ public class AggregateService : IAggregateService
     if (_snapshotStore == null)
       throw new InvalidOperationException("Snapshot store not provided");
       
-    var latestSnapshot = await _snapshotStore.Snapshots
+    var snapshot = await _snapshotStore.Snapshots
       .Where(x => x.PartitionId == partitionId && x.AggregateId == aggregateId)
       .OrderBy(x => x.AggregateVersion)
       .AsAsyncEnumerable()
       .LastOrDefaultAsync(cancellationToken);
 
-    var version = latestSnapshot?.AggregateVersion ?? 0;
+    var version = snapshot?.AggregateVersion ?? 0;
 
     var events = _eventStore.Events
       .Where(x => x.PartitionId == partitionId && x.AggregateId == aggregateId && x.AggregateVersion >= version)
       .OrderBy(x => x.AggregateVersion)
       .AsAsyncEnumerable();
 
-    if (latestSnapshot != null)
-      events = events.Prepend(latestSnapshot);
-
-    return await Aggregate.RehydrateAsync<TAggregate>(partitionId, aggregateId, events, cancellationToken);
+    return await Aggregate.RehydrateAsync<TAggregate>(partitionId, aggregateId, snapshot, events, cancellationToken);
   }
 
   public async Task<TAggregate> PersistAsync<TAggregate>(TAggregate aggregate,

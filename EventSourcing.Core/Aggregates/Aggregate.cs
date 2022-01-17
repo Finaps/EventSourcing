@@ -37,7 +37,7 @@ public abstract class Aggregate
   protected Aggregate()
   {
     Id = Guid.NewGuid();
-    Type = GetType().Name;
+    Type = GetType().FullName;
   }
 
   /// <summary>
@@ -45,7 +45,7 @@ public abstract class Aggregate
   /// </summary>
   /// <param name="e"><see cref="Event"/> to apply</param>
   protected abstract void Apply(Event e);
-
+  
   /// <summary>
   /// Called after Applying all events
   /// <remarks>Can be used to apply time-dependent updates</remarks>
@@ -60,14 +60,20 @@ public abstract class Aggregate
   /// <summary>
   /// Create Snapshot
   /// </summary>
-  /// <returns><see cref="SnapshotEvent"/></returns>
-  protected virtual SnapshotEvent CreateSnapshot() => throw new NotImplementedException();
+  /// <returns><see cref="Snapshot"/></returns>
+  protected virtual Snapshot CreateSnapshot() => throw new NotImplementedException();
+  
+  /// <summary>
+  /// Apply Snapshot
+  /// </summary>
+  /// <param name="s"><see cref="Snapshot"/> to apply</param>
+  protected virtual void ApplySnapshot(Snapshot s) => throw new NotImplementedException();
   
   /// <summary>
   /// Create Snapshot
   /// </summary>
   /// <returns></returns>
-  public SnapshotEvent CreateLinkedSnapshot() => Link(CreateSnapshot());
+  public Snapshot CreateLinkedSnapshot() => Link(CreateSnapshot());
     
   /// <summary>
   /// Add Event to Aggregate
@@ -82,11 +88,8 @@ public abstract class Aggregate
   /// <exception cref="ArgumentException">Thrown when an invalid <see cref="Event"/> is added.</exception>
   public TEvent Add<TEvent>(TEvent e) where TEvent : Event
   {
-    if (e is SnapshotEvent)
-      throw new ArgumentException($"Cannot add SnapshotEvent {e}", nameof(e));
-    
     e = Link(e);
-    ValidateAndApply(e);
+    ValidateAndApplyEvent(e);
     _uncommittedEvents.Add(e);
     return e;
   }
@@ -95,22 +98,42 @@ public abstract class Aggregate
   /// Rehydrate <see cref="Aggregate"/> from <see cref="Event"/> stream.
   /// </summary>
   /// <param name="partitionId">Unique Aggregate Partition identifier</param>
-  /// <param name="id">Unique Aggregate identifier</param>
+  /// <param name="aggregateId">Unique Aggregate identifier</param>
   /// <param name="events"><see cref="Event"/> stream</param>
   /// <param name="cancellationToken">Cancellation Token</param>
   /// <typeparam name="TAggregate"><see cref="Aggregate"/> Type</typeparam>
   /// <returns><see cref="Aggregate"/> of type <c>TAggregate</c></returns>
   /// <exception cref="ArgumentException">Thrown when <c>id</c> or <c>events</c> are invalid</exception>
-  public static async Task<TAggregate> RehydrateAsync<TAggregate>(Guid partitionId, Guid id,
-    IAsyncEnumerable<Event> events, CancellationToken cancellationToken = default)
-    where TAggregate : Aggregate, new()
+  public static async Task<TAggregate> RehydrateAsync<TAggregate>(Guid partitionId, Guid aggregateId,
+    IAsyncEnumerable<Event> events, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
   {
-    if (id == Guid.Empty)
-      throw new ArgumentException("Aggregate Id should not be empty", nameof(id));
+    return await RehydrateAsync<TAggregate>(partitionId, aggregateId, null, events, cancellationToken);
+  }
 
-    var aggregate = new TAggregate { PartitionId = partitionId, Id = id };
+  /// <summary>
+  /// Rehydrate <see cref="Aggregate"/> from <see cref="Snapshot"/> and <see cref="Event"/> stream.
+  /// </summary>
+  /// <param name="partitionId">Unique Aggregate Partition identifier</param>
+  /// <param name="aggregateId">Unique Aggregate identifier</param>
+  /// <param name="snapshot"><see cref="Snapshot"/></param>
+  /// <param name="events"><see cref="Event"/> stream</param>
+  /// <param name="cancellationToken">Cancellation Token</param>
+  /// <typeparam name="TAggregate"><see cref="Aggregate"/> Type</typeparam>
+  /// <returns><see cref="Aggregate"/> of type <c>TAggregate</c></returns>
+  /// <exception cref="ArgumentException">Thrown when <c>id</c> or <c>events</c> are invalid</exception>
+  public static async Task<TAggregate> RehydrateAsync<TAggregate>(Guid partitionId, Guid aggregateId, Snapshot snapshot,
+    IAsyncEnumerable<Event> events, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
+  {
+    if (aggregateId == Guid.Empty)
+      throw new ArgumentException("Aggregate Id should not be empty", nameof(aggregateId));
+
+    var aggregate = new TAggregate { PartitionId = partitionId, Id = aggregateId };
+    
+    if (snapshot != null)
+      aggregate.ValidateAndApplySnapshot(snapshot);
+
     await foreach (var e in events.WithCancellation(cancellationToken))
-      aggregate.ValidateAndApply(e);
+      aggregate.ValidateAndApplyEvent(e);
 
     aggregate.Finish();
       
@@ -128,44 +151,25 @@ public abstract class Aggregate
                                           (UncommittedEvents.First().AggregateVersion + 1) / SnapshotInterval !=
                                           (UncommittedEvents.Last().AggregateVersion + 1) / SnapshotInterval;
 
-  private TEvent Link<TEvent>(TEvent e) where TEvent : Event => e with
+  private TRecord Link<TRecord>(TRecord record) where TRecord : Record => record with
   {
     PartitionId = PartitionId,
     AggregateId = Id,
     AggregateType = Type,
     AggregateVersion = Version
   };
-
-  /// <summary>
-  /// Validate and Apply <see cref="Event"/> to <see cref="Aggregate"/>
-  /// </summary>
-  /// <param name="e"><see cref="Event"/> to Validate and Apply</param>
-  /// <exception cref="ArgumentException">Thrown when <see cref="Event"/> is invalid for this <see cref="Aggregate"/></exception>
-  /// <exception cref="InvalidOperationException">Thrown when on a version mismatch between <see cref="Event"/> and <see cref="Aggregate"/></exception>
-  private void ValidateAndApply(Event e)
+  
+  private void ValidateAndApplyEvent(Event e)
   {
-    if (e.EventId == Guid.Empty)
-      throw new ArgumentException("Event.Id should not be empty", nameof(e));
-      
-    if (e.Type != e.GetType().Name)
-      throw new ArgumentException($"Event.Type ({e.Type}) does not correspond with Class Type ({e.GetType().Name})", nameof(e));
-      
-    if (e.AggregateId != Id)
-      throw new ArgumentException($"Event.AggregateId ({e.AggregateId}) does not correspond with Aggregate.Id ({Id})", nameof(e));
-
-    if (e.AggregateType != GetType().Name)
-      throw new ArgumentException($"Event.AggregateType ({e.AggregateType}) does not correspond with typeof(Aggregate) ({GetType().Name})", nameof(e));
-    
-    if (e.PartitionId != PartitionId)
-      throw new ArgumentException($"Event.PartitionId ({e.PartitionId}) does not correspond with Aggregate.PartitionId ({PartitionId})", nameof(e));
-
-    if (e is not SnapshotEvent && e.AggregateVersion != Version)
-      throw new InvalidOperationException($"Event.AggregateVersion ({e.AggregateVersion}) does not correspond with Aggregate.Version ({Version})");
-
+    RecordValidation.ValidateEventForAggregate(this, e);
     Apply(e);
+    Version++;
+  }
 
-    Version = e is SnapshotEvent
-      ? e.AggregateVersion
-      : Version+1;
+  private void ValidateAndApplySnapshot(Snapshot s)
+  {
+    RecordValidation.ValidateSnapshotForAggregate(this, s);
+    ApplySnapshot(s);
+    Version = s.AggregateVersion;
   }
 }

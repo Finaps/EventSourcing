@@ -27,7 +27,7 @@ public class CosmosEventTransaction : IEventTransaction
 
   public Task AddAsync(IList<Event> events, CancellationToken cancellationToken = default)
   {
-    EventValidation.Validate(PartitionId, events);
+    RecordValidation.ValidateEventSequence(PartitionId, events);
 
     if (events.Count == 0) return Task.CompletedTask;
 
