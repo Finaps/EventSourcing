@@ -25,7 +25,7 @@ public abstract partial class AggregateServiceTests
   }
 
   [Fact]
-  public async Task Cannot_Persist_With_Empty_Id()
+  public async Task Cannot_Add_Event_With_Empty_Aggregate_Id()
   {
     var aggregate = new SimpleAggregate { Id = Guid.Empty };
     Assert.Throws<ArgumentException>(() => aggregate.Add(new EmptyEvent()));
@@ -68,6 +68,21 @@ public abstract partial class AggregateServiceTests
     var rehydrated = await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate.Id);
 
     Assert.Equal(events.Count, rehydrated.Counter);
+  }
+  
+  [Fact]
+  public async Task Can_Rehydrate_Aggregate_Up_To_Date()
+  {
+    var aggregate = new SimpleAggregate();
+    aggregate.Add(new EmptyEvent());
+    aggregate.Add(new EmptyEvent());
+    aggregate.Add(new EmptyEvent { Timestamp = DateTimeOffset.Now.AddYears(1) });
+
+    await AggregateService.PersistAsync(aggregate);
+
+    var rehydrated = await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate.Id, DateTimeOffset.Now);
+
+    Assert.Equal(2, rehydrated.Counter);
   }
     
   [Fact]
@@ -235,7 +250,7 @@ public abstract partial class AggregateServiceTests
   }
     
   [Fact]
-  public async Task Can_Rehydrate_Snapshotted_Aggregate()
+  public async Task Can_Rehydrate_Aggregate_With_Snapshots()
   {
     var aggregate = new SnapshotAggregate();
     var eventsCount = aggregate.SnapshotInterval;
@@ -250,9 +265,48 @@ public abstract partial class AggregateServiceTests
     Assert.Equal(0, result.EventsAppliedAfterHydration);
     Assert.Equal(1, result.SnapshotsAppliedAfterHydration);
   }
+  
+  [Fact]
+  public async Task Can_Rehydrate_Aggregate_Up_To_Date_With_Snapshots()
+  {
+    var aggregate = new SnapshotAggregate();
+
+    foreach (var _ in new int[aggregate.SnapshotInterval])
+      aggregate.Add(new EmptyEvent());
+    await AggregateService.PersistAsync(aggregate);
+    
+    foreach (var _ in new int[3])
+      aggregate.Add(new EmptyEvent());
+    await AggregateService.PersistAsync(aggregate);
+
+    var date = DateTimeOffset.Now;
+
+    foreach (var _ in new int[aggregate.SnapshotInterval])
+      aggregate.Add(new EmptyEvent());
+    await AggregateService.PersistAsync(aggregate);
+
+    var result = await AggregateService.RehydrateAsync<SnapshotAggregate>(aggregate.Id, date);
+    
+    var snapshotCount = await SnapshotStore.Snapshots
+      .Where(x => x.AggregateId == aggregate.Id)
+      .AsAsyncEnumerable()
+      .CountAsync();
+
+    var eventsCount = await EventStore.Events
+      .Where(x => x.AggregateId == aggregate.Id)
+      .AsAsyncEnumerable()
+      .CountAsync();
+
+    Assert.NotNull(result);
+    Assert.Equal(aggregate.SnapshotInterval + 3, result.Counter);
+    Assert.Equal(3, result.EventsAppliedAfterHydration);
+    Assert.Equal(1, result.SnapshotsAppliedAfterHydration);
+    Assert.Equal(2, snapshotCount);
+    Assert.Equal(2 * aggregate.SnapshotInterval + 3, eventsCount);
+  }
     
   [Fact]
-  public async Task Can_Rehydrate_Twice_Snapshotted_Aggregate()
+  public async Task Can_Rehydrate_Aggregate_With_Multiple_Snapshots()
   {
     var aggregate = new SnapshotAggregate();
     var eventsCount = aggregate.SnapshotInterval;
@@ -264,6 +318,10 @@ public abstract partial class AggregateServiceTests
     foreach (var _ in new int[eventsCount])
       aggregate.Add(new EmptyEvent());
     await AggregateService.PersistAsync(aggregate);
+    
+    foreach (var _ in new int[eventsCount - 1])
+      aggregate.Add(new EmptyEvent());
+    await AggregateService.PersistAsync(aggregate);
       
     var result = await AggregateService.RehydrateAsync<SnapshotAggregate>(aggregate.Id);
     
@@ -273,8 +331,8 @@ public abstract partial class AggregateServiceTests
       .CountAsync();
       
     Assert.NotNull(result);
-    Assert.Equal(2 * (int) eventsCount, result.Counter);
-    Assert.Equal(0, result.EventsAppliedAfterHydration);
+    Assert.Equal(3 * eventsCount - 1, result.Counter);
+    Assert.Equal(eventsCount - 1, result.EventsAppliedAfterHydration);
     Assert.Equal(1, result.SnapshotsAppliedAfterHydration);
     Assert.Equal(2, snapshotCount);
   }
@@ -305,46 +363,6 @@ public abstract partial class AggregateServiceTests
     Assert.Equal((int) eventsCount - 1, result.EventsAppliedAfterHydration);
     Assert.Equal(1, result.SnapshotsAppliedAfterHydration);
     Assert.Equal(1, snapshotCount);
-  }
-    
-  [Fact]
-  public async Task Can_Rehydrate_Multiple_Snapshotted_Aggregate()
-  {
-    var aggregate = new SnapshotAggregate();
-    var eventsCount = aggregate.SnapshotInterval;
-      
-    foreach (var _ in new int[eventsCount])
-      aggregate.Add(new EmptyEvent());
-    await AggregateService.PersistAsync(aggregate);
-      
-    foreach (var _ in new int[eventsCount])
-      aggregate.Add(new EmptyEvent());
-    await AggregateService.PersistAsync(aggregate);
-      
-    foreach (var _ in new int[eventsCount])
-      aggregate.Add(new EmptyEvent());
-    await AggregateService.PersistAsync(aggregate);
-      
-    foreach (var _ in new int[eventsCount])
-      aggregate.Add(new EmptyEvent());
-    await AggregateService.PersistAsync(aggregate);
-      
-    foreach (var _ in new int[eventsCount - 1])
-      aggregate.Add(new EmptyEvent());
-    await AggregateService.PersistAsync(aggregate);
-      
-    var result = await AggregateService.RehydrateAsync<SnapshotAggregate>(aggregate.Id);
-
-    var snapshotCount = await SnapshotStore.Snapshots
-      .Where(x => x.AggregateId == aggregate.Id)
-      .AsAsyncEnumerable()
-      .CountAsync();
-      
-    Assert.NotNull(result);
-    Assert.Equal(5 * (int) eventsCount - 1, result.Counter);
-    Assert.Equal((int) eventsCount - 1, result.EventsAppliedAfterHydration);
-    Assert.Equal(1, result.SnapshotsAppliedAfterHydration);
-    Assert.Equal(4, snapshotCount);
   }
 
   [Fact]
