@@ -114,7 +114,7 @@ public abstract partial class EventStoreTests
     var results = await EventStore.Events
       .Where(x => x.AggregateId == aggregate.Id)
       .OrderBy(x => x.AggregateVersion)
-      .Select(x => x.EventId)
+      .Select(x => x.RecordId)
       .AsAsyncEnumerable()
       .ToListAsync();
 
@@ -122,7 +122,7 @@ public abstract partial class EventStoreTests
     Assert.Equal(5, results.Count);
     
     for (var i = 0; i < 5; i++)
-      Assert.Equal(initialEvents[i].EventId, results[i]);
+      Assert.Equal(initialEvents[i].RecordId, results[i]);
   }
   
   [Fact]

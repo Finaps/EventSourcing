@@ -6,13 +6,13 @@ namespace EventSourcing.Cosmos;
 /// <summary>
 /// Cosmos Client Base: Cosmos Connection for Querying and Storing <see cref="Event"/>s
 /// </summary>
-public abstract class CosmosClientBase<TEvent> where TEvent : Event
+public abstract class CosmosClientBase<TRecord> where TRecord : Record
 {
   private readonly CosmosClientOptions _clientOptions = new()
   {
     Serializer = new CosmosEventSerializer(new JsonSerializerOptions
     {
-      Converters = { new EventConverter<TEvent>() }
+      Converters = { new RecordConverter<TRecord>() }
     })
   };
   

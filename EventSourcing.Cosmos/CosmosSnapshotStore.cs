@@ -2,7 +2,7 @@ using EventSourcing.Core;
 
 namespace EventSourcing.Cosmos;
 
-public class CosmosSnapshotStore : CosmosClientBase<SnapshotEvent>, ISnapshotStore
+public class CosmosSnapshotStore : CosmosClientBase<Snapshot>, ISnapshotStore
 {
     private readonly Container _snapshots;
 
@@ -19,7 +19,7 @@ public class CosmosSnapshotStore : CosmosClientBase<SnapshotEvent>, ISnapshotSto
     /// Snapshots: Queryable and AsyncEnumerable Collection of <see cref="Event"/>s
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown when snapshot container is not provided</exception>
-    public IQueryable<SnapshotEvent> Snapshots => _snapshots.AsCosmosAsyncQueryable<SnapshotEvent>();
+    public IQueryable<Snapshot> Snapshots => _snapshots.AsCosmosAsyncQueryable<Snapshot>();
 
     /// <summary>
     /// AddSnapshotAsync: Store snapshot as a <see cref="Event"/>s to the Cosmos Event Store
@@ -29,9 +29,9 @@ public class CosmosSnapshotStore : CosmosClientBase<SnapshotEvent>, ISnapshotSto
     /// <exception cref="InvalidOperationException">Thrown when snapshot container is not provided</exception>
     /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with empty AggregateId</exception>
     /// <exception cref="EventStoreException">Thrown when conflicts occur when storing <see cref="Event"/>s</exception>
-    public async Task AddAsync(SnapshotEvent snapshot, CancellationToken cancellationToken = default)
+    public async Task AddAsync(Snapshot snapshot, CancellationToken cancellationToken = default)
     {
-        EventValidation.Validate(snapshot.PartitionId, new List<SnapshotEvent> { snapshot });
+        RecordValidation.ValidateSnapshot(snapshot);
 
         var transaction = _snapshots.CreateTransactionalBatch(new PartitionKey(snapshot.PartitionId.ToString()));
         transaction.CreateItem(snapshot);

@@ -1,6 +1,6 @@
  namespace EventSourcing.Core.Tests.Mocks;
 
-public record MockSnapshot : SnapshotEvent
+public record MockSnapshot : Snapshot
 {
     public int Counter { get; init; }
 }

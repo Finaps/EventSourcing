@@ -10,12 +10,12 @@ public interface ISnapshotStore
     /// <c cref="IAsyncEnumerable{T}">IAsyncEnumerable</c> interfaces, such that the async extensions
     /// e.g. <c>System.Linq.Async</c> or <c>EventSourcing.Core.QueryableExtensions</c> work as intended.
     /// </remarks>
-    IQueryable<SnapshotEvent> Snapshots { get; }
+    IQueryable<Snapshot> Snapshots { get; }
         
     /// <summary>
     /// Add snapshot to the <see cref="ISnapshotStore"/>
     /// </summary>
     /// <param name="snapshot">Snapshot to add</param>
     /// <param name="cancellationToken">Cancellation Token</param>
-    Task AddAsync(SnapshotEvent snapshot, CancellationToken cancellationToken = default);
+    Task AddAsync(Snapshot snapshot, CancellationToken cancellationToken = default);
 }
