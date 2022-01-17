@@ -1,7 +1,7 @@
 namespace EventSourcing.Core.Migrations;
 
 
-public abstract class EventMigratorBase<TSourceEvent, TTargetEvent> : IEventMigrator 
+public abstract class EventMigrator<TSourceEvent, TTargetEvent> : IEventMigrator 
     where TSourceEvent : Event
     where TTargetEvent : Event
 {
