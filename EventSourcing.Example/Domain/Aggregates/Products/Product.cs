@@ -50,10 +50,12 @@ public class Product : Aggregate
 
     protected override void ApplySnapshot(Snapshot s)
     {
-        var snapshot = s as ProductSnapshot;
-        Name = snapshot.Name;
-        Quantity = snapshot.Quantity;
-        Reservations = snapshot.Reservations;
+        if (s is not ProductSnapshot productSnapshot)
+            throw new ArgumentException($"Expected {nameof(ProductSnapshot)}");
+        
+        Name = productSnapshot.Name;
+        Quantity = productSnapshot.Quantity;
+        Reservations = productSnapshot.Reservations;
     }
     public void Create(string name, int initialQuantity)
     {
