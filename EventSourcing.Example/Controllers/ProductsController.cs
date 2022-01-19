@@ -1,8 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using EventSourcing.Core;
-using EventSourcing.Example.CommandBus;
-using EventSourcing.Example.Domain.Aggregates.Products;
+using EventSourcing.Example.Domain.Products;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EventSourcing.Example.Controllers;
@@ -11,21 +10,19 @@ namespace EventSourcing.Example.Controllers;
 [Route("[controller]")]
 public class ProductsController : Controller
 {
-    private readonly ICommandBus _commandBus;
     private readonly IAggregateService _aggregateService;
 
-    public ProductsController(ICommandBus commandBus, IAggregateService aggregateService)
+    public ProductsController(IAggregateService aggregateService)
     {
-        _commandBus = commandBus;
         _aggregateService = aggregateService;
     }
 
     [HttpPost]
-    public async Task<ActionResult<Guid>> CreateProduct([FromBody] CreateProduct request)
+    public async Task<ActionResult<Product>> CreateProduct([FromBody] CreateProduct request)
     {
-        var productId = Guid.NewGuid();
-        var product = await _commandBus.ExecuteCommandAndSaveChanges<Product>(request with {AggregateId = productId});
-        return product.Id;
+        var product = new Product();
+        product.Create(request.Name, request.Quantity);
+        return await _aggregateService.PersistAsync(product);
     }
     
     [HttpGet("{id:Guid}")]
@@ -35,8 +32,9 @@ public class ProductsController : Controller
     }
     
     [HttpPost("{id:Guid}/addStock")]
-    public async Task<ActionResult<Product>> SetStock([FromRoute] Guid id, [FromBody] AddStock request)
+    public async Task<ActionResult<Product>> AddStock([FromRoute] Guid id, [FromBody] AddStock request)
     {
-        return await _commandBus.ExecuteCommandAndSaveChanges<Product>(request with {AggregateId = id});
+        return await _aggregateService.RehydrateAndPersistAsync<Product>(id, 
+            product => product.AddStock(request.Quantity));
     }
 }

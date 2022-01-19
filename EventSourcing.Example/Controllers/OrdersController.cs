@@ -1,8 +1,7 @@
 using EventSourcing.Core;
-using EventSourcing.Example.CommandBus;
-using EventSourcing.Example.Domain.Aggregates.Orders;
 using System;
 using System.Threading.Tasks;
+using EventSourcing.Example.Domain.Orders;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EventSourcing.Example.Controllers;
@@ -11,12 +10,10 @@ namespace EventSourcing.Example.Controllers;
 [Route("[controller]")]
 public class OrdersController : Controller
 {
-    private readonly ICommandBus _commandBus;
     private readonly IAggregateService _aggregateService;
 
-    public OrdersController(ICommandBus commandBus, IAggregateService aggregateService)
+    public OrdersController(IAggregateService aggregateService)
     {
-        _commandBus = commandBus;
         _aggregateService = aggregateService;
     }
     

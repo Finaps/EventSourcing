@@ -1,7 +1,7 @@
 using System;
 using EventSourcing.Core;
 
-namespace EventSourcing.Example.Domain.Aggregates.Baskets;
+namespace EventSourcing.Example.Domain.Baskets;
 
 public record BasketCreatedEvent(TimeSpan ExpirationTime) : Event;
 public record ProductAddedToBasketEvent(int Quantity, Guid ProductId ) : Event;

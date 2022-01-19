@@ -1,6 +1,5 @@
 using EventSourcing.Core;
 using EventSourcing.Cosmos;
-using EventSourcing.Example.CommandBus;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -37,9 +36,8 @@ public class Startup
     services.Configure<CosmosEventStoreOptions>(Configuration.GetSection("Cosmos"));
     services.AddSingleton<IEventStore, CosmosEventStore>();
     services.AddSingleton<ISnapshotStore, CosmosSnapshotStore>();
-    // Configure AggregateService and CommandBus
+    // Configure AggregateService
     services.AddScoped<IAggregateService, AggregateService>();
-    services.AddScoped<ICommandBus, Domain.CommandBus.CommandBus>();
   }
 
   // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

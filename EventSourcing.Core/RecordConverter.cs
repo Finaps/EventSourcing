@@ -65,7 +65,7 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
   
   private TRecord Migrate(TRecord record)
   {
-    while (Migrators.TryGetValue(record.GetType().Name, out var migrator))
+    while (Migrators.TryGetValue(record.Type, out var migrator))
       record = (TRecord) migrator.Convert(record);
 
     return record;

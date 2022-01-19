@@ -8,7 +8,7 @@ public class AggregateService : IAggregateService
   private readonly ISnapshotStore _snapshotStore;
   private readonly ILogger<AggregateService> _logger;
   
-  public AggregateService(IEventStore eventStore, ISnapshotStore snapshotStore, ILogger<AggregateService> logger)
+  public AggregateService(IEventStore eventStore, ISnapshotStore snapshotStore = null, ILogger<AggregateService> logger = null)
   {
     _eventStore = eventStore;
     _snapshotStore = snapshotStore;

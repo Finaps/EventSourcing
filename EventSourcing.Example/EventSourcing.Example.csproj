@@ -14,8 +14,4 @@
         <ProjectReference Include="..\EventSourcing.Core.Tests\EventSourcing.Core.Tests.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Domain\Aggregates" />
-    </ItemGroup>
-
 </Project>

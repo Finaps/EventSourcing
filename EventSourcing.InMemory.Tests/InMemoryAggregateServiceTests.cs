@@ -13,6 +13,6 @@ public class InMemoryAggregateServiceTests : AggregateServiceTests
   {
     EventStore = new InMemoryEventStore();
     SnapshotStore = new InMemorySnapshotStore();
-    AggregateService = new AggregateService(EventStore, SnapshotStore, null);
+    AggregateService = new AggregateService(EventStore, SnapshotStore,null);
   }
 }

@@ -4,11 +4,11 @@ using System.Linq;
 using EventSourcing.Core;
 using EventSourcing.Example.Domain.Shared;
 
-namespace EventSourcing.Example.Domain.Aggregates.Baskets;
+namespace EventSourcing.Example.Domain.Baskets;
 
 public class Basket : Aggregate
 {
-    public List<Item> Items { get; set; } = new();
+    public List<Item> Items { get; } = new();
     public bool CheckedOut;
     public DateTimeOffset BasketCreated { get; set; }
     public DateTimeOffset BasketExpires { get; set; }
