@@ -1,3 +1,5 @@
+using System.Reflection;
+
 namespace EventSourcing.Core;
 
 public record Record
@@ -31,7 +33,7 @@ public record Record
   /// Record type
   /// </summary>
   public string Type { get; init; }
-    
+  
   /// <summary>
   /// Record creation time
   /// </summary>
@@ -48,7 +50,7 @@ public record Record
   protected Record()
   {
     RecordId = Guid.NewGuid();
-    Type = GetType().Name;
+    Type = GetType().GetCustomAttribute<RecordName>()?.Value ?? GetType().Name;
     Timestamp = DateTimeOffset.Now;
   }
   
