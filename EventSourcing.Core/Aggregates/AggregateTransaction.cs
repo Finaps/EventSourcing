@@ -16,18 +16,24 @@ public class AggregateTransaction : IAggregateTransaction
     _logger = logger;
   }
   
-  public async Task AddAsync(Aggregate aggregate, CancellationToken cancellationToken = default)
+  public IAggregateTransaction Add(Aggregate aggregate)
   {
     if (aggregate.Id == Guid.Empty)
       throw new ArgumentException("Aggregate.Id cannot be empty", nameof(aggregate));
 
-    await _eventTransaction.AddAsync(aggregate.UncommittedEvents.ToList(), cancellationToken);
-    
+    _eventTransaction.Add(aggregate.UncommittedEvents.ToList());
     _aggregates.Add(aggregate);
+
+    return this;
   }
 
-  public async Task DeleteAsync(Guid aggregateId, CancellationToken cancellationToken = default) =>
-    await _eventTransaction.DeleteAsync(aggregateId, cancellationToken);
+  public IAggregateTransaction Delete(Guid aggregateId, long aggregateVersion)
+  {
+    _eventTransaction.Delete(aggregateId, aggregateVersion);
+
+    return this;
+  }
+    
 
   public async Task CommitAsync(CancellationToken cancellationToken)
   {

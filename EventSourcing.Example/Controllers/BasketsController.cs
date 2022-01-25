@@ -60,16 +60,14 @@ public class BasketsController : Controller
         {
             var product = await _aggregateService.RehydrateAsync<Product>(item.ProductId);
             product.PurchaseProduct(basketId, item.Quantity);
-            await transaction.AddAsync(product);
+            transaction.Add(product);
         }
         basket.CheckoutBasket();
         
         var order = new Order();
         order.Create(basketId);
         
-        await transaction.AddAsync(basket);
-        await transaction.AddAsync(order);
-        await transaction.CommitAsync();
+        await transaction.Add(basket).Add(order).CommitAsync();
         
         return order.Id;
     }

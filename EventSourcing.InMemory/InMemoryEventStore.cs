@@ -13,21 +13,33 @@ public class InMemoryEventStore : IEventStore
   {
     if (events == null) throw new ArgumentNullException(nameof(events));
     if (events.Count == 0) return;
-    
-    var transaction = CreateTransaction(events.First().PartitionId);
-    await transaction.AddAsync(events, cancellationToken);
-    await transaction.CommitAsync(cancellationToken);
+
+    await CreateTransaction(events.First().PartitionId)
+      .Add(events)
+      .CommitAsync(cancellationToken);
   }
 
   public async Task DeleteAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
   {
-    var transaction = CreateTransaction(partitionId);
-    await transaction.DeleteAsync(aggregateId, cancellationToken);
-    await transaction.CommitAsync(cancellationToken);
+    await CreateTransaction(partitionId)
+      .Delete(aggregateId, await GetVersionAsync(partitionId, aggregateId, cancellationToken))
+      .CommitAsync(cancellationToken);
   }
 
   public Task DeleteAsync(Guid aggregateId, CancellationToken cancellationToken = default) =>
     DeleteAsync(Guid.Empty, aggregateId, cancellationToken);
+
+  public Task<long> GetVersionAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
+  {
+    return Task.FromResult(_events.Values
+      .Where(x => x.PartitionId == partitionId && x.AggregateId == aggregateId)
+      .Select(x => x.Index)
+      .OrderByDescending(i => i)
+      .First());
+  }
+
+  public async Task<long> GetVersionAsync(Guid aggregateId, CancellationToken cancellationToken = default) =>
+    await GetVersionAsync(Guid.Empty, aggregateId, cancellationToken);
 
   public IEventTransaction CreateTransaction() => CreateTransaction(Guid.Empty);
   public IEventTransaction CreateTransaction(Guid partitionId) =>

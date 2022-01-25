@@ -17,11 +17,16 @@ public class InMemoryEventTransaction : IEventTransaction
     _events = events;
   }
 
-  public Task AddAsync(IList<Event> events, CancellationToken cancellationToken = default)
+  public IEventTransaction Read(Guid aggregateId, long aggregateVersion)
+  {
+    throw new NotImplementedException();
+  }
+
+  public IEventTransaction Add(IList<Event> events)
   {
     RecordValidation.ValidateEventSequence(PartitionId, events);
 
-    if (events.Count == 0) return Task.CompletedTask;
+    if (events.Count == 0) return this;
 
     lock (_addedEvents)
     {
@@ -33,20 +38,18 @@ public class InMemoryEventTransaction : IEventTransaction
         _addedEvents.Add(e);
       }
     }
-    
-    return Task.CompletedTask;
+
+    return this;
   }
 
-  public Task DeleteAsync(Guid aggregateId, CancellationToken cancellationToken = default)
+  public IEventTransaction Delete(Guid aggregateId, long aggregateVersion)
   {
     lock (_removedAggregateIds)
     {
-      _removedAggregateIds.Add(aggregateId, _events.Values
-        .Where(x => x.AggregateId == aggregateId)
-        .Max(x => x.Index));
+      _removedAggregateIds.Add(aggregateId, aggregateVersion);
     }
-    
-    return Task.CompletedTask;
+
+    return this;
   }
 
   public Task CommitAsync(CancellationToken cancellationToken = default)
