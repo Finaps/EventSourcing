@@ -9,11 +9,10 @@ public interface IAggregateTransaction
   /// When all <see cref="Aggregate"/>s have been added, call <see cref="CommitAsync"/> to commit them
   /// </remarks>
   /// <param name="aggregate"><see cref="Aggregate"/> to persist</param>
-  /// <param name="cancellationToken">Cancellation Token</param>
   /// <returns>Persisted <see cref="Aggregate"/></returns>
-  Task AddAsync(Aggregate aggregate, CancellationToken cancellationToken = default);
+  IAggregateTransaction Add(Aggregate aggregate);
   
-  Task DeleteAsync(Guid aggregateId, CancellationToken cancellationToken = default);
+  IAggregateTransaction Delete(Guid aggregateId, long aggregateVersion);
   
   /// <summary>
   /// Commit <see cref="Aggregate"/>s to the <see cref="IEventStore"/>

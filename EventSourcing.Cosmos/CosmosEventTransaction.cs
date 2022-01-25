@@ -10,8 +10,7 @@ public class CosmosEventTransaction : IEventTransaction
   };
   
   public Guid PartitionId { get; }
-
-  private readonly Container _container;
+  
   private readonly TransactionalBatch _batch;
 
   private readonly HashSet<Guid> _addedAggregateIds = new();
@@ -20,44 +19,40 @@ public class CosmosEventTransaction : IEventTransaction
   public CosmosEventTransaction(Container container, Guid partitionId)
   {
     PartitionId = partitionId;
-    
-    _container = container;
     _batch = container.CreateTransactionalBatch(new PartitionKey(partitionId.ToString()));
   }
 
-  public Task AddAsync(IList<Event> events, CancellationToken cancellationToken = default)
+  public IEventTransaction Read(Guid aggregateId, long aggregateVersion)
+  {
+    _batch.ReadItem(Record.GetId(aggregateId, aggregateVersion));
+    return this;
+  }
+
+  public IEventTransaction Add(IList<Event> events)
   {
     RecordValidation.ValidateEventSequence(PartitionId, events);
 
-    if (events.Count == 0) return Task.CompletedTask;
+    if (events.Count == 0) return this;
 
     var first = events.First();
 
     if (events.First().Index != 0)
       // Check if the event before the current event is present in the Database
       // If not, this could be due to user error or the events being deleted during this transaction
-      _batch.ReadItem(Event.GetId(first.AggregateId, first.Index - 1));
+      Read(first.AggregateId, first.Index - 1);
     
     foreach (var e in events)
       _batch.CreateItem(e, BatchItemRequestOptions);
 
     _addedAggregateIds.Add(first.AggregateId);
-    
-    return Task.CompletedTask;
+
+    return this;
   }
 
-  public async Task DeleteAsync(Guid aggregateId, CancellationToken cancellationToken = default)
+  public IEventTransaction Delete(Guid aggregateId, long aggregateVersion)
   {
-    var aggregateVersion = await _container
-      .AsCosmosAsyncQueryable<Event>()
-      .Where(x => x.PartitionId == PartitionId && x.AggregateId == aggregateId)
-      .Select(x => x.Index)
-      .OrderByDescending(version => version)
-      .AsAsyncEnumerable()
-      .FirstAsync(cancellationToken);
-
     for (long i = 0; i <= aggregateVersion; i++)
-      _batch.DeleteItem(Event.GetId(aggregateId, i));
+      _batch.DeleteItem(Record.GetId(aggregateId, i));
     
     // Create and Delete Event with AggregateVersion+1 to check if no events were added concurrently
     var check = new Event
@@ -71,6 +66,8 @@ public class CosmosEventTransaction : IEventTransaction
     _batch.DeleteItem(check.id);  // This will clean up the 'check' event
 
     _deletedAggregateIds.Add(aggregateId);
+
+    return this;
   }
 
   public async Task CommitAsync(CancellationToken cancellationToken = default)
