@@ -29,16 +29,16 @@ public class CosmosEventStore : CosmosClientBase<Event>, IEventStore
     if (events == null) throw new ArgumentNullException(nameof(events));
     if (events.Count == 0) return;
     
-    var transaction = CreateTransaction(events.First().PartitionId);
-    transaction.Add(events);
-    await transaction.CommitAsync(cancellationToken);
+    await CreateTransaction(events.First().PartitionId)
+      .Add(events)
+      .CommitAsync(cancellationToken);
   }
 
   public async Task DeleteAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
   {
-    var transaction = CreateTransaction(partitionId);
-    transaction.Delete(aggregateId, await GetAggregateVersionAsync(partitionId, aggregateId, cancellationToken));
-    await transaction.CommitAsync(cancellationToken);
+    await CreateTransaction(partitionId)
+      .Delete(aggregateId, await GetAggregateVersionAsync(partitionId, aggregateId, cancellationToken))
+      .CommitAsync(cancellationToken);
   }
 
   public async Task DeleteAsync(Guid aggregateId, CancellationToken cancellationToken = default) =>
