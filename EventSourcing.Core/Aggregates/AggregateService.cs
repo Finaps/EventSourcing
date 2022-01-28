@@ -80,7 +80,7 @@ public class AggregateService : IAggregateService
   public async Task DeleteAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
   {
     await CreateTransaction(partitionId)
-      .Delete(aggregateId, await _eventStore.GetVersionAsync(partitionId, aggregateId, cancellationToken))
+      .Delete(aggregateId, await _eventStore.GetAggregateVersionAsync(partitionId, aggregateId, cancellationToken))
       .CommitAsync(cancellationToken);
   }
 

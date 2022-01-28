@@ -51,15 +51,15 @@ public class CosmosEventTransaction : IEventTransaction
 
   public IEventTransaction Delete(Guid aggregateId, long aggregateVersion)
   {
-    for (long i = 0; i <= aggregateVersion; i++)
+    for (long i = 0; i < aggregateVersion; i++)
       _batch.DeleteItem(Record.GetId(aggregateId, i));
     
-    // Create and Delete Event with AggregateVersion+1 to check if no events were added concurrently
+    // Create and Delete Event with AggregateVersion to check if no events were added concurrently
     var check = new Event
     {
       PartitionId = PartitionId,
       AggregateId = aggregateId,
-      Index = aggregateVersion + 1
+      Index = aggregateVersion
     };
     
     _batch.CreateItem(check);     // If events were added concurrently, this will cause a concurrency exception

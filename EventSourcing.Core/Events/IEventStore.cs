@@ -46,9 +46,9 @@ public interface IEventStore
   /// <param name="cancellationToken">Cancellation Token</param>
   Task DeleteAsync(Guid aggregateId, CancellationToken cancellationToken = default);
 
-  Task<long> GetVersionAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default);
+  Task<long> GetAggregateVersionAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default);
   
-  Task<long> GetVersionAsync(Guid aggregateId, CancellationToken cancellationToken = default);
+  Task<long> GetAggregateVersionAsync(Guid aggregateId, CancellationToken cancellationToken = default);
 
   /// <summary>
   /// Create Event Transaction
