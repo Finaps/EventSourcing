@@ -17,11 +17,6 @@ public class InMemoryEventTransaction : IEventTransaction
     _events = events;
   }
 
-  public IEventTransaction Read(Guid aggregateId, long aggregateVersion)
-  {
-    throw new NotImplementedException();
-  }
-
   public IEventTransaction Add(IList<Event> events)
   {
     RecordValidation.ValidateEventSequence(PartitionId, events);
