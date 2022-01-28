@@ -75,7 +75,7 @@ public class InMemoryEventTransaction : IEventTransaction
       foreach (var (aggregateId, version) in _removedAggregateIds)
       {
         // if there are more events than deletion expected, throw (events might have been added in the meantime)
-        if (_events.ContainsKey((PartitionId, aggregateId, version+1)))
+        if (_events.ContainsKey((PartitionId, aggregateId, version)))
           throw new EventStoreException(_events.Values
             .SingleOrDefault(x =>
               x.PartitionId == PartitionId &&
@@ -85,8 +85,12 @@ public class InMemoryEventTransaction : IEventTransaction
         
         // Remove all events with the specified aggregateId
         var toRemove = _events
-          .Where(pair => pair.Value.AggregateId == aggregateId)
-          .Select(pair => pair.Key);
+          .Where(pair => pair.Value.AggregateId == aggregateId && pair.Value.Index < version)
+          .Select(pair => pair.Key)
+          .ToArray();
+
+        if (toRemove.Length != version)
+          throw new EventStoreException("Tried to remove more events than existing");
 
         foreach (var key in toRemove)
           _events.Remove(key, out _);

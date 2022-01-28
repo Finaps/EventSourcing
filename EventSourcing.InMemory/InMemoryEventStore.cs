@@ -22,24 +22,24 @@ public class InMemoryEventStore : IEventStore
   public async Task DeleteAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
   {
     await CreateTransaction(partitionId)
-      .Delete(aggregateId, await GetVersionAsync(partitionId, aggregateId, cancellationToken))
+      .Delete(aggregateId, await GetAggregateVersionAsync(partitionId, aggregateId, cancellationToken))
       .CommitAsync(cancellationToken);
   }
 
   public Task DeleteAsync(Guid aggregateId, CancellationToken cancellationToken = default) =>
     DeleteAsync(Guid.Empty, aggregateId, cancellationToken);
 
-  public Task<long> GetVersionAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
+  public Task<long> GetAggregateVersionAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
   {
-    return Task.FromResult(_events.Values
+    return Task.FromResult(1 + _events.Values
       .Where(x => x.PartitionId == partitionId && x.AggregateId == aggregateId)
       .Select(x => x.Index)
       .OrderByDescending(i => i)
       .First());
   }
 
-  public async Task<long> GetVersionAsync(Guid aggregateId, CancellationToken cancellationToken = default) =>
-    await GetVersionAsync(Guid.Empty, aggregateId, cancellationToken);
+  public async Task<long> GetAggregateVersionAsync(Guid aggregateId, CancellationToken cancellationToken = default) =>
+    await GetAggregateVersionAsync(Guid.Empty, aggregateId, cancellationToken);
 
   public IEventTransaction CreateTransaction() => CreateTransaction(Guid.Empty);
   public IEventTransaction CreateTransaction(Guid partitionId) =>
