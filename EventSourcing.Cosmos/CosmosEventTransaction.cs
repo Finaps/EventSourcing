@@ -22,12 +22,6 @@ public class CosmosEventTransaction : IEventTransaction
     _batch = container.CreateTransactionalBatch(new PartitionKey(partitionId.ToString()));
   }
 
-  public IEventTransaction Read(Guid aggregateId, long aggregateVersion)
-  {
-    _batch.ReadItem(Record.GetId(aggregateId, aggregateVersion));
-    return this;
-  }
-
   public IEventTransaction Add(IList<Event> events)
   {
     RecordValidation.ValidateEventSequence(PartitionId, events);
@@ -39,8 +33,8 @@ public class CosmosEventTransaction : IEventTransaction
     if (events.First().Index != 0)
       // Check if the event before the current event is present in the Database
       // If not, this could be due to user error or the events being deleted during this transaction
-      Read(first.AggregateId, first.Index - 1);
-    
+      _batch.ReadItem(Record.GetId(first.AggregateId, first.Index - 1));
+
     foreach (var e in events)
       _batch.CreateItem(e, BatchItemRequestOptions);
 

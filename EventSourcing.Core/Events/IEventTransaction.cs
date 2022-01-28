@@ -7,8 +7,6 @@ public interface IEventTransaction
   /// </summary>
   Guid PartitionId { get; }
 
-  IEventTransaction Read(Guid aggregateId, long aggregateVersion);
-
   /// <summary>
   /// Add <see cref="Event"/>s
   /// </summary>
