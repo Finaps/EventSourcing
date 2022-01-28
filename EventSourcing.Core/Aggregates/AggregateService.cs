@@ -60,6 +60,7 @@ public class AggregateService : IAggregateService
     await CreateTransaction(aggregate.PartitionId)
       .Add(aggregate)
       .CommitAsync(cancellationToken);
+    
     return aggregate;
   }
 
