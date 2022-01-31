@@ -45,7 +45,7 @@ public class AggregateTransaction : IAggregateTransaction
           aggregate.SnapshotInterval > 0 &&
 
           // If the Snapshot Interval Threshold has been met
-          aggregate.SnapshotIntervalExceeded)
+          aggregate.IsSnapshotIntervalExceeded())
         {
           // Create Snapshot
           await _snapshotStore.AddAsync(aggregate.CreateLinkedSnapshot(), cancellationToken);
@@ -54,7 +54,7 @@ public class AggregateTransaction : IAggregateTransaction
         // Warn when Aggregate can create snapshots, but no Snapshot Store has been provided
         if (aggregate.SnapshotInterval > 0 && _snapshotStore == null)
           _logger?.LogWarning(
-            "{SnapshotStore} not provided while {TAggregate} has snapshot interval {interval}. Rehydrating from events only",
+            "{SnapshotStore} not provided while {TAggregate} has snapshot interval {interval}. Cannot create snapshot.",
             typeof(ISnapshotStore), aggregate.GetType(), aggregate.SnapshotInterval);
       }
     }
