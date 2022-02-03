@@ -31,11 +31,16 @@ public class InMemoryEventStore : IEventStore
 
   public Task<long> GetAggregateVersionAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
   {
-    return Task.FromResult(1 + _events.Values
+    var index = _events.Values
       .Where(x => x.PartitionId == partitionId && x.AggregateId == aggregateId)
       .Select(x => x.Index)
       .OrderByDescending(i => i)
-      .First());
+      .FirstOrDefault();
+    
+    if (index == 0)
+      throw new EventStoreException($"Cannot get version of nonexistent Aggregate with PartitionId '{partitionId}' and Id '{aggregateId}'");
+    
+    return Task.FromResult(1 + index);
   }
 
   public async Task<long> GetAggregateVersionAsync(Guid aggregateId, CancellationToken cancellationToken = default) =>

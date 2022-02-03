@@ -44,14 +44,23 @@ public class CosmosEventStore : CosmosClientBase<Event>, IEventStore
   public async Task DeleteAsync(Guid aggregateId, CancellationToken cancellationToken = default) =>
     await DeleteAsync(Guid.Empty, aggregateId, cancellationToken);
 
-  public async Task<long> GetAggregateVersionAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) =>
-    1 + await _container
+  public async Task<long> GetAggregateVersionAsync(Guid partitionId, Guid aggregateId,
+    CancellationToken cancellationToken = default)
+  {
+    var index = await _container
       .AsCosmosAsyncQueryable<Event>()
       .Where(x => x.PartitionId == partitionId && x.AggregateId == aggregateId)
       .Select(x => x.Index)
       .OrderByDescending(version => version)
       .AsAsyncEnumerable()
-      .FirstAsync(cancellationToken);
+      .FirstOrDefaultAsync(cancellationToken);
+
+    if (index == 0)
+      throw new EventStoreException($"Cannot get version of nonexistent Aggregate with PartitionId '{partitionId}' and Id '{aggregateId}'");
+
+    return index + 1;
+  }
+
 
   public async Task<long> GetAggregateVersionAsync(Guid aggregateId, CancellationToken cancellationToken) =>
     await GetAggregateVersionAsync(Guid.Empty, aggregateId, cancellationToken);
