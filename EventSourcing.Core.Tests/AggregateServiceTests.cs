@@ -161,22 +161,7 @@ public abstract partial class AggregateServiceTests
 
     Assert.Equal(events.Count + 1, count);
   }
-    
-  [Fact]
-  public async Task Rehydrating_Calls_Finish()
-  {
-    var aggregate = new VerboseAggregate();
-    aggregate.Add(new EmptyEvent());
 
-    await AggregateService.PersistAsync(aggregate);
-      
-    Assert.False(aggregate.IsFinished);
-
-    var result = await AggregateService.RehydrateAsync<VerboseAggregate>(aggregate.Id);
-
-    Assert.True(result.IsFinished);
-  }
-    
   [Fact]
   public async Task Can_Snapshot_Aggregate()
   {
