@@ -45,13 +45,7 @@ public abstract class Aggregate
   /// </summary>
   /// <param name="e"><see cref="Event"/> to apply</param>
   protected abstract void Apply(Event e);
-  
-  /// <summary>
-  /// Called after Applying all events
-  /// <remarks>Can be used to apply time-dependent updates</remarks>
-  /// </summary>
-  protected virtual void Finish() { }
-  
+
   /// <summary>
   /// Snapshot interval length
   /// </summary>
@@ -138,8 +132,6 @@ public abstract class Aggregate
     await foreach (var e in events.WithCancellation(cancellationToken))
       aggregate.ValidateAndApplyEvent(e);
 
-    aggregate.Finish();
-      
     // If no Events have been applied (i.e. no events could be found), return null
     // Otherwise, return Aggregate
     return aggregate.Version == 0 ? null : aggregate;
