@@ -37,31 +37,35 @@ public class CosmosEventStoreTests : EventStoreTests
   }
 
   [Fact]
-  public async Task Throws_ArgumentException_With_Missing_ConnectionString()
+  public Task Throws_ArgumentException_With_Missing_ConnectionString()
   {
-    Assert.Throws<ArgumentException>(() => new CosmosEventStore(Options.Create(new CosmosEventStoreOptions
-    {
+    Assert.Throws<ArgumentException>(() => new CosmosEventStore(Options.Create(new CosmosEventStoreOptions {
       ConnectionString = " ", Database = "A", EventsContainer = "B"
     })));
+    
+    return Task.CompletedTask;
   }
     
   [Fact]
-  public async Task Throws_ArgumentException_With_Missing_Database_Name()
+  public Task Throws_ArgumentException_With_Missing_Database_Name()
   {
-    Assert.Throws<ArgumentException>(() => new CosmosEventStore(Options.Create(new CosmosEventStoreOptions
-    {
+    Assert.Throws<ArgumentException>(() => new CosmosEventStore(Options.Create(new CosmosEventStoreOptions {
       ConnectionString = "A", Database = null, EventsContainer = "B"
     })));
+    
+    return Task.CompletedTask;
   }
     
         
   [Fact]
-  public async Task Throws_ArgumentException_With_Missing_Container_Name()
+  public Task Throws_ArgumentException_With_Missing_Container_Name()
   {
     Assert.Throws<ArgumentException>(() => new CosmosEventStore(Options.Create(new CosmosEventStoreOptions
     {
       ConnectionString = "A", Database = "B", EventsContainer = ""
     })));
+    
+    return Task.CompletedTask;
   }
 
   [Fact]

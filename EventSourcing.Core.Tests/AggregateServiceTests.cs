@@ -25,10 +25,12 @@ public abstract partial class AggregateServiceTests
   }
 
   [Fact]
-  public async Task Cannot_Add_Event_With_Empty_Aggregate_Id()
+  public Task Cannot_Add_Event_With_Empty_Aggregate_Id()
   {
     var aggregate = new SimpleAggregate { Id = Guid.Empty };
     Assert.Throws<RecordValidationException>(() => aggregate.Add(new EmptyEvent()));
+    
+    return Task.CompletedTask;
   }
 
   [Fact]
@@ -67,7 +69,7 @@ public abstract partial class AggregateServiceTests
 
     var rehydrated = await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate.Id);
 
-    Assert.Equal(events.Count, rehydrated.Counter);
+    Assert.Equal(events.Count, rehydrated?.Counter);
   }
   
   [Fact]
@@ -82,7 +84,7 @@ public abstract partial class AggregateServiceTests
 
     var rehydrated = await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate.Id, DateTimeOffset.Now);
 
-    Assert.Equal(2, rehydrated.Counter);
+    Assert.Equal(2, rehydrated?.Counter);
   }
     
   [Fact]
@@ -115,7 +117,8 @@ public abstract partial class AggregateServiceTests
 
     var result = await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate.Id);
 
-    Assert.Empty(result.UncommittedEvents);
+    Assert.NotNull(result);
+    Assert.Empty(result!.UncommittedEvents);
   }
 
   [Fact]
@@ -246,9 +249,9 @@ public abstract partial class AggregateServiceTests
     var result = await AggregateService.RehydrateAsync<SnapshotAggregate>(aggregate.Id);
       
     Assert.NotNull(result);
-    Assert.Equal((int) eventsCount, result.Counter);
-    Assert.Equal(0, result.EventsAppliedAfterHydration);
-    Assert.Equal(1, result.SnapshotsAppliedAfterHydration);
+    Assert.Equal((int) eventsCount, result?.Counter);
+    Assert.Equal(0, result?.EventsAppliedAfterHydration);
+    Assert.Equal(1, result?.SnapshotsAppliedAfterHydration);
   }
   
   [Fact]
@@ -285,7 +288,7 @@ public abstract partial class AggregateServiceTests
       .CountAsync();
 
     Assert.NotNull(result);
-    Assert.Equal(aggregate.SnapshotInterval + 3, result.Counter);
+    Assert.Equal(aggregate.SnapshotInterval + 3, result!.Counter);
     Assert.Equal(3, result.EventsAppliedAfterHydration);
     Assert.Equal(1, result.SnapshotsAppliedAfterHydration);
     Assert.Equal(2, snapshotCount);
@@ -318,7 +321,7 @@ public abstract partial class AggregateServiceTests
       .CountAsync();
       
     Assert.NotNull(result);
-    Assert.Equal(3 * eventsCount - 1, result.Counter);
+    Assert.Equal(3 * eventsCount - 1, result!.Counter);
     Assert.Equal(eventsCount - 1, result.EventsAppliedAfterHydration);
     Assert.Equal(1, result.SnapshotsAppliedAfterHydration);
     Assert.Equal(2, snapshotCount);
@@ -346,7 +349,7 @@ public abstract partial class AggregateServiceTests
       .CountAsync();
       
     Assert.NotNull(result);
-    Assert.Equal(2 * (int) eventsCount - 1, result.Counter);
+    Assert.Equal(2 * (int) eventsCount - 1, result!.Counter);
     Assert.Equal((int) eventsCount - 1, result.EventsAppliedAfterHydration);
     Assert.Equal(1, result.SnapshotsAppliedAfterHydration);
     Assert.Equal(1, snapshotCount);
@@ -372,10 +375,10 @@ public abstract partial class AggregateServiceTests
     await transaction.CommitAsync();
 
     var result1 = await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate1.Id);
-    Assert.Equal(3, result1.Counter);
+    Assert.Equal(3, result1?.Counter);
 
     var result2 = await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate2.Id);
-    Assert.Equal(4, result2.Counter);
+    Assert.Equal(4, result2?.Counter);
   }
   
   [Fact]
@@ -402,7 +405,7 @@ public abstract partial class AggregateServiceTests
 
     // Since we manually committed the first event of aggregate1, we still expect one here
     var result1 = await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate1.Id);
-    Assert.Equal(1, result1.Counter);
+    Assert.Equal(1, result1?.Counter);
 
     // aggregate2 should not have been committed
     Assert.Null(await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate2.Id));

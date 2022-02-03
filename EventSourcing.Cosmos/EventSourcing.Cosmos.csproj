@@ -11,6 +11,7 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
         <PackageDescription>Azure Cosmos DB Backend for Finaps.EventSourcing</PackageDescription>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>

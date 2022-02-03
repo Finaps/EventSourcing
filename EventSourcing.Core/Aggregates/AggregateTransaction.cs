@@ -5,11 +5,11 @@ namespace EventSourcing.Core;
 public class AggregateTransaction : IAggregateTransaction
 {
   private readonly IEventTransaction _eventTransaction;
-  private readonly ISnapshotStore _snapshotStore;
-  private readonly ILogger<AggregateService> _logger;
+  private readonly ISnapshotStore? _snapshotStore;
+  private readonly ILogger<AggregateService>? _logger;
   private readonly List<Aggregate> _aggregates = new();
 
-  public AggregateTransaction(IEventTransaction eventTransaction, ISnapshotStore snapshotStore, ILogger<AggregateService> logger)
+  public AggregateTransaction(IEventTransaction eventTransaction, ISnapshotStore? snapshotStore, ILogger<AggregateService>? logger)
   {
     _eventTransaction = eventTransaction;
     _snapshotStore = snapshotStore;

@@ -5,21 +5,21 @@ namespace EventSourcing.Core;
 public class AggregateService : IAggregateService
 {
   private readonly IEventStore _eventStore;
-  private readonly ISnapshotStore _snapshotStore;
-  private readonly ILogger<AggregateService> _logger;
+  private readonly ISnapshotStore? _snapshotStore;
+  private readonly ILogger<AggregateService>? _logger;
   
-  public AggregateService(IEventStore eventStore, ISnapshotStore snapshotStore = null, ILogger<AggregateService> logger = null)
+  public AggregateService(IEventStore eventStore, ISnapshotStore? snapshotStore = null, ILogger<AggregateService>? logger = null)
   {
     _eventStore = eventStore;
     _snapshotStore = snapshotStore;
     _logger = logger;
   }
 
-  public async Task<TAggregate> RehydrateAsync<TAggregate>(Guid partitionId, Guid aggregateId,
+  public async Task<TAggregate?> RehydrateAsync<TAggregate>(Guid partitionId, Guid aggregateId,
     CancellationToken cancellationToken = default) where TAggregate : Aggregate, new() =>
     await RehydrateAsync<TAggregate>(partitionId, aggregateId, DateTimeOffset.MaxValue, cancellationToken);
 
-  public async Task<TAggregate> RehydrateAsync<TAggregate>(Guid partitionId, Guid aggregateId, DateTimeOffset date,
+  public async Task<TAggregate?> RehydrateAsync<TAggregate>(Guid partitionId, Guid aggregateId, DateTimeOffset date,
     CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
   {
     var interval = new TAggregate().SnapshotInterval;
@@ -28,7 +28,7 @@ public class AggregateService : IAggregateService
       _logger?.LogWarning("{SnapshotStore} not provided while {TAggregate} has snapshot interval {interval}. " +
                           "Rehydrating from events only", typeof(ISnapshotStore), typeof(TAggregate), interval);
 
-    Snapshot snapshot = null;
+    Snapshot? snapshot = null;
     
     if (interval > 0 && _snapshotStore != null)
       snapshot = await _snapshotStore.Snapshots
@@ -66,7 +66,7 @@ public class AggregateService : IAggregateService
 
   public async Task PersistAsync(IEnumerable<Aggregate> aggregates, CancellationToken cancellationToken = default)
   {
-    IAggregateTransaction transaction = null;
+    IAggregateTransaction? transaction = null;
     
     foreach (var aggregate in aggregates)
     {

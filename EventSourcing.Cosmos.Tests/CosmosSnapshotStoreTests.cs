@@ -10,32 +10,34 @@ namespace EventSourcing.Cosmos.Tests;
 
 public class CosmosSnapshotStoreTests : SnapshotStoreTests
 {
-    protected override ISnapshotStore SnapshotStore { get; }
+  protected override ISnapshotStore SnapshotStore { get; }
 
-    public CosmosSnapshotStoreTests()
-    {
-        var configuration = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.json", false)
-            .AddJsonFile("appsettings.local.json", true)
-            .AddEnvironmentVariables()
-            .Build();
+  public CosmosSnapshotStoreTests()
+  {
+    var configuration = new ConfigurationBuilder()
+      .AddJsonFile("appsettings.json", false)
+      .AddJsonFile("appsettings.local.json", true)
+      .AddEnvironmentVariables()
+      .Build();
 
-        var options = Options.Create(new CosmosEventStoreOptions
-        {
-            ConnectionString = configuration["Cosmos:ConnectionString"],
-            Database = configuration["Cosmos:Database"],
-            SnapshotsContainer = configuration["Cosmos:SnapshotsContainer"]
-        });
-        
-        SnapshotStore = new CosmosSnapshotStore(options);
-    }
-        
-    [Fact]
-    public async Task Throws_ArgumentException_With_Missing_Container_Name()
+    var options = Options.Create(new CosmosEventStoreOptions
     {
-        Assert.Throws<ArgumentException>(() => new CosmosEventStore(Options.Create(new CosmosEventStoreOptions
-        {
-            ConnectionString = "A", Database = "B", SnapshotsContainer = ""
-        })));
-    }
+      ConnectionString = configuration["Cosmos:ConnectionString"],
+      Database = configuration["Cosmos:Database"],
+      SnapshotsContainer = configuration["Cosmos:SnapshotsContainer"]
+    });
+
+    SnapshotStore = new CosmosSnapshotStore(options);
+  }
+
+  [Fact]
+  public Task Throws_ArgumentException_With_Missing_Container_Name()
+  {
+    Assert.Throws<ArgumentException>(() => new CosmosEventStore(Options.Create(new CosmosEventStoreOptions
+    {
+      ConnectionString = "A", Database = "B", SnapshotsContainer = ""
+    })));
+
+    return Task.CompletedTask;
+  }
 }
