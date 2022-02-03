@@ -38,7 +38,7 @@ public static class RecordValidation
 
   public static void ValidateRecord(Record r)
   {
-    var recordType =r.GetType().GetCustomAttribute<RecordName>()?.Value ?? r.GetType().Name;
+    var recordType = r.GetType().GetCustomAttribute<RecordName>()?.Value ?? r.GetType().Name;
     
     if (r.AggregateId == Guid.Empty)
       Throw(r, "AggregateId should not be empty");
