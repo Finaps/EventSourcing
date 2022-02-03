@@ -118,7 +118,7 @@ public abstract class Aggregate
   /// <typeparam name="TAggregate"><see cref="Aggregate"/> Type</typeparam>
   /// <returns><see cref="Aggregate"/> of type <c>TAggregate</c></returns>
   /// <exception cref="ArgumentException">Thrown when <c>id</c> or <c>events</c> are invalid</exception>
-  public static async Task<TAggregate> RehydrateAsync<TAggregate>(Guid partitionId, Guid aggregateId, Snapshot snapshot,
+  public static async Task<TAggregate?> RehydrateAsync<TAggregate>(Guid partitionId, Guid aggregateId, Snapshot? snapshot,
     IAsyncEnumerable<Event> events, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
   {
     if (aggregateId == Guid.Empty)

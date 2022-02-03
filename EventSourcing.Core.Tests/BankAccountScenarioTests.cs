@@ -72,7 +72,7 @@ public abstract partial class AggregateServiceTests
     await AggregateService.PersistAsync(account);
 
     var aggregate = await AggregateService.RehydrateAsync<BankAccount>(account.Id);
-    aggregate.Deposit(50);
+    aggregate!.Deposit(50);
     await AggregateService.PersistAsync(aggregate);
   }
 
@@ -110,7 +110,7 @@ public abstract partial class AggregateServiceTests
     var result1 = await AggregateService.RehydrateAsync<BankAccount>(account.Id);
     var result2 = await AggregateService.RehydrateAsync<BankAccount>(anotherAccount.Id);
 
-    Assert.Equal(80, result1.Balance);
-    Assert.Equal(20, result2.Balance);
+    Assert.Equal(80, result1?.Balance);
+    Assert.Equal(20, result2?.Balance);
   }
 }

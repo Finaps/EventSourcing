@@ -25,7 +25,7 @@ public record Record
   /// <summary>
   /// Aggregate type
   /// </summary>
-  public string AggregateType { get; init; }
+  public string? AggregateType { get; init; }
   
   /// <summary>
   /// Record type

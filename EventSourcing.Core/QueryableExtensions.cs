@@ -10,8 +10,5 @@ public static class QueryableExtensions
   /// </remarks>
   /// <param name="source">Source <see cref="IQueryable{T}"/></param>
   /// <returns><see cref="IAsyncEnumerable{T}"/></returns>
-  public static IAsyncEnumerable<T> AsAsyncEnumerable<T>(this IQueryable<T> source)
-  {
-    return (IAsyncEnumerable<T>) source; 
-  }
+  public static IAsyncEnumerable<T> AsAsyncEnumerable<T>(this IQueryable<T> source) => (IAsyncEnumerable<T>) source;
 }

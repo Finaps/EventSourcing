@@ -5,7 +5,7 @@ namespace EventSourcing.Cosmos;
 /// <summary>
 /// Cosmos Event Store: Cosmos Connection for Querying and Storing <see cref="Event"/>s
 /// </summary>
-public class CosmosEventStore : CosmosClientBase<Event>, IEventStore
+public class CosmosEventStore : CosmosRecordStore<Event>, IEventStore
 {
   private readonly Container _container;
   
@@ -60,7 +60,6 @@ public class CosmosEventStore : CosmosClientBase<Event>, IEventStore
 
     return index + 1;
   }
-
 
   public async Task<long> GetAggregateVersionAsync(Guid aggregateId, CancellationToken cancellationToken) =>
     await GetAggregateVersionAsync(Guid.Empty, aggregateId, cancellationToken);

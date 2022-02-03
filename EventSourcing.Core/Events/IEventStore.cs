@@ -26,7 +26,6 @@ public interface IEventStore
   /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with <see cref="Guid.Empty"/> <see cref="Event.AggregateId"/></exception>
   /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with nonconsecutive <see cref="Record.Index"/>s</exception>
   /// <exception cref="EventStoreException">Thrown when conflicts occur when storing <see cref="Event"/>s</exception>
-  /// <exception cref="ConcurrencyException">Thrown when concurrency conflicts occur when storing <see cref="Event"/>s</exception>
   Task AddAsync(IList<Event> events, CancellationToken cancellationToken = default);
 
   /// <summary>
@@ -36,7 +35,6 @@ public interface IEventStore
   /// <param name="aggregateId">Aggregate Id</param>
   /// <param name="cancellationToken">Cancellation Token</param>
   /// <exception cref="EventStoreException">Thrown when conflicts occur when deleting <see cref="Event"/>s</exception>
-  /// <exception cref="ConcurrencyException">Thrown when concurrency conflicts occur when deleting <see cref="Event"/>s</exception>
   Task DeleteAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default);
 
   /// <summary>
@@ -56,7 +54,7 @@ public interface IEventStore
   Task<long> GetAggregateVersionAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default);
   
   /// <summary>
-  /// Get <see cref="Aggregate"/> Version 
+  /// Get <see cref="Aggregate"/> Version
   /// </summary>
   /// <param name="aggregateId">Aggregate Id</param>
   /// <param name="cancellationToken">Cancellation Token</param>
