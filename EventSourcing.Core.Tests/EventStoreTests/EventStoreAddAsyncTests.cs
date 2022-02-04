@@ -43,7 +43,7 @@ public abstract partial class EventStoreTests
 
     e2 = e2 with { Index = 0 };
 
-    await Assert.ThrowsAnyAsync<ArgumentException>(
+    await Assert.ThrowsAnyAsync<RecordValidationException>(
       async () => await EventStore.AddAsync(new Event[] { e1, e2 }));
   }
 
@@ -56,7 +56,7 @@ public abstract partial class EventStoreTests
     var aggregate2 = new EmptyAggregate();
     var event2 = aggregate2.Add(new EmptyEvent());
 
-    await Assert.ThrowsAnyAsync<ArgumentException>(
+    await Assert.ThrowsAnyAsync<RecordValidationException>(
       async () => await EventStore.AddAsync(new Event[] { event1, event2 }));
   }
   
@@ -67,7 +67,7 @@ public abstract partial class EventStoreTests
     var e1 = aggregate.Add(new EmptyEvent());
     var e2 = aggregate.Add(new EmptyEvent()) with { Index = 2 };
 
-    await Assert.ThrowsAnyAsync<ArgumentException>(
+    await Assert.ThrowsAnyAsync<RecordValidationException>(
       async () => await EventStore.AddAsync(new Event[] { e1, e2 }));
   }
 }

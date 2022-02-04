@@ -7,7 +7,7 @@ public abstract partial class EventStoreTests
   [Fact]
   public async Task Can_Add_Event_In_Transaction()
   {
-    var e = new EmptyEvent { AggregateId = Guid.NewGuid() };
+    var e = new EmptyEvent { AggregateId = Guid.NewGuid(), AggregateType = "AggregateType" };
 
     await EventStore.CreateTransaction()
       .Add(new List<Event> { e })
@@ -24,8 +24,8 @@ public abstract partial class EventStoreTests
   [Fact]
   public async Task Can_Add_Multiple_Events_In_Transaction()
   {
-    var e1 = new EmptyEvent { AggregateId = Guid.NewGuid() };
-    var e2 = new EmptyEvent { AggregateId = Guid.NewGuid() };
+    var e1 = new EmptyEvent { AggregateId = Guid.NewGuid(), AggregateType = "AggregateType" };
+    var e2 = new EmptyEvent { AggregateId = Guid.NewGuid(), AggregateType = "AggregateType" };
 
     await EventStore.CreateTransaction()
       .Add(new List<Event> { e1 })
@@ -129,7 +129,7 @@ public abstract partial class EventStoreTests
     };
 
     var transaction = EventStore.CreateTransaction(Guid.NewGuid());
-    Assert.Throws<ArgumentException>(() => transaction.Add(new List<Event> { e }));
+    Assert.Throws<RecordValidationException>(() => transaction.Add(new List<Event> { e }));
     await transaction.CommitAsync();
       
     // Ensure e was not committed

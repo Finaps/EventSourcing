@@ -35,8 +35,8 @@ public abstract partial class EventStoreTests
   [Fact]
   public async Task Cannot_Add_Duplicate_Event_In_Transaction()
   {
-    var e1 = new EmptyEvent { AggregateId = Guid.NewGuid() };
-    var e2 = new EmptyEvent { AggregateId = Guid.NewGuid() };
+    var e1 = new EmptyEvent { AggregateId = Guid.NewGuid(), AggregateType = "AggregateType" };
+    var e2 = new EmptyEvent { AggregateId = Guid.NewGuid(), AggregateType = "AggregateType" };
 
     // Commit e1 in an earlier transaction
     await EventStore.AddAsync(new List<Event> { e1 });

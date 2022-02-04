@@ -12,7 +12,7 @@ public class CosmosSnapshotStore : CosmosClientBase<Snapshot>, ISnapshotStore
             throw new ArgumentException("CosmosEventStoreOptions.SnapshotContainer should not be empty",
                 nameof(options));
 
-        _snapshots = _database.GetContainer(options.Value.SnapshotsContainer);
+        _snapshots = Database.GetContainer(options.Value.SnapshotsContainer);
     }
 
     /// <summary>
