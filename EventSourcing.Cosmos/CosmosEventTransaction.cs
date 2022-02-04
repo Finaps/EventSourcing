@@ -53,6 +53,7 @@ public class CosmosEventTransaction : IEventTransaction
     {
       PartitionId = PartitionId,
       AggregateId = aggregateId,
+      AggregateType = "<CHECK>",
       Index = aggregateVersion
     };
     

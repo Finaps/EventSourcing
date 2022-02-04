@@ -8,16 +8,7 @@ namespace EventSourcing.Cosmos;
 /// </summary>
 public abstract class CosmosClientBase<TRecord> where TRecord : Record
 {
-  private readonly CosmosClientOptions _clientOptions = new()
-  {
-    Serializer = new CosmosEventSerializer(new JsonSerializerOptions
-    {
-      Converters = { new RecordConverter<TRecord>() }
-    })
-  };
-  
-  private protected readonly IOptions<CosmosEventStoreOptions> _options;
-  private protected readonly Database _database;
+  private protected readonly Database Database;
 
   protected CosmosClientBase(IOptions<CosmosEventStoreOptions> options)
   {
@@ -29,9 +20,14 @@ public abstract class CosmosClientBase<TRecord> where TRecord : Record
 
     if (string.IsNullOrWhiteSpace(options.Value.Database))
       throw new ArgumentException("CosmosEventStoreOptions.Database should not be empty", nameof(options));
-
-    _options = options;
-    _database = new CosmosClient(options.Value.ConnectionString, _clientOptions)
+    
+    Database = new CosmosClient(options.Value.ConnectionString, new CosmosClientOptions
+      {
+        Serializer = new CosmosEventSerializer(new JsonSerializerOptions
+        {
+          Converters = { new RecordConverter<TRecord>(options.Value?.RecordConverterOptions) }
+        })
+      })
       .GetDatabase(options.Value.Database);
   }
 }

@@ -19,7 +19,7 @@ public class CosmosEventStore : CosmosClientBase<Event>, IEventStore
     if (string.IsNullOrWhiteSpace(options.Value.EventsContainer))
       throw new ArgumentException("CosmosEventStoreOptions.EventsContainer should not be empty", nameof(options));
 
-    _container = _database.GetContainer(options.Value.EventsContainer);
+    _container = Database.GetContainer(options.Value.EventsContainer);
   }
   
   public IQueryable<Event> Events => _container.AsCosmosAsyncQueryable<Event>();

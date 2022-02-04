@@ -28,7 +28,7 @@ public abstract partial class AggregateServiceTests
   public async Task Cannot_Add_Event_With_Empty_Aggregate_Id()
   {
     var aggregate = new SimpleAggregate { Id = Guid.Empty };
-    Assert.Throws<ArgumentException>(() => aggregate.Add(new EmptyEvent()));
+    Assert.Throws<RecordValidationException>(() => aggregate.Add(new EmptyEvent()));
   }
 
   [Fact]
@@ -432,7 +432,7 @@ public abstract partial class AggregateServiceTests
     foreach (var _ in new int[3])
       aggregate.Add(new EmptyEvent());
 
-    Assert.Throws<ArgumentException>(() => transaction.Add(aggregate));
+    Assert.Throws<RecordValidationException>(() => transaction.Add(aggregate));
 
     await transaction.CommitAsync();
 

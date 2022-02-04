@@ -5,13 +5,13 @@ using Microsoft.Extensions.Options;
 
 namespace EventSourcing.Cosmos.Tests;
 
-public class CosmosMigrationTests: MigrationTests
+public class CosmosRecordMigrationTests: RecordMigrationTests
 {
     protected override IEventStore EventStore { get; }
     protected override ISnapshotStore SnapshotStore { get; }
     protected override IAggregateService AggregateService { get; }
 
-    public CosmosMigrationTests()
+    public CosmosRecordMigrationTests()
     {
         var configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json", false)
