@@ -50,7 +50,7 @@ public record Record
   protected Record()
   {
     RecordId = Guid.NewGuid();
-    Type = GetType().GetCustomAttribute<RecordName>()?.Value ?? GetType().Name;
+    Type = RecordConverter<Record>.RecordTypesReverse[GetType()];
     Timestamp = DateTimeOffset.Now;
   }
   
