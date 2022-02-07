@@ -127,9 +127,7 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
 
     while (migrations.Count > 0)
     {
-      var migration = migrations.First();
-      
-      var source = migration.Key;
+      var source = migrations.First().Key;
       var visited = new List<Type> { source };
       
       while (migrations.TryGetValue(source, out var target))
