@@ -27,7 +27,7 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
   private readonly Dictionary<Type, string> _recordTypesRev;
   private readonly Dictionary<Type, PropertyInfo[]> _nonNullableRecordProperties;
 
-  private readonly Dictionary<string, IRecordMigrator> _migrators;
+  private readonly Dictionary<string, IRecordMigrator?> _migrators;
 
   private class RecordTypeJson
   {
@@ -80,7 +80,8 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
   {
     var type = GetRecordType(reader);
     var record = JsonSerializer.Deserialize(ref reader, type) as TRecord;
-    return Migrate(Validate(record, type));
+    var migrated = Migrate(Validate(record, type));
+    return migrated;
   }
 
   private Type GetRecordType(Utf8JsonReader reader)
@@ -133,7 +134,7 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
   private TRecord Migrate(TRecord record)
   {
     while (_migrators.TryGetValue(record.RecordType, out var migrator))
-      record = (TRecord) migrator.Convert(record);
+      record = (TRecord) migrator.Convert(record) with {RecordType = _recordTypesRev[migrator.Target]};
 
     return record;
   }
