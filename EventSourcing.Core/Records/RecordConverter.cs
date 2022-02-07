@@ -123,20 +123,25 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
   
   private void ValidateMigrators()
   {
-    foreach (var m in _migrators.Values)
+    var unvisitedMigrators = _migrators.Values.ToDictionary(x => x.GetType(), x => x);
+    
+    while (unvisitedMigrators.Count > 0)
     {
-      var visited = new List<Type>();
+      // Pop item from unvisited Migrators
+      var source = unvisitedMigrators.First().Value;
+      unvisitedMigrators.Remove(source.GetType());
+      
+      var visited = new List<Type> { source.GetType() };
 
-      var source = m;
-
-      while (_migrators.TryGetValue(source.Target.Name, out var target))
+      while (unvisitedMigrators.TryGetValue(source.Target, out var target))
       {
-        visited.Add(source.GetType());
-
-        if (visited.Contains(source.Target))
+        if (visited.Contains(target.GetType()))
           throw new ArgumentException("Record Migrator Collection contains cyclic references: " +
             string.Join(" -> ", visited.SkipWhile(type => type != source.Target).Append(source.Target)));
         
+        unvisitedMigrators.Remove(target.GetType());
+        visited.Add(target.GetType());
+
         source = target;
       }
     }
