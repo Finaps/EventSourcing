@@ -1,5 +1,6 @@
 using System.IO;
 using System.Text.Json;
+using EventSourcing.Core.Migrations;
 using EventSourcing.Core.Tests.Mocks;
 
 namespace EventSourcing.Core.Tests;
@@ -9,6 +10,39 @@ public abstract class RecordMigrationTests
   protected abstract IEventStore EventStore { get; }
   protected abstract ISnapshotStore SnapshotStore { get; }
   protected abstract IAggregateService AggregateService { get; }
+
+  private class InvalidRecordMigrator : RecordMigrator<EmptyEvent, EmptyEvent>
+  {
+    public override EmptyEvent Convert(EmptyEvent e) => throw new NotImplementedException();
+  }
+  
+  private class InvalidPingRecordMigrator : RecordMigrator<EmptyEvent, MockEvent>
+  {
+    public override MockEvent Convert(EmptyEvent e) => throw new NotImplementedException();
+  }
+  
+  private class InvalidPongRecordMigrator : RecordMigrator<MockEvent, EmptyEvent>
+  {
+    public override EmptyEvent Convert(MockEvent e) => throw new NotImplementedException();
+  }
+
+  [Fact]
+  public Task Cannot_Create_Record_Migrator_With_Source_Equals_Target()
+  {
+    Assert.Throws<ArgumentException>(() => new InvalidRecordMigrator());
+    return Task.CompletedTask;
+  }
+
+  [Fact]
+  public Task Cannot_Create_Record_Migrator_With_Cyclic_Reference()
+  {
+    Assert.Throws<ArgumentException>(() => new RecordConverter<Record>(new RecordConverterOptions
+    {
+      MigratorTypes = new List<Type> { typeof(InvalidPingRecordMigrator), typeof(InvalidPongRecordMigrator) }
+    }));
+
+    return Task.CompletedTask;
+  }
 
   [Fact]
   public async Task Can_Migrate_Old_Event()

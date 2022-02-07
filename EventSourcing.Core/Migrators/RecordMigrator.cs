@@ -5,6 +5,12 @@ public abstract class RecordMigrator<TSource, TTarget> : IRecordMigrator where T
   public Type Source => typeof(TSource);
   public Type Target => typeof(TTarget);
 
+  protected RecordMigrator()
+  {
+    if (Source == Target)
+      throw new ArgumentException("Record Migrator Source should not be equal to Target");
+  }
+
   public Record Convert(Record record) =>
     Convert(record as TSource) with
     {
