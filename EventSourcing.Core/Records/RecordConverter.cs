@@ -14,13 +14,13 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
   private static readonly List<Type> AssemblyRecordTypes = AppDomain.CurrentDomain
     .GetAssemblies()
     .SelectMany(x => x.GetTypes())
-    .Where(type => typeof(Record).IsAssignableFrom(type) && type.IsClass && !type.IsAbstract)
+    .Where(type => typeof(Record).IsAssignableFrom(type) && type.IsClass && !type.IsAbstract && type.IsPublic)
     .ToList();
 
   private static readonly List<Type> AssemblyMigratorTypes = AppDomain.CurrentDomain
     .GetAssemblies()
     .SelectMany(assembly => assembly.GetTypes())
-    .Where(type => typeof(IRecordMigrator).IsAssignableFrom(type) && type.IsClass && !type.IsAbstract)
+    .Where(type => typeof(IRecordMigrator).IsAssignableFrom(type) && type.IsClass && !type.IsAbstract && type.IsPublic)
     .ToList();
 
   private readonly Dictionary<string, Type> _recordTypes;
@@ -123,25 +123,23 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
   
   private void ValidateMigrators()
   {
-    var unvisitedMigrators = _migrators.Values.ToDictionary(x => x.GetType(), x => x);
-    
-    while (unvisitedMigrators.Count > 0)
+    var migrations = _migrators.Values.ToDictionary(x => x.Source, x => x.Target);
+
+    while (migrations.Count > 0)
     {
-      // Pop item from unvisited Migrators
-      var source = unvisitedMigrators.First().Value;
-      unvisitedMigrators.Remove(source.GetType());
+      var migration = migrations.First();
       
-      var visited = new List<Type> { source.GetType() };
-
-      while (unvisitedMigrators.TryGetValue(source.Target, out var target))
+      var source = migration.Key;
+      var visited = new List<Type> { source };
+      
+      while (migrations.TryGetValue(source, out var target))
       {
-        if (visited.Contains(target.GetType()))
-          throw new ArgumentException("Record Migrator Collection contains cyclic references: " +
-            string.Join(" -> ", visited.SkipWhile(type => type != source.Target).Append(source.Target)));
+        visited.Add(source);
+        migrations.Remove(source);
         
-        unvisitedMigrators.Remove(target.GetType());
-        visited.Add(target.GetType());
-
+        if (visited.Contains(target))
+          throw new ArgumentException("Record Migrator Collection contains cyclic reference(s)");
+        
         source = target;
       }
     }

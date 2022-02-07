@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text;
 using System.Text.Json;
+using EventSourcing.Core.Migrations;
 
 namespace EventSourcing.Core.Tests;
 
@@ -13,7 +14,7 @@ public class RecordConversionTests
     public string C { get; init; }
     public double? D { get; set; }
   }
-  
+
   [Fact]
   public Task Converter_Throws_On_Missing_And_Null_Properties_On_Read_And_Write()
   {
@@ -65,8 +66,6 @@ public class RecordConversionTests
       Assert.Contains($"{nameof(TestRecord)}.C", exception.Message);
       Assert.DoesNotContain($"{nameof(TestRecord)}.D", exception.Message);
     }
-    
-
     
     return Task.CompletedTask;
   }
