@@ -1,10 +1,10 @@
 namespace EventSourcing.Core;
 
-public class RecordName : Attribute
+public class RecordType : Attribute
 {
     public string Value { get; }
 
-    public RecordName(string eventName)
+    public RecordType(string eventName)
     {
         Value = eventName;
     }

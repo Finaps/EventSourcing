@@ -32,7 +32,7 @@ public record Record
   /// <summary>
   /// Record type
   /// </summary>
-  public string Type { get; init; }
+  public string RecordType { get; init; }
   
   /// <summary>
   /// Record creation time
@@ -50,7 +50,6 @@ public record Record
   protected Record()
   {
     RecordId = Guid.NewGuid();
-    Type = RecordConverter<Record>.RecordTypesReverse[GetType()];
     Timestamp = DateTimeOffset.Now;
   }
   

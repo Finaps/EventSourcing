@@ -10,5 +10,7 @@ public class EventStoreException : Exception
     base($"Error in Event Transaction: {(int)status} {status.ToString()}", inner) { }
   public EventStoreException(Record? r, Exception? inner = null) : base(r == null
     ? "Conflict in Event Transaction"
-    : $"{r.Type} with Version {r.Index} already exists for Aggregate '{r.AggregateType}' with Id '{r.AggregateId}'", inner) { }
+    : $"{nameof(r)} with Version {r.Index} already exists for Aggregate '{r.AggregateType}' with Id '{r.AggregateId}'", inner)
+  {
+  }
 }

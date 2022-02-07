@@ -24,19 +24,21 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
     .ToList();
 
   private readonly Dictionary<string, Type> _recordTypes;
+  private readonly Dictionary<Type, string> _recordTypesRev;
   private readonly Dictionary<Type, PropertyInfo[]> _nonNullableRecordProperties;
 
   private readonly Dictionary<string, IRecordMigrator> _migrators;
 
-  private class RecordType
+  private class RecordTypeJson
   {
-    public string Type { get; set; }
+    public string RecordType { get; set; }
   }
 
   public RecordConverter(RecordConverterOptions? options = null)
   {
-    // Create dictionary mapping from Record.Type string to Record Type
-    _recordTypes = (options?.RecordTypes ?? AssemblyRecordTypes).ToDictionary(type => type.Name);
+    // Create dictionaries mapping from Record.Type string to Record Type and it's reverse
+    _recordTypes = (options?.RecordTypes ?? AssemblyRecordTypes).ToDictionary(type => type.GetCustomAttribute<RecordType>()?.Value ?? type.Name);
+    _recordTypesRev = _recordTypes.ToDictionary(kv => kv.Value, kv => kv.Key);
     
     // For each Record Type, create set of non-nullable properties for validation
     _nonNullableRecordProperties = _recordTypes.Values.ToDictionary(type => type, type => type.GetProperties()
@@ -45,7 +47,9 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
     // Create dictionary mapping from Record.Type to Migrator Type
     _migrators = (options?.MigratorTypes ?? AssemblyMigratorTypes)
       .Select(type => Activator.CreateInstance(type) as IRecordMigrator)
-      .ToDictionary(migrator => migrator!.Source.Name, migrator => migrator);
+      .ToDictionary(migrator => 
+        migrator!.Source.GetCustomAttribute<RecordType>()?.Value ?? migrator!.Source.Name,
+        migrator => migrator);
 
     ValidateMigrators();
   }
@@ -61,7 +65,9 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
   /// </summary>
   public override void Write(Utf8JsonWriter writer, TRecord value, JsonSerializerOptions options)
   {
-    var type = GetRecordType(value.Type);
+    var type = value.GetType();
+    var typeString = GetRecordTypeString(type);
+    value = value with { RecordType = typeString };
     var record = Validate(value, type);
     JsonSerializer.Serialize(writer, record, type);
   }
@@ -80,10 +86,10 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
   private Type GetRecordType(Utf8JsonReader reader)
   {
     // Get Record.Type String from Json
-    var typeString = JsonSerializer.Deserialize<RecordType>(ref reader)?.Type ??
+    var typeString = JsonSerializer.Deserialize<RecordTypeJson>(ref reader)?.RecordType ??
                      
        // Throw Exception when json has no "Type" Property
-       throw new RecordValidationException($"Error while extracting record type string. Does the JSON contain a {nameof(Record.Type)} field?");
+       throw new RecordValidationException($"Error while extracting record type string. Does the JSON contain a {nameof(Record.RecordType)} field?");
 
     return GetRecordType(typeString);
   }
@@ -98,7 +104,18 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
 
     return type;
   }
+  
+  private string GetRecordTypeString(Type type)
+  {
+    // Get actual Record Type from Dictionary
+    if (!_recordTypesRev.TryGetValue(type, out var typeString))
+      
+      // Throw Exception when Record Type is not found in Assembly or RecordConverterOptions
+      throw new InvalidOperationException($"Record name for '{type.Name}' not found");
 
+    return typeString;
+  }
+  
   private TRecord Validate(TRecord record, Type type)
   {
     var missing = _nonNullableRecordProperties[type]
@@ -115,7 +132,7 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
 
   private TRecord Migrate(TRecord record)
   {
-    while (_migrators.TryGetValue(record.Type, out var migrator))
+    while (_migrators.TryGetValue(record.RecordType, out var migrator))
       record = (TRecord) migrator.Convert(record);
 
     return record;

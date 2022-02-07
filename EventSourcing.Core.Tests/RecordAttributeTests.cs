@@ -12,10 +12,10 @@ public abstract class RecordAttributeTests
     {
         var e = new EmptyAggregate().Add(new AttributeEvent("something"));
         
-        Assert.Equal(typeof(AttributeEvent).GetCustomAttribute<RecordName>()?.Value, e.Type);
+        Assert.Equal(typeof(AttributeEvent).GetCustomAttribute<RecordType>()?.Value, e.RecordType);
         
         await EventStore.AddAsync(new List<Event>{e});
-        var result = EventStore.Events.FirstOrDefault(r => r.RecordId == e.RecordId && r.Type == e.Type) as AttributeEvent;
+        var result = EventStore.Events.FirstOrDefault(r => r.RecordId == e.RecordId && r.RecordType == e.RecordType) as AttributeEvent;
         
         Assert.NotNull(result);
     }
@@ -29,7 +29,7 @@ public abstract class RecordAttributeTests
         var result = EventStore.Events.FirstOrDefault(r => r.RecordId == e.RecordId) as AttributeEvent;
         
         Assert.NotNull(result);
-        Assert.Equal(typeof(AttributeEvent).GetCustomAttribute<RecordName>()?.Value, result.Type);
+        Assert.Equal(typeof(AttributeEvent).GetCustomAttribute<RecordType>()?.Value, result.RecordType);
         Assert.Equal(e.SomeString, result.SomeString);
     }
 }

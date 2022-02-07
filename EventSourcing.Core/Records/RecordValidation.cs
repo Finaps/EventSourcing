@@ -38,8 +38,6 @@ public static class RecordValidation
 
   public static void ValidateRecord(Record r)
   {
-    var recordType = r.GetType().GetCustomAttribute<RecordName>()?.Value ?? r.GetType().Name;
-    
     if (r.AggregateId == Guid.Empty)
       Throw(r, "AggregateId should not be empty");
     
@@ -48,9 +46,6 @@ public static class RecordValidation
     
     if (string.IsNullOrEmpty(r.AggregateType))
       Throw(r, "AggregateType should not be null or empty");
-    
-    if (r.Type != recordType)
-      Throw(r, $"Type ({r.Type}) does not correspond with record Type ({recordType})");
 
     if (r.Index < 0)
       Throw(r, "Index must be a non-negative integer");
