@@ -32,7 +32,7 @@ public record Record
   /// <summary>
   /// Record type
   /// </summary>
-  public string RecordType { get; init; }
+  public string Type { get; init; }
   
   /// <summary>
   /// Record creation time

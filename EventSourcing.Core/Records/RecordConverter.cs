@@ -29,15 +29,15 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
 
   private readonly Dictionary<string, IRecordMigrator?> _migrators;
 
-  private class RecordTypeJson
+  private class RecordType
   {
-    public string RecordType { get; set; }
+    public string Type { get; set; }
   }
 
   public RecordConverter(RecordConverterOptions? options = null)
   {
     // Create dictionaries mapping from Record.Type string to Record Type and it's reverse
-    _recordTypes = (options?.RecordTypes ?? AssemblyRecordTypes).ToDictionary(type => type.GetCustomAttribute<RecordType>()?.Value ?? type.Name);
+    _recordTypes = (options?.RecordTypes ?? AssemblyRecordTypes).ToDictionary(type => type.GetCustomAttribute<Core.RecordType>()?.Value ?? type.Name);
     _recordTypesRev = _recordTypes.ToDictionary(kv => kv.Value, kv => kv.Key);
     
     // For each Record Type, create set of non-nullable properties for validation
@@ -48,7 +48,7 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
     _migrators = (options?.MigratorTypes ?? AssemblyMigratorTypes)
       .Select(type => Activator.CreateInstance(type) as IRecordMigrator)
       .ToDictionary(migrator => 
-        migrator!.Source.GetCustomAttribute<RecordType>()?.Value ?? migrator!.Source.Name,
+        migrator!.Source.GetCustomAttribute<Core.RecordType>()?.Value ?? migrator!.Source.Name,
         migrator => migrator);
 
     ValidateMigrators();
@@ -67,7 +67,7 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
   {
     var type = value.GetType();
     var typeString = GetRecordTypeString(type);
-    value = value with { RecordType = typeString };
+    value = value with { Type = typeString };
     var record = Validate(value, type);
     JsonSerializer.Serialize(writer, record, type);
   }
@@ -80,17 +80,16 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
   {
     var type = GetRecordType(reader);
     var record = JsonSerializer.Deserialize(ref reader, type) as TRecord;
-    var migrated = Migrate(Validate(record, type));
-    return migrated;
+    return Migrate(Validate(record, type));
   }
 
   private Type GetRecordType(Utf8JsonReader reader)
   {
-    // Get Record.Type String from Json
-    var typeString = JsonSerializer.Deserialize<RecordTypeJson>(ref reader)?.RecordType ??
+    // Get RecordType String from Json
+    var typeString = JsonSerializer.Deserialize<RecordType>(ref reader)?.Type ??
                      
        // Throw Exception when json has no "Type" Property
-       throw new RecordValidationException($"Error while extracting record type string. Does the JSON contain a {nameof(Record.RecordType)} field?");
+       throw new RecordValidationException($"Error while extracting record type string. Does the JSON contain a {nameof(Record.Type)} field?");
 
     return GetRecordType(typeString);
   }
@@ -133,8 +132,8 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
 
   private TRecord Migrate(TRecord record)
   {
-    while (_migrators.TryGetValue(record.RecordType, out var migrator))
-      record = (TRecord) migrator.Convert(record) with {RecordType = GetRecordTypeString(migrator.Target)};
+    while (_migrators.TryGetValue(record.Type, out var migrator))
+      record = (TRecord) migrator.Convert(record) with {Type = GetRecordTypeString(migrator.Target)};
 
     return record;
   }
