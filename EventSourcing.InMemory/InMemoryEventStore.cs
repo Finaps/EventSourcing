@@ -13,21 +13,38 @@ public class InMemoryEventStore : IEventStore
   {
     if (events == null) throw new ArgumentNullException(nameof(events));
     if (events.Count == 0) return;
-    
-    var transaction = CreateTransaction(events.First().PartitionId);
-    await transaction.AddAsync(events, cancellationToken);
-    await transaction.CommitAsync(cancellationToken);
+
+    await CreateTransaction(events.First().PartitionId)
+      .Add(events)
+      .CommitAsync(cancellationToken);
   }
 
   public async Task DeleteAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
   {
-    var transaction = CreateTransaction(partitionId);
-    await transaction.DeleteAsync(aggregateId, cancellationToken);
-    await transaction.CommitAsync(cancellationToken);
+    await CreateTransaction(partitionId)
+      .Delete(aggregateId, await GetAggregateVersionAsync(partitionId, aggregateId, cancellationToken))
+      .CommitAsync(cancellationToken);
   }
 
   public Task DeleteAsync(Guid aggregateId, CancellationToken cancellationToken = default) =>
     DeleteAsync(Guid.Empty, aggregateId, cancellationToken);
+
+  public Task<long> GetAggregateVersionAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
+  {
+    var index = _events.Values
+      .Where(x => x.PartitionId == partitionId && x.AggregateId == aggregateId)
+      .Select(x => x.Index)
+      .OrderByDescending(i => i)
+      .FirstOrDefault();
+    
+    if (index == 0)
+      throw new EventStoreException($"Cannot get version of nonexistent Aggregate with PartitionId '{partitionId}' and Id '{aggregateId}'");
+    
+    return Task.FromResult(1 + index);
+  }
+
+  public async Task<long> GetAggregateVersionAsync(Guid aggregateId, CancellationToken cancellationToken = default) =>
+    await GetAggregateVersionAsync(Guid.Empty, aggregateId, cancellationToken);
 
   public IEventTransaction CreateTransaction() => CreateTransaction(Guid.Empty);
   public IEventTransaction CreateTransaction(Guid partitionId) =>

@@ -17,11 +17,11 @@ public class InMemoryEventTransaction : IEventTransaction
     _events = events;
   }
 
-  public Task AddAsync(IList<Event> events, CancellationToken cancellationToken = default)
+  public IEventTransaction Add(IList<Event> events)
   {
     RecordValidation.ValidateEventSequence(PartitionId, events);
 
-    if (events.Count == 0) return Task.CompletedTask;
+    if (events.Count == 0) return this;
 
     lock (_addedEvents)
     {
@@ -33,20 +33,18 @@ public class InMemoryEventTransaction : IEventTransaction
         _addedEvents.Add(e);
       }
     }
-    
-    return Task.CompletedTask;
+
+    return this;
   }
 
-  public Task DeleteAsync(Guid aggregateId, CancellationToken cancellationToken = default)
+  public IEventTransaction Delete(Guid aggregateId, long aggregateVersion)
   {
     lock (_removedAggregateIds)
     {
-      _removedAggregateIds.Add(aggregateId, _events.Values
-        .Where(x => x.AggregateId == aggregateId)
-        .Max(x => x.Index));
+      _removedAggregateIds.Add(aggregateId, aggregateVersion);
     }
-    
-    return Task.CompletedTask;
+
+    return this;
   }
 
   public Task CommitAsync(CancellationToken cancellationToken = default)
@@ -72,7 +70,7 @@ public class InMemoryEventTransaction : IEventTransaction
       foreach (var (aggregateId, version) in _removedAggregateIds)
       {
         // if there are more events than deletion expected, throw (events might have been added in the meantime)
-        if (_events.ContainsKey((PartitionId, aggregateId, version+1)))
+        if (_events.ContainsKey((PartitionId, aggregateId, version)))
           throw new EventStoreException(_events.Values
             .SingleOrDefault(x =>
               x.PartitionId == PartitionId &&
@@ -82,8 +80,12 @@ public class InMemoryEventTransaction : IEventTransaction
         
         // Remove all events with the specified aggregateId
         var toRemove = _events
-          .Where(pair => pair.Value.AggregateId == aggregateId)
-          .Select(pair => pair.Key);
+          .Where(pair => pair.Value.AggregateId == aggregateId && pair.Value.Index < version)
+          .Select(pair => pair.Key)
+          .ToArray();
+
+        if (toRemove.Length != version)
+          throw new EventStoreException("Tried to remove more events than existing");
 
         foreach (var key in toRemove)
           _events.Remove(key, out _);

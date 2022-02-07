@@ -19,19 +19,19 @@ public static class RecordValidation
     var partitionIds = events.Select(x => x.PartitionId).Distinct().ToList();
 
     if (partitionIds.Count > 1)
-      throw new ArgumentException(message + "All Events must share the same PartitionId");
+      throw new RecordValidationException(message + "All Events must share the same PartitionId");
     
     if (partitionIds.Single() != partitionId)
-      throw new ArgumentException(message + "All Events in a transaction must share the same PartitionId");
+      throw new RecordValidationException(message + "All Events in a transaction must share the same PartitionId");
 
     if (events.Select(x => x.AggregateId).Distinct().Count() > 1)
-      throw new ArgumentException(message + "All Events must share the same AggregateId");
+      throw new RecordValidationException(message + "All Events must share the same AggregateId");
 
     if (events.Select(x => x.RecordId).Distinct().Count() != events.Count)
-      throw new ArgumentException(message + "All Events should have unique RecordIds");
+      throw new RecordValidationException(message + "All Events should have unique RecordIds");
 
     if (!IsConsecutive(events.Select(e => e.Index).ToList()))
-      throw new ArgumentException(message + "Event indices must be consecutive");
+      throw new RecordValidationException(message + "Event indices must be consecutive");
   }
 
   public static void ValidateRecord(Record r)
@@ -43,6 +43,9 @@ public static class RecordValidation
     
     if (r.RecordId == Guid.Empty)
       Throw(r, "RecordId should not be empty");
+    
+    if (string.IsNullOrEmpty(r.AggregateType))
+      Throw(r, "AggregateType should not be null or empty");
     
     if (r.Type != recordType)
       Throw(r, $"Type ({r.Type}) does not correspond with record Type ({recordType})");
@@ -84,7 +87,7 @@ public static class RecordValidation
   }
 
   private static void Throw(Record r, string message) =>
-    throw new ArgumentException($"Error Validating {r.GetType().Name} with RecordId '{r.RecordId}': {message}");
+    throw new RecordValidationException($"Error Validating {r.GetType().Name} with RecordId '{r.RecordId}': {message}");
   
   private static bool IsConsecutive(IList<long> numbers)
   {

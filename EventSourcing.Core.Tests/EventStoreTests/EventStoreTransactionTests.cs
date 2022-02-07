@@ -7,11 +7,11 @@ public abstract partial class EventStoreTests
   [Fact]
   public async Task Can_Add_Event_In_Transaction()
   {
-    var e = new EmptyEvent { AggregateId = Guid.NewGuid() };
+    var e = new EmptyEvent { AggregateId = Guid.NewGuid(), AggregateType = "AggregateType" };
 
-    var transaction = EventStore.CreateTransaction();
-    await transaction.AddAsync(new List<Event> { e });
-    await transaction.CommitAsync();
+    await EventStore.CreateTransaction()
+      .Add(new List<Event> { e })
+      .CommitAsync();
 
     var count = await EventStore.Events
       .Where(x => x.AggregateId == e.AggregateId)
@@ -24,13 +24,13 @@ public abstract partial class EventStoreTests
   [Fact]
   public async Task Can_Add_Multiple_Events_In_Transaction()
   {
-    var e1 = new EmptyEvent { AggregateId = Guid.NewGuid() };
-    var e2 = new EmptyEvent { AggregateId = Guid.NewGuid() };
+    var e1 = new EmptyEvent { AggregateId = Guid.NewGuid(), AggregateType = "AggregateType" };
+    var e2 = new EmptyEvent { AggregateId = Guid.NewGuid(), AggregateType = "AggregateType" };
 
-    var transaction = EventStore.CreateTransaction();
-    await transaction.AddAsync(new List<Event> { e1 });
-    await transaction.AddAsync(new List<Event> { e2 });
-    await transaction.CommitAsync();
+    await EventStore.CreateTransaction()
+      .Add(new List<Event> { e1 })
+      .Add(new List<Event> { e2 })
+      .CommitAsync();
 
     var count = await EventStore.Events
       .Where(x => x.AggregateId == e1.AggregateId || x.AggregateId == e2.AggregateId)
@@ -48,9 +48,9 @@ public abstract partial class EventStoreTests
       .Select(_ => aggregate.Add(new Event()))
       .ToList());
 
-    var transaction = EventStore.CreateTransaction();
-    await transaction.DeleteAsync(aggregate.Id);
-    await transaction.CommitAsync();
+    await EventStore.CreateTransaction()
+      .Delete(aggregate.Id, aggregate.Version)
+      .CommitAsync();
 
     var count = await EventStore.Events
       .Where(x => x.AggregateId == aggregate.Id)
@@ -70,14 +70,10 @@ public abstract partial class EventStoreTests
 
     var aggregate2 = new EmptyAggregate();
 
-    var transaction = EventStore.CreateTransaction();
-    
-    await transaction.AddAsync(Enumerable.Range(0, 5)
-      .Select(_ => aggregate2.Add(new Event()))
-      .ToList());
-    
-    await transaction.DeleteAsync(aggregate.Id);
-    await transaction.CommitAsync();
+    await EventStore.CreateTransaction()
+      .Add(Enumerable.Range(0, 5).Select(_ => aggregate2.Add(new Event())).ToList())
+      .Delete(aggregate.Id, aggregate.Version)
+      .CommitAsync();
 
     var count = await EventStore.Events
       .Where(x => x.AggregateId == aggregate.Id)
@@ -103,11 +99,9 @@ public abstract partial class EventStoreTests
     
     await EventStore.AddAsync(initialEvents);
 
-    var transaction = EventStore.CreateTransaction();
-    await transaction.AddAsync(Enumerable.Range(0, 5)
-      .Select(_ => aggregate.Add(new Event()))
-      .ToList());
-    await transaction.DeleteAsync(aggregate.Id);
+    var transaction = EventStore.CreateTransaction()
+      .Add(Enumerable.Range(0, 5).Select(_ => aggregate.Add(new Event())).ToList())
+      .Delete(aggregate.Id, aggregate.Version);
 
     await Assert.ThrowsAsync<InvalidOperationException>(async () => await transaction.CommitAsync());
 
@@ -135,10 +129,7 @@ public abstract partial class EventStoreTests
     };
 
     var transaction = EventStore.CreateTransaction(Guid.NewGuid());
-
-    await Assert.ThrowsAsync<ArgumentException>(async () => 
-      await transaction.AddAsync(new List<Event> { e }));
-
+    Assert.Throws<RecordValidationException>(() => transaction.Add(new List<Event> { e }));
     await transaction.CommitAsync();
       
     // Ensure e was not committed

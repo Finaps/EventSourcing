@@ -19,7 +19,7 @@ public class CosmosEventStore : CosmosClientBase<Event>, IEventStore
     if (string.IsNullOrWhiteSpace(options.Value.EventsContainer))
       throw new ArgumentException("CosmosEventStoreOptions.EventsContainer should not be empty", nameof(options));
 
-    _container = _database.GetContainer(options.Value.EventsContainer);
+    _container = Database.GetContainer(options.Value.EventsContainer);
   }
   
   public IQueryable<Event> Events => _container.AsCosmosAsyncQueryable<Event>();
@@ -29,20 +29,41 @@ public class CosmosEventStore : CosmosClientBase<Event>, IEventStore
     if (events == null) throw new ArgumentNullException(nameof(events));
     if (events.Count == 0) return;
     
-    var transaction = CreateTransaction(events.First().PartitionId);
-    await transaction.AddAsync(events, cancellationToken);
-    await transaction.CommitAsync(cancellationToken);
+    await CreateTransaction(events.First().PartitionId)
+      .Add(events)
+      .CommitAsync(cancellationToken);
   }
 
   public async Task DeleteAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
   {
-    var transaction = CreateTransaction(partitionId);
-    await transaction.DeleteAsync(aggregateId, cancellationToken);
-    await transaction.CommitAsync(cancellationToken);
+    await CreateTransaction(partitionId)
+      .Delete(aggregateId, await GetAggregateVersionAsync(partitionId, aggregateId, cancellationToken))
+      .CommitAsync(cancellationToken);
   }
 
   public async Task DeleteAsync(Guid aggregateId, CancellationToken cancellationToken = default) =>
     await DeleteAsync(Guid.Empty, aggregateId, cancellationToken);
+
+  public async Task<long> GetAggregateVersionAsync(Guid partitionId, Guid aggregateId,
+    CancellationToken cancellationToken = default)
+  {
+    var index = await _container
+      .AsCosmosAsyncQueryable<Event>()
+      .Where(x => x.PartitionId == partitionId && x.AggregateId == aggregateId)
+      .Select(x => x.Index)
+      .OrderByDescending(version => version)
+      .AsAsyncEnumerable()
+      .FirstOrDefaultAsync(cancellationToken);
+
+    if (index == 0)
+      throw new EventStoreException($"Cannot get version of nonexistent Aggregate with PartitionId '{partitionId}' and Id '{aggregateId}'");
+
+    return index + 1;
+  }
+
+
+  public async Task<long> GetAggregateVersionAsync(Guid aggregateId, CancellationToken cancellationToken) =>
+    await GetAggregateVersionAsync(Guid.Empty, aggregateId, cancellationToken);
 
   public IEventTransaction CreateTransaction() => CreateTransaction(Guid.Empty);
   public IEventTransaction CreateTransaction(Guid partitionId) => 

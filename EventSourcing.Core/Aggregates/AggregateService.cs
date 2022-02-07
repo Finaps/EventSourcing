@@ -57,9 +57,10 @@ public class AggregateService : IAggregateService
   public async Task<TAggregate> PersistAsync<TAggregate>(TAggregate aggregate,
     CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
   {
-    var transaction = CreateTransaction(aggregate.PartitionId);
-    await transaction.AddAsync(aggregate, cancellationToken);
-    await transaction.CommitAsync(cancellationToken);
+    await CreateTransaction(aggregate.PartitionId)
+      .Add(aggregate)
+      .CommitAsync(cancellationToken);
+    
     return aggregate;
   }
 
@@ -70,7 +71,7 @@ public class AggregateService : IAggregateService
     foreach (var aggregate in aggregates)
     {
       transaction ??= CreateTransaction(aggregate.PartitionId);
-      await transaction.AddAsync(aggregate, cancellationToken);
+      transaction.Add(aggregate);
     }
 
     if (transaction != null)
@@ -79,9 +80,9 @@ public class AggregateService : IAggregateService
 
   public async Task DeleteAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
   {
-    var transaction = CreateTransaction(partitionId);
-    await transaction.DeleteAsync(aggregateId, cancellationToken);
-    await transaction.CommitAsync(cancellationToken);
+    await CreateTransaction(partitionId)
+      .Delete(aggregateId, await _eventStore.GetAggregateVersionAsync(partitionId, aggregateId, cancellationToken))
+      .CommitAsync(cancellationToken);
   }
 
   public IAggregateTransaction CreateTransaction() => CreateTransaction(Guid.Empty);

@@ -28,7 +28,7 @@ public abstract partial class AggregateServiceTests
   public async Task Cannot_Add_Event_With_Empty_Aggregate_Id()
   {
     var aggregate = new SimpleAggregate { Id = Guid.Empty };
-    Assert.Throws<ArgumentException>(() => aggregate.Add(new EmptyEvent()));
+    Assert.Throws<RecordValidationException>(() => aggregate.Add(new EmptyEvent()));
   }
 
   [Fact]
@@ -361,13 +361,13 @@ public abstract partial class AggregateServiceTests
     foreach (var _ in new int[3])
       aggregate1.Add(new EmptyEvent());
 
-    await transaction.AddAsync(aggregate1);
+    transaction.Add(aggregate1);
 
     var aggregate2 = new SimpleAggregate();
     foreach (var _ in new int[4])
       aggregate2.Add(new EmptyEvent());
     
-    await transaction.AddAsync(aggregate2);
+    transaction.Add(aggregate2);
 
     await transaction.CommitAsync();
 
@@ -387,13 +387,13 @@ public abstract partial class AggregateServiceTests
     foreach (var _ in new int[3])
       aggregate1.Add(new EmptyEvent());
 
-    await transaction.AddAsync(aggregate1);
+    transaction.Add(aggregate1);
 
     var aggregate2 = new SimpleAggregate();
     foreach (var _ in new int[4])
       aggregate2.Add(new EmptyEvent());
     
-    await transaction.AddAsync(aggregate2);
+    transaction.Add(aggregate2);
 
     // Sneakily commit first event of first aggregate before committing transaction
     await EventStore.AddAsync(new List<Event> { aggregate1.UncommittedEvents.First() });
@@ -417,7 +417,7 @@ public abstract partial class AggregateServiceTests
     foreach (var _ in new int[3])
       aggregate.Add(new EmptyEvent());
 
-    await Assert.ThrowsAsync<ArgumentException>(async () => await transaction.AddAsync(aggregate));
+    Assert.Throws<RecordValidationException>(() => transaction.Add(aggregate));
 
     await transaction.CommitAsync();
 

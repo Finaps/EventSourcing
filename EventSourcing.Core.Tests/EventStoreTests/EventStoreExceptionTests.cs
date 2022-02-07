@@ -35,16 +35,16 @@ public abstract partial class EventStoreTests
   [Fact]
   public async Task Cannot_Add_Duplicate_Event_In_Transaction()
   {
-    var e1 = new EmptyEvent { AggregateId = Guid.NewGuid() };
-    var e2 = new EmptyEvent { AggregateId = Guid.NewGuid() };
+    var e1 = new EmptyEvent { AggregateId = Guid.NewGuid(), AggregateType = "AggregateType" };
+    var e2 = new EmptyEvent { AggregateId = Guid.NewGuid(), AggregateType = "AggregateType" };
 
     // Commit e1 in an earlier transaction
     await EventStore.AddAsync(new List<Event> { e1 });
 
     // Try to commit both e1 & e2
-    var transaction = EventStore.CreateTransaction();
-    await transaction.AddAsync(new List<Event> { e1 });
-    await transaction.AddAsync(new List<Event> { e2 });
+    var transaction = EventStore.CreateTransaction()
+      .Add(new List<Event> { e1 })
+      .Add(new List<Event> { e2 });
 
     // Check commit throws a concurrency exception
     await Assert.ThrowsAsync<EventStoreException>(async () => await transaction.CommitAsync());
@@ -58,7 +58,7 @@ public abstract partial class EventStoreTests
     Assert.Equal(0, count);
   }
   
-    [Fact]
+  [Fact]
   public async Task Cannot_Delete_Events_When_Events_Are_Added_Concurrently()
   {
     var aggregate = new EmptyAggregate();
@@ -71,7 +71,7 @@ public abstract partial class EventStoreTests
   
     // Then, start transaction, deleting 10 events
     var transaction = EventStore.CreateTransaction();
-    await transaction.DeleteAsync(aggregate.Id);
+    transaction.Delete(aggregate.Id, aggregate.Version);
     
     // Then store another event, simulating concurrency
     var concurrentEvent = aggregate.Add(new EmptyEvent());
@@ -102,12 +102,12 @@ public abstract partial class EventStoreTests
       .ToList());
 
     // Then, start transaction, adding 5 additional events
-    var transaction = EventStore.CreateTransaction();
-    await transaction.AddAsync(Enumerable
-      .Range(0, 5)
-      .Select(_ => aggregate.Add(new EmptyEvent()))
-      .Cast<Event>()
-      .ToList());
+    var transaction = EventStore.CreateTransaction()
+      .Add(Enumerable
+        .Range(0, 5)
+        .Select(_ => aggregate.Add(new EmptyEvent()))
+        .Cast<Event>()
+        .ToList());
     
     // Then delete the first 5 events, simulating concurrency
     await EventStore.DeleteAsync(aggregate.Id);

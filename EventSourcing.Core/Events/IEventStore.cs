@@ -47,6 +47,23 @@ public interface IEventStore
   Task DeleteAsync(Guid aggregateId, CancellationToken cancellationToken = default);
 
   /// <summary>
+  /// Get <see cref="Aggregate"/> Version 
+  /// </summary>
+  /// <param name="partitionId">Partition id</param>
+  /// <param name="aggregateId">Aggregate Id</param>
+  /// <param name="cancellationToken">Cancellation Token</param>
+  /// <returns>Aggregate Version</returns>
+  Task<long> GetAggregateVersionAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default);
+  
+  /// <summary>
+  /// Get <see cref="Aggregate"/> Version 
+  /// </summary>
+  /// <param name="aggregateId">Aggregate Id</param>
+  /// <param name="cancellationToken">Cancellation Token</param>
+  /// <returns>Aggregate Version</returns>
+  Task<long> GetAggregateVersionAsync(Guid aggregateId, CancellationToken cancellationToken = default);
+
+  /// <summary>
   /// Create Event Transaction
   /// </summary>
   /// <param name="partitionId">Transaction Partition identifier</param>
