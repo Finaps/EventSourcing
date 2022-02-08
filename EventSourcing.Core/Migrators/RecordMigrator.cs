@@ -12,16 +12,15 @@ public abstract class RecordMigrator<TSource, TTarget> : IRecordMigrator where T
   }
 
   public Record Convert(Record record) =>
-    Convert(record as TSource) with
-    {
-      Timestamp = record.Timestamp,
-      Type = typeof(TTarget).Name,
-      AggregateId = record.AggregateId,
-      AggregateType = record.AggregateType,
-      Index = record.Index,
-      RecordId = record.RecordId,
-      PartitionId = record.PartitionId
-    };
+    Convert((TSource) record) with {
+        Timestamp = record.Timestamp,
+        Type = typeof(TTarget).Name,
+        AggregateId = record.AggregateId,
+        AggregateType = record.AggregateType,
+        Index = record.Index,
+        RecordId = record.RecordId,
+        PartitionId = record.PartitionId
+      };
 
-  public abstract TTarget Convert(TSource e);
+  protected abstract TTarget Convert(TSource e);
 }

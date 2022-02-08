@@ -24,11 +24,11 @@ public abstract class CosmosRecordStore<TRecord> where TRecord : Record
     
     Database = new CosmosClient(options.Value.ConnectionString, new CosmosClientOptions
     {
-      Serializer = new CosmosEventSerializer(new JsonSerializerOptions
+      Serializer = new CosmosRecordSerializer(new JsonSerializerOptions
       {
         Converters = { new RecordConverter<TRecord>(options.Value?.RecordConverterOptions) }
       })
-    }).GetDatabase(options.Value.Database);
+    }).GetDatabase(options.Value!.Database);
   }
   
   protected static CosmosException CreateCosmosException(TransactionalBatchResponse response)
