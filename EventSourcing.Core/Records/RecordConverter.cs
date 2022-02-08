@@ -31,7 +31,7 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
 
   private class RecordType
   {
-    public string Type { get; set; }
+    public string? Type { get; set; }
   }
 
   public RecordConverter(RecordConverterOptions? options = null)
@@ -76,7 +76,9 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
   public override TRecord Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
   {
     var type = GetRecordType(reader);
-    var record = JsonSerializer.Deserialize(ref reader, type) as TRecord;
+    var record = JsonSerializer.Deserialize(ref reader, type) as TRecord 
+                 ?? throw new JsonException($"Error Converting Json to {type}.");
+
     return Migrate(Validate(record, type));
   }
 
