@@ -427,4 +427,18 @@ public abstract partial class AggregateServiceTests
     // aggregate should not have been committed
     Assert.Null(await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate.Id));
   }
+  
+  [Fact]
+  public async Task Cannot_Add_Aggregate_Twice_In_Transaction()
+  {
+    var transaction = AggregateService.CreateTransaction();
+    
+    var aggregate = new SimpleAggregate();
+    foreach (var _ in new int[3])
+      aggregate.Add(new EmptyEvent());
+
+    transaction.Add(aggregate);
+
+    Assert.Throws<ArgumentException>(() => transaction.Add(aggregate));
+  }
 }

@@ -88,37 +88,7 @@ public abstract partial class EventStoreTests
     Assert.Equal(0, count);
     Assert.Equal(5, count2);
   }
-  
-  [Fact]
-  public async Task Cannot_Add_And_Delete_Events_Of_Same_Aggregate_In_Transaction()
-  {
-    var aggregate = new EmptyAggregate();
-    var initialEvents = Enumerable.Range(0, 5)
-      .Select(_ => aggregate.Add(new Event()))
-      .ToList();
-    
-    await EventStore.AddAsync(initialEvents);
 
-    var transaction = EventStore.CreateTransaction()
-      .Add(Enumerable.Range(0, 5).Select(_ => aggregate.Add(new Event())).ToList())
-      .Delete(aggregate.Id, aggregate.Version);
-
-    await Assert.ThrowsAsync<InvalidOperationException>(async () => await transaction.CommitAsync());
-
-    var results = await EventStore.Events
-      .Where(x => x.AggregateId == aggregate.Id)
-      .OrderBy(x => x.Index)
-      .Select(x => x.RecordId)
-      .AsAsyncEnumerable()
-      .ToListAsync();
-
-    // The initial 5 events should be here
-    Assert.Equal(5, results.Count);
-    
-    for (var i = 0; i < 5; i++)
-      Assert.Equal(initialEvents[i].RecordId, results[i]);
-  }
-  
   [Fact]
   public async Task Cannot_Add_Different_Partition_Key_In_Transaction()
   {

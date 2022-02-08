@@ -23,7 +23,7 @@ public abstract partial class EventStoreTests
   [Fact]
   public async Task Get_Version_Of_NonExisting_Aggregate_Throws_EventStoreException()
   {
-    await Assert.ThrowsAsync<EventStoreException>(async () =>
+    await Assert.ThrowsAsync<RecordStoreException>(async () =>
       await EventStore.GetAggregateVersionAsync(Guid.NewGuid()));
   }
 }

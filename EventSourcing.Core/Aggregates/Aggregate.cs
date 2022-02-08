@@ -55,13 +55,21 @@ public abstract class Aggregate
   /// Create Snapshot
   /// </summary>
   /// <returns><see cref="Snapshot"/></returns>
-  protected virtual Snapshot CreateSnapshot() => throw new NotImplementedException();
+  protected virtual Snapshot CreateSnapshot() =>
+    throw new NotImplementedException(
+      "Error creating snapshot. " +
+      $"{GetType()}{nameof(CreateSnapshot)} is not implemented. " +
+      $"{nameof(CreateSnapshot)} and {nameof(ApplySnapshot)} should be implemented when {nameof(SnapshotInterval)} > 0.");
   
   /// <summary>
   /// Apply Snapshot
   /// </summary>
   /// <param name="s"><see cref="Snapshot"/> to apply</param>
-  protected virtual void ApplySnapshot(Snapshot s) => throw new NotImplementedException();
+  protected virtual void ApplySnapshot(Snapshot s) =>
+    throw new NotImplementedException(
+      "Error applying snapshot. " +
+      $"{GetType()}{nameof(ApplySnapshot)} is not implemented. " +
+      $"{nameof(CreateSnapshot)} and {nameof(ApplySnapshot)} should be implemented when {nameof(SnapshotInterval)} > 0.");
 
   /// <summary>
   /// Create Snapshot
@@ -70,7 +78,8 @@ public abstract class Aggregate
   public Snapshot CreateLinkedSnapshot()
   {
     if (Version == 0)
-      throw new InvalidOperationException($"Cannot create Snapshot for {Type} with Version 0");
+      throw new InvalidOperationException(
+        "Error creating snapshot. Snapshots are undefined for aggregates with version 0.");
     
     return CreateSnapshot() with
     {
@@ -122,7 +131,7 @@ public abstract class Aggregate
     IAsyncEnumerable<Event> events, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
   {
     if (aggregateId == Guid.Empty)
-      throw new ArgumentException("Aggregate Id should not be empty", nameof(aggregateId));
+      throw new ArgumentException($"Error Rehydrating {typeof(TAggregate)}. Aggregate Id should not be Guid.Empty. ", nameof(aggregateId));
 
     var aggregate = new TAggregate { PartitionId = partitionId, Id = aggregateId };
     
@@ -147,6 +156,12 @@ public abstract class Aggregate
                                           (UncommittedEvents.First().Index + 1) / SnapshotInterval !=
                                           (UncommittedEvents.Last().Index + 1) / SnapshotInterval;
 
+  public string Format()
+  {
+    var partitionId = PartitionId == Guid.Empty ? " " : $"{nameof(PartitionId)} = {PartitionId}, ";
+    var id = $"{nameof(Id)} = {Id}, ";
+    return $"{Type} {{ {partitionId}{id} }}";
+  }
 
   private void ValidateAndApplyEvent(Event e)
   {

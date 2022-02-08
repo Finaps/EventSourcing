@@ -30,7 +30,7 @@ public abstract class SnapshotStoreTests
     
     await SnapshotStore.AddAsync(snapshot);
 
-    await Assert.ThrowsAnyAsync<EventStoreException>(
+    await Assert.ThrowsAnyAsync<RecordStoreException>(
       async () => await SnapshotStore.AddAsync(snapshot));
   }
   

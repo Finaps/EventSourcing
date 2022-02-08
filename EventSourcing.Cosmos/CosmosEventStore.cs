@@ -17,7 +17,10 @@ public class CosmosEventStore : CosmosRecordStore<Event>, IEventStore
   public CosmosEventStore(IOptions<CosmosEventStoreOptions> options) : base(options)
   {
     if (string.IsNullOrWhiteSpace(options.Value.EventsContainer))
-      throw new ArgumentException("CosmosEventStoreOptions.EventsContainer should not be empty", nameof(options));
+      throw new ArgumentException(
+        "Error Constructing CosmosEventStore. " +
+        $"{nameof(CosmosEventStoreOptions)}.{nameof(CosmosEventStoreOptions.EventsContainer)} should not be empty",
+        nameof(options));
 
     _container = Database.GetContainer(options.Value.EventsContainer);
   }
@@ -56,7 +59,7 @@ public class CosmosEventStore : CosmosRecordStore<Event>, IEventStore
       .FirstOrDefaultAsync(cancellationToken);
 
     if (index == 0)
-      throw new EventStoreException($"Cannot get version of nonexistent Aggregate with PartitionId '{partitionId}' and Id '{aggregateId}'");
+      throw new RecordStoreException($"Error querying Aggregate version. Aggregate with PartitionId '{partitionId}' and AggregateId '{aggregateId}' does not exist in {nameof(CosmosEventStore)}");
 
     return index + 1;
   }
