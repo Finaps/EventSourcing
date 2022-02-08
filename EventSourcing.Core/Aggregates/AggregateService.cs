@@ -25,7 +25,7 @@ public class AggregateService : IAggregateService
     var interval = new TAggregate().SnapshotInterval;
     
     if (interval > 0 && _snapshotStore == null)
-      _logger?.LogWarning("{SnapshotStore} not provided while {TAggregate} has snapshot interval {interval}. " +
+      _logger?.LogWarning("{SnapshotStore} not provided while {TAggregate} has non-zero snapshot interval: {interval}. " +
                           "Rehydrating from events only", typeof(ISnapshotStore), typeof(TAggregate), interval);
 
     Snapshot? snapshot = null;

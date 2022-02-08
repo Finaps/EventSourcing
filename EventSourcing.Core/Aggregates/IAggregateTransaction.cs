@@ -24,7 +24,7 @@ public interface IAggregateTransaction
   /// <summary>
   /// Commit <see cref="Aggregate"/> operations to the <see cref="IEventStore"/>
   /// </summary>
-  /// <exception cref="EventStoreException">
+  /// <exception cref="RecordStoreException">
   /// Thrown when a conflict occurs when commiting transaction,
   /// in which case none of the added <see cref="Aggregate"/>s will be committed
   /// </exception>

@@ -23,6 +23,7 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
     .Where(type => typeof(IRecordMigrator).IsAssignableFrom(type) && type.IsClass && !type.IsAbstract && type.IsPublic)
     .ToList();
 
+  private readonly RecordConverterOptions? _options;
   private readonly Dictionary<string, Type> _recordTypes;
   private readonly Dictionary<Type, PropertyInfo[]> _nonNullableRecordProperties;
 
@@ -35,6 +36,8 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
 
   public RecordConverter(RecordConverterOptions? options = null)
   {
+    _options = options;
+    
     // Create dictionary mapping from Record.Type string to Record Type
     _recordTypes = (options?.RecordTypes ?? AssemblyRecordTypes).ToDictionary(type => type.Name);
     
@@ -45,7 +48,7 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
     // Create dictionary mapping from Record.Type to Migrator Type
     _migrators = (options?.MigratorTypes ?? AssemblyMigratorTypes)
       .Select(type => Activator.CreateInstance(type) as IRecordMigrator)
-      .ToDictionary(migrator => migrator!.Source.Name, migrator => migrator);
+      .ToDictionary(migrator => migrator!.Source.Name, migrator => migrator)!;
 
     ValidateMigrators();
   }
@@ -83,20 +86,25 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
     var typeString = JsonSerializer.Deserialize<RecordType>(ref reader)?.Type ??
                      
        // Throw Exception when json has no "Type" Property
-       throw new RecordValidationException($"Error while extracting record type string. Does the JSON contain a {nameof(Record.Type)} field?");
+       throw new RecordValidationException(
+         $"Error converting {typeof(TRecord)}. " +
+         $"Couldn't parse {typeof(TRecord)}.Type string from Json. " +
+         $"Does the Json contain a {nameof(Record.Type)} field?");
 
     return GetRecordType(typeString);
   }
 
   private Type GetRecordType(string typeString)
   {
-    // Get actual Record Type from Dictionary
-    if (!_recordTypes.TryGetValue(typeString, out var type))
-      
-      // Throw Exception when Record Type is not found in Assembly or RecordConverterOptions
-      throw new InvalidOperationException($"Record with Type '{typeString}' not found");
+    // Get Record Type from Dictionary
+    if (_recordTypes.TryGetValue(typeString, out var type)) return type;
 
-    return type;
+    if (_options?.MigratorTypes == null)
+      throw new InvalidOperationException(
+        $"Error Converting {typeof(TRecord)}. {typeof(TRecord)} with type '{typeString}' not found in Assembly. Ensure {typeof(TRecord)} with type '{typeString}' is a public non-nested type");
+    else
+      throw new InvalidOperationException(
+        $"Error Converting {typeof(TRecord)}. {typeof(TRecord)} with type '{typeString}' not found in {nameof(RecordConverterOptions)}.{nameof(RecordConverterOptions.RecordTypes)}. Ensure {typeof(TRecord)} with type '{typeString}' is included.");
   }
 
   private TRecord Validate(TRecord record, Type type)
@@ -107,8 +115,10 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
       .ToList();
     
     if (missing.Count > 0)
-      throw new RecordValidationException($"Error validating {type} with RecordId '{record.RecordId}'.\n" +
-        $"One ore more non-nullable properties missing or null: {string.Join(", ", missing.Select(property => $"{type.Name}.{property}"))}");
+      throw new RecordValidationException(
+        $"Error converting Json to {record.Format()}'.\n" +
+        $"One ore more non-nullable properties are missing or null: {string.Join(", ", missing.Select(property => $"{type.Name}.{property}"))}.\n" +
+        $"Either make properties nullable or use a RecordMigrator to handle {nameof(TRecord)} versioning.");
 
     return record;
   }

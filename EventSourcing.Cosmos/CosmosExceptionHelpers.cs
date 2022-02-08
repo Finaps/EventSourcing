@@ -5,10 +5,7 @@ namespace EventSourcing.Cosmos;
 
 internal static class CosmosExceptionHelpers
 {
-  public static void Throw(TransactionalBatchResponse response) =>
-    throw new EventStoreException(response.StatusCode, CreateCosmosException(response));
-
-  private static CosmosException CreateCosmosException(TransactionalBatchResponse response)
+  public static CosmosException CreateCosmosException(TransactionalBatchResponse response)
   {
     var subStatusCode = (int) response
       .GetType()

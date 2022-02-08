@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text.Json;
 using EventSourcing.Core;
 
@@ -28,5 +29,15 @@ public abstract class CosmosRecordStore<TRecord> where TRecord : Record
         Converters = { new RecordConverter<TRecord>(options.Value?.RecordConverterOptions) }
       })
     }).GetDatabase(options.Value.Database);
+  }
+  
+  protected static CosmosException CreateCosmosException(TransactionalBatchResponse response)
+  {
+    var subStatusCode = (int) response
+      .GetType()
+      .GetProperty("SubStatusCode", BindingFlags.NonPublic | BindingFlags.Instance)?
+      .GetValue(response)!;
+      
+    return new CosmosException(response.ErrorMessage, response.StatusCode, subStatusCode, response.ActivityId, response.RequestCharge);
   }
 }
