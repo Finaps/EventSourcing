@@ -44,7 +44,7 @@ public sealed class RecordTypeProvider
     public Type GetRecordType(string typeString)
     {
         if(_recordTypes == null)
-            throw new InvalidOperationException($"{nameof(RecordTypeProvider)} is not initialized. Run {nameof(Initialize)} first.");
+            throw new InvalidOperationException($"{nameof(RecordTypeProvider)} is not initialized. Run {nameof(Initialize)}() first.");
         
         // Get actual Record Type from Dictionary
         if (!_recordTypes.TryGetValue(typeString, out var type))
@@ -58,7 +58,7 @@ public sealed class RecordTypeProvider
     public string GetRecordTypeString(Type type)
     {
         if(_recordTypesRev == null)
-            throw new InvalidOperationException($"{nameof(RecordTypeProvider)} is not initialized. Run {nameof(Initialize)} first.");
+            throw new InvalidOperationException($"{nameof(RecordTypeProvider)} is not initialized. Run {nameof(Initialize)}() first.");
         
         // Get actual Record Type from Dictionary
         if (!_recordTypesRev.TryGetValue(type, out var typeString))
