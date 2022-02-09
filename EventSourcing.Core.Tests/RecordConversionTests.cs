@@ -29,7 +29,6 @@ public class RecordConversionTests
       PartitionId = Guid.NewGuid(),
       AggregateId = Guid.NewGuid(),
       AggregateType = "Test",
-      Type = nameof(TestRecord),
 
       A = 9,
       B = null
