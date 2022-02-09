@@ -1,4 +1,5 @@
 using System.Reflection;
+using EventSourcing.Core.Types;
 
 namespace EventSourcing.Core;
 
@@ -46,9 +47,14 @@ public static class RecordValidation
     
     if (string.IsNullOrEmpty(r.AggregateType))
       Throw(r, "AggregateType should not be null or empty");
-
+    
     if (r.Index < 0)
       Throw(r, "Index must be a non-negative integer");
+    
+    var recordType = RecordTypeProvider.Instance.GetRecordTypeString(r.GetType());
+    
+    if (r.Type != recordType)
+      Throw(r, $"Type ({r.Type}) does not correspond with record Type ({recordType})");
   }
 
   public static void ValidateSnapshotForAggregate(Aggregate a, Snapshot s)

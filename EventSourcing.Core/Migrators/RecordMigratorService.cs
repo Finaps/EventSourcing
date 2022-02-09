@@ -2,18 +2,19 @@ namespace EventSourcing.Core.Migrations;
 
 public class RecordMigratorService<TRecord> where TRecord : Record
 {
-    private MigratorProvider MigratorProvider = MigratorProvider.Instance;
+    private MigratorProvider _migratorProvider = MigratorProvider.Instance;
     
     public RecordMigratorService(RecordConverterOptions? options = null)
     {
-        MigratorProvider.Initialize(options?.MigratorTypes);
-
+        if(!_migratorProvider.Initialized)
+            _migratorProvider.Initialize(options?.MigratorTypes);
+        
         ValidateMigrators();
     }
     
     public TRecord Migrate(TRecord record)
     {
-        while (MigratorProvider.Migrators.TryGetValue(record.GetType(), out var migrator))
+        while (_migratorProvider.Migrators.TryGetValue(record.GetType(), out var migrator))
             record = (TRecord) migrator!.Convert(record);
 
         return record;
@@ -21,7 +22,7 @@ public class RecordMigratorService<TRecord> where TRecord : Record
     
     private void ValidateMigrators()
     {
-        var migrations = MigratorProvider.Migrators.Values.ToDictionary(x => x!.Source, x => x!.Target);
+        var migrations = _migratorProvider.Migrators.Values.ToDictionary(x => x!.Source, x => x!.Target);
 
         while (migrations.Count > 0)
         {

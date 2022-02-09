@@ -21,7 +21,9 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
 
   public RecordConverter(RecordConverterOptions? options = null)
   {
-    _recordTypeProvider.Initialize(options?.RecordTypes);
+    if(!_recordTypeProvider.Initialized)
+      _recordTypeProvider.Initialize(options?.RecordTypes);
+    
     _recordMigratorService = new RecordMigratorService<TRecord>(options);
   }
 

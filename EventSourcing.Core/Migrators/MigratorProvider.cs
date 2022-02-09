@@ -23,15 +23,15 @@ public sealed class MigratorProvider
     private Dictionary<Type, IRecordMigrator?> _migrators;
     public Dictionary<Type, IRecordMigrator?> Migrators =>
         _migrators ?? throw new InvalidOperationException($"{nameof(MigratorProvider)} is not initialized. Run {nameof(Initialize)} first.");
-    
+
+    public bool Initialized;
     public void Initialize(List<Type>? migratorTypes = null)
     {
-        if (_migrators != null)
-            throw new InvalidOperationException("Migrator types already initialized");
-        
         // Create dictionary mapping from Record.Type to Migrator Type
         _migrators = (migratorTypes ?? AssemblyMigratorTypes)
             .Select(type => Activator.CreateInstance(type) as IRecordMigrator)
             .ToDictionary(migrator => migrator!.Source, migrator => migrator);
+
+        Initialized = true;
     }
 }

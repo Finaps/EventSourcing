@@ -21,17 +21,15 @@ public sealed class RecordTypeProvider
         .Where(type => typeof(Record).IsAssignableFrom(type) && type.IsClass && !type.IsAbstract && type.IsPublic)
         .ToList();
     
-    private Dictionary<string, Type> _recordTypes;
-    private Dictionary<Type, string> _recordTypesRev;
-    private Dictionary<Type, PropertyInfo[]> _nonNullableRecordProperties;
+    private Dictionary<string, Type>? _recordTypes;
+    private Dictionary<Type, string>? _recordTypesRev;
+    private Dictionary<Type, PropertyInfo[]>? _nonNullableRecordProperties;
     public Dictionary<Type, PropertyInfo[]> NonNullableRecordProperties =>
         _nonNullableRecordProperties ?? throw new InvalidOperationException($"{nameof(RecordTypeProvider)} is not initialized. Run {nameof(Initialize)} first.");
 
+    public bool Initialized;
     public void Initialize(List<Type>? recordTypes = null)
     {
-        if (_recordTypes != null && _recordTypesRev != null && _nonNullableRecordProperties != null)
-            throw new InvalidOperationException("Record types already initialized");
-        
         // Create dictionaries mapping from Record.Type string to Record Type and it's reverse
         _recordTypes = (recordTypes ?? AssemblyRecordTypes).ToDictionary(type => type.GetCustomAttribute<RecordType>()?.Value ?? type.Name);
         _recordTypesRev = _recordTypes.ToDictionary(kv => kv.Value, kv => kv.Key);
@@ -39,6 +37,8 @@ public sealed class RecordTypeProvider
         // For each Record Type, create set of non-nullable properties for validation
         _nonNullableRecordProperties = _recordTypes.Values.ToDictionary(type => type, type => type.GetProperties()
             .Where(property => Nullable.GetUnderlyingType(property.PropertyType) == null).ToArray());
+
+        Initialized = true;
     }
     
     public Type GetRecordType(string typeString)
