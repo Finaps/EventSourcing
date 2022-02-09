@@ -6,8 +6,7 @@ public class RecordMigratorService<TRecord> where TRecord : Record
     
     public RecordMigratorService(RecordConverterOptions? options = null)
     {
-        if(!_migratorProvider.Initialized)
-            _migratorProvider.Initialize(options?.MigratorTypes);
+        _migratorProvider.Initialize(options?.MigratorTypes);
         
         ValidateMigrators();
     }

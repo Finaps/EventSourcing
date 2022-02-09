@@ -36,10 +36,11 @@ public abstract class RecordMigrationTests
   [Fact]
   public Task Cannot_Create_Record_Migrator_With_Cyclic_Reference()
   {
-    Assert.Throws<ArgumentException>(() => new RecordConverter<Record>(new RecordConverterOptions
+    var options = new RecordConverterOptions
     {
       MigratorTypes = new List<Type> { typeof(InvalidPingRecordMigrator), typeof(InvalidPongRecordMigrator) }
-    }));
+    };
+    Assert.Throws<ArgumentException>(() => new RecordConverter<Record>(options));
 
     return Task.CompletedTask;
   }
