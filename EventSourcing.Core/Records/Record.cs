@@ -1,4 +1,5 @@
 using System.Reflection;
+using EventSourcing.Core.Types;
 
 namespace EventSourcing.Core;
 
@@ -50,6 +51,7 @@ public record Record
   protected Record()
   {
     RecordId = Guid.NewGuid();
+    Type = RecordTypeProvider.Instance.GetRecordTypeString(GetType());
     Timestamp = DateTimeOffset.Now;
   }
   
