@@ -5,16 +5,14 @@ namespace EventSourcing.Core.Types;
 public sealed class RecordTypeProvider
 {
     private static readonly RecordTypeProvider instance = new RecordTypeProvider();
-    
+    public static RecordTypeProvider Instance => instance;
     // Explicit static constructor to tell C# compiler
     // not to mark type as beforefieldinit
     static RecordTypeProvider() { }
     private RecordTypeProvider() { }
-
-    public static RecordTypeProvider Instance => instance;
     
     
-    
+    // Following is the non-static part of the class
     private List<Type> AssemblyRecordTypes => AppDomain.CurrentDomain
         .GetAssemblies()
         .SelectMany(x => x.GetTypes())

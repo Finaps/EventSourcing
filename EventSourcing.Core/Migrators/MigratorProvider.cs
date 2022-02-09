@@ -5,15 +5,14 @@ namespace EventSourcing.Core.Migrations;
 public sealed class MigratorProvider
 {
     private static readonly MigratorProvider instance = new MigratorProvider();
-
+    public static MigratorProvider Instance => instance;
     // Explicit static constructor to tell C# compiler
     // not to mark type as beforefieldinit
     static MigratorProvider() { }
     private MigratorProvider() { }
-    public static MigratorProvider Instance => instance;
     
     
-    
+    // Following is the non-static part of the class
     private List<Type> AssemblyMigratorTypes => AppDomain.CurrentDomain
         .GetAssemblies()
         .SelectMany(assembly => assembly.GetTypes())
