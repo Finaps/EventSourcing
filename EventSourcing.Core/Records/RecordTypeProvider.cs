@@ -41,30 +41,18 @@ public sealed class RecordTypeProvider
     
     public Type GetRecordType(string typeString)
     {
-        if (_recordTypes == null)
+        if (_recordTypes == null || !_recordTypes.TryGetValue(typeString, out var type))
             return _assemblyRecordTypes.FirstOrDefault(t => t.GetCustomAttribute<RecordType>()?.Value == typeString)
                 ?? _assemblyRecordTypes.FirstOrDefault(t => t.Name == typeString)
                 ?? throw new InvalidOperationException($"Record with Type '{typeString}' not found");
-
-        // Get actual Record Type from Dictionary
-        if (!_recordTypes.TryGetValue(typeString, out var type))
-      
-            // Throw Exception when Record Type is not found in Assembly or RecordConverterOptions
-            throw new InvalidOperationException($"Record with Type '{typeString}' not found");
 
         return type;
     }
     
     public string GetRecordTypeString(Type type)
     {
-        if(_recordTypesRev == null)
+        if(_recordTypesRev == null || !_recordTypesRev.TryGetValue(type, out var typeString))
             return type.GetCustomAttribute<RecordType>()?.Value ?? GetType().Name;
-        
-        // Get actual Record Type from Dictionary
-        if (!_recordTypesRev.TryGetValue(type, out var typeString))
-      
-            // Throw Exception when Record Type is not found in Assembly or RecordConverterOptions
-            throw new InvalidOperationException($"Record name for '{type.Name}' not found");
 
         return typeString;
     }
