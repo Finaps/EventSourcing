@@ -13,7 +13,7 @@ public sealed class RecordTypeProvider
     
     
     // Following is the non-static part of the class
-    private List<Type> AssemblyRecordTypes => AppDomain.CurrentDomain
+    private readonly List<Type> _assemblyRecordTypes = AppDomain.CurrentDomain
         .GetAssemblies()
         .SelectMany(x => x.GetTypes())
         .Where(type => typeof(Record).IsAssignableFrom(type) && type.IsClass && !type.IsAbstract && type.IsPublic)
@@ -28,8 +28,11 @@ public sealed class RecordTypeProvider
     public bool Initialized;
     public void Initialize(List<Type>? recordTypes = null)
     {
+        if (Initialized)
+            return;
+        
         // Create dictionaries mapping from Record.Type string to Record Type and it's reverse
-        _recordTypes = (recordTypes ?? AssemblyRecordTypes).ToDictionary(type => type.GetCustomAttribute<RecordType>()?.Value ?? type.Name);
+        _recordTypes = (recordTypes ?? _assemblyRecordTypes).ToDictionary(type => type.GetCustomAttribute<RecordType>()?.Value ?? type.Name);
         _recordTypesRev = _recordTypes.ToDictionary(kv => kv.Value, kv => kv.Key);
         
         // For each Record Type, create set of non-nullable properties for validation
@@ -41,9 +44,11 @@ public sealed class RecordTypeProvider
     
     public Type GetRecordType(string typeString)
     {
-        if(_recordTypes == null)
-            throw new InvalidOperationException($"{nameof(RecordTypeProvider)} is not initialized. Run {nameof(Initialize)}() first.");
-        
+        if (_recordTypes == null)
+            return _assemblyRecordTypes.FirstOrDefault(t => t.GetCustomAttribute<RecordType>()?.Value == typeString)
+                ?? _assemblyRecordTypes.FirstOrDefault(t => t.Name == typeString)
+                ?? throw new InvalidOperationException($"Record with Type '{typeString}' not found");
+
         // Get actual Record Type from Dictionary
         if (!_recordTypes.TryGetValue(typeString, out var type))
       
@@ -56,7 +61,7 @@ public sealed class RecordTypeProvider
     public string GetRecordTypeString(Type type)
     {
         if(_recordTypesRev == null)
-            throw new InvalidOperationException($"{nameof(RecordTypeProvider)} is not initialized. Run {nameof(Initialize)}() first.");
+            return type.GetCustomAttribute<RecordType>()?.Value ?? GetType().Name;
         
         // Get actual Record Type from Dictionary
         if (!_recordTypesRev.TryGetValue(type, out var typeString))

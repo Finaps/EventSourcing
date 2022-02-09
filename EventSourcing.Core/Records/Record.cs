@@ -51,9 +51,7 @@ public record Record
   protected Record()
   {
     RecordId = Guid.NewGuid();
-    Type = RecordTypeProvider.Instance.Initialized ?
-      RecordTypeProvider.Instance.GetRecordTypeString(GetType()) :
-      GetType().GetCustomAttribute<RecordType>()?.Value ?? GetType().Name;
+    Type = RecordTypeProvider.Instance.GetRecordTypeString(GetType());
     Timestamp = DateTimeOffset.Now;
   }
   
