@@ -50,6 +50,9 @@ public record Record
   /// </summary>
   protected Record()
   {
+    if(!RecordTypeProvider.Instance.Initialized)
+      RecordTypeProvider.Instance.Initialize();
+    
     RecordId = Guid.NewGuid();
     Type = RecordTypeProvider.Instance.GetRecordTypeString(GetType());
     Timestamp = DateTimeOffset.Now;
