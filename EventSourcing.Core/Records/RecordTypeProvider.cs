@@ -28,9 +28,6 @@ public sealed class RecordTypeProvider
     public bool Initialized;
     public void Initialize(List<Type>? recordTypes = null)
     {
-        if (Initialized)
-            return;
-        
         // Create dictionaries mapping from Record.Type string to Record Type and it's reverse
         _recordTypes = (recordTypes ?? _assemblyRecordTypes).ToDictionary(type => type.GetCustomAttribute<RecordType>()?.Value ?? type.Name);
         _recordTypesRev = _recordTypes.ToDictionary(kv => kv.Value, kv => kv.Key);
