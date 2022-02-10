@@ -58,7 +58,7 @@ public abstract class Aggregate
   protected virtual Snapshot CreateSnapshot() =>
     throw new NotImplementedException(
       "Error creating snapshot. " +
-      $"{GetType()}{nameof(CreateSnapshot)} is not implemented. " +
+      $"{GetType()}.{nameof(CreateSnapshot)} is not implemented. " +
       $"{nameof(CreateSnapshot)} and {nameof(ApplySnapshot)} should be implemented when {nameof(SnapshotInterval)} > 0.");
   
   /// <summary>
@@ -68,7 +68,7 @@ public abstract class Aggregate
   protected virtual void ApplySnapshot(Snapshot s) =>
     throw new NotImplementedException(
       "Error applying snapshot. " +
-      $"{GetType()}{nameof(ApplySnapshot)} is not implemented. " +
+      $"{GetType()}.{nameof(ApplySnapshot)} is not implemented. " +
       $"{nameof(CreateSnapshot)} and {nameof(ApplySnapshot)} should be implemented when {nameof(SnapshotInterval)} > 0.");
 
   /// <summary>
