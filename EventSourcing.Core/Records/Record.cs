@@ -62,7 +62,7 @@ public record Record
 
   public string Format()
   {
-    var partitionId = PartitionId == Guid.Empty ? " " : $"{nameof(PartitionId)} = {PartitionId}, ";
+    var partitionId = PartitionId == Guid.Empty ? "" : $"{nameof(PartitionId)} = {PartitionId}, ";
     var aggregateId = $"{nameof(AggregateId)} = {AggregateId}, ";
     var index = $"{nameof(Index)} = {Index}";
     return $"{Type} {{ {partitionId}{aggregateId}{index} }}";
