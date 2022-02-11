@@ -3,10 +3,8 @@ using EventSourcing.Core.Tests.Mocks;
 
 namespace EventSourcing.Core.Tests;
 
-public abstract class RecordAttributeTests
+public abstract partial class EventStoreTests
 {
-    protected abstract IEventStore EventStore { get; }
-    
     [Fact]
     public async Task Can_Store_Attribute_Event_With_Correct_Type()
     {
