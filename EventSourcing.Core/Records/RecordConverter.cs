@@ -16,17 +16,17 @@ public class RecordConverter : JsonConverter<Record>
     public string Type { get; set; }
   }
 
-  private readonly RecordTypesCache _recordTypesCache;
+  private readonly RecordTypeCache _recordTypeCache;
   private readonly RecordMigratorService _recordMigratorService;
 
   public RecordConverter(RecordConverterOptions? options = null)
   {
-    _recordTypesCache = new RecordTypesCache(options?.RecordTypes);
+    _recordTypeCache = new RecordTypeCache(options?.RecordTypes);
     _recordMigratorService = new RecordMigratorService(options);
   }
 
   /// <summary>
-  /// Use <see cref="RecordConverter{TRecord}"/> for all Types inheriting from <see cref="Record"/>
+  /// Use <see cref="RecordConverter"/> for all Types inheriting from <see cref="Record"/>
   /// </summary>
   /// <param name="typeToConvert">Type to Convert</param>
   public override bool CanConvert(Type typeToConvert) => typeof(Record).IsAssignableFrom(typeToConvert);
@@ -50,8 +50,7 @@ public class RecordConverter : JsonConverter<Record>
   {
     var type = DeserializeRecordType(reader);
     var record = JsonSerializer.Deserialize(ref reader, type) as Record;
-    var migrated = _recordMigratorService.Migrate(Validate(record, type));
-    return migrated with {Type = _recordTypesCache.GetRecordTypeString(migrated.GetType())};
+    return _recordMigratorService.Migrate(Validate(record, type));
   }
 
   private Type DeserializeRecordType(Utf8JsonReader reader)
@@ -62,12 +61,12 @@ public class RecordConverter : JsonConverter<Record>
        // Throw Exception when json has no "Type" Property
        throw new RecordValidationException($"Error while extracting record type string. Does the JSON contain a {nameof(Record.Type)} field?");
 
-    return _recordTypesCache.GetRecordType(typeString);
+    return _recordTypeCache.GetRecordType(typeString);
   }
 
   private Record Validate(Record record, Type type)
   {
-    var missing = _recordTypesCache.GetNonNullableRecordProperties(type)
+    var missing = _recordTypeCache.GetNonNullableRecordProperties(type)
       .Where(property => property.GetValue(record) == null)
       .Select(property => property.Name)
       .ToList();

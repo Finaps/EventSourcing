@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace EventSourcing.Core.Types;
 
-public sealed class RecordTypesCache
+public sealed class RecordTypeCache
 {
     // Static RecordTypes cache
     private static readonly List<Type> AssemblyRecordTypes = AppDomain.CurrentDomain
@@ -10,24 +10,20 @@ public sealed class RecordTypesCache
         .SelectMany(x => x.GetTypes())
         .Where(type => typeof(Record).IsAssignableFrom(type) && type.IsClass && !type.IsAbstract && type.IsPublic)
         .ToList();
-    private static readonly Dictionary<Type, string> RecordTypesRev;
-    static RecordTypesCache()
-    {
-        // Create dictionaries mapping from Record.Type to Record Type string
-        RecordTypesRev = AssemblyRecordTypes.ToDictionary(type => type, type => type.GetCustomAttribute<RecordType>()?.Value ?? type.Name);
-    }
-    
+    private static readonly Dictionary<Type, string> RecordTypeStrings =
+        AssemblyRecordTypes.ToDictionary(type => type, type => type.GetCustomAttribute<RecordType>()?.Value ?? type.Name);
+
     // Non-static RecordTypes cache
     private readonly Dictionary<string, Type> _recordTypes;
-    private readonly Dictionary<Type, string> _recordTypesRev;
+    private readonly Dictionary<Type, string> _recordTypeStrings;
     private readonly Dictionary<Type, PropertyInfo[]> _nonNullableRecordProperties;
 
-    public RecordTypesCache(IReadOnlyCollection<Type>? recordTypes)
+    public RecordTypeCache(IReadOnlyCollection<Type>? recordTypes)
     {
         // Create dictionaries mapping from Record.Type string to Record Type and it's reverse
-        _recordTypesRev = recordTypes == null ? 
-            RecordTypesRev : recordTypes.ToDictionary(type => type, type => type.GetCustomAttribute<RecordType>()?.Value ?? type.Name);
-        _recordTypes = _recordTypesRev.ToDictionary(kv => kv.Value, kv => kv.Key);
+        _recordTypeStrings = recordTypes == null ? 
+            RecordTypeStrings : recordTypes.ToDictionary(type => type, type => type.GetCustomAttribute<RecordType>()?.Value ?? type.Name);
+        _recordTypes = _recordTypeStrings.ToDictionary(kv => kv.Value, kv => kv.Key);
         // For each Record Type, create set of non-nullable properties for validation
         _nonNullableRecordProperties = _recordTypes.Values.ToDictionary(type => type, type => type.GetProperties()
             .Where(property => Nullable.GetUnderlyingType(property.PropertyType) == null).ToArray());
@@ -39,10 +35,10 @@ public sealed class RecordTypesCache
 
         return type;
     }
-    public string GetRecordTypeString(Type type) => GetRecordTypeStringStatic(type, _recordTypesRev);
-    public static string GetRecordTypeStringStatic(Type type, Dictionary<Type, string>? recordTypesRev = null)
+    public string GetRecordTypeString(Type type) => GetRecordTypeStringStatic(type, _recordTypeStrings);
+    public static string GetRecordTypeStringStatic(Type type, Dictionary<Type, string>? recordTypeStrings = null)
     {
-        if(!(recordTypesRev ?? RecordTypesRev).TryGetValue(type, out var typeString))
+        if(!(recordTypeStrings ?? RecordTypeStrings).TryGetValue(type, out var typeString))
             throw new InvalidOperationException($"Record type for Type '{type.Name}' not found");
 
         return typeString;

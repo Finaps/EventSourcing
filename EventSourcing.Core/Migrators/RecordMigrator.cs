@@ -1,3 +1,5 @@
+using EventSourcing.Core.Types;
+
 namespace EventSourcing.Core.Migrations;
 
 public abstract class RecordMigrator<TSource, TTarget> : IRecordMigrator where TSource : Record where TTarget : Record
@@ -15,6 +17,7 @@ public abstract class RecordMigrator<TSource, TTarget> : IRecordMigrator where T
     Convert(record as TSource) with
     {
       Timestamp = record.Timestamp,
+      Type = RecordTypeCache.GetRecordTypeStringStatic(Target),
       AggregateId = record.AggregateId,
       AggregateType = record.AggregateType,
       Index = record.Index,
@@ -22,5 +25,5 @@ public abstract class RecordMigrator<TSource, TTarget> : IRecordMigrator where T
       PartitionId = record.PartitionId
     };
 
-  public abstract TTarget Convert(TSource e);
+  protected abstract TTarget Convert(TSource e);
 }
