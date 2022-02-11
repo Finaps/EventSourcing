@@ -13,7 +13,7 @@ public class RecordConverter : JsonConverter<Record>
 {
   private class RecordType
   {
-    public string Type { get; set; }
+    public string? Type { get; set; }
   }
 
   private readonly RecordTypeCache _recordTypeCache;
@@ -36,7 +36,6 @@ public class RecordConverter : JsonConverter<Record>
   /// </summary>
   public override void Write(Utf8JsonWriter writer, Record value, JsonSerializerOptions options)
   {
-    writer.WriteStartObject();
     var type = value.GetType();
     var record = Validate(value, type);
     JsonSerializer.Serialize(writer, record, type);
