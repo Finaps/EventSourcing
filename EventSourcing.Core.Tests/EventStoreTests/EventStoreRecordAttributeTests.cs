@@ -13,7 +13,7 @@ public abstract partial class EventStoreTests
         
         await EventStore.AddAsync(new List<Event>{e});
         var result = await EventStore.Events
-                .Where(r => r.RecordId == e.RecordId)
+                .Where(r => r.RecordId == e.RecordId && r.Type == recordType)
                 .AsAsyncEnumerable()
                 .FirstOrDefaultAsync() as AttributeEvent;
         
