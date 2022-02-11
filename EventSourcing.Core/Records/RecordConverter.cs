@@ -67,7 +67,7 @@ public class RecordConverter : JsonConverter<Record>
 
   private Record Validate(Record record, Type type)
   {
-    var missing = _recordTypesCache.GetNonnullableProperties(type)
+    var missing = _recordTypesCache.GetNonNullableRecordProperties(type)
       .Where(property => property.GetValue(record) == null)
       .Select(property => property.Name)
       .ToList();
