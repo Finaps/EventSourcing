@@ -9,7 +9,7 @@ namespace EventSourcing.Core;
 /// <remarks>
 /// Enables Polymorphic Serialization and Deserialization using the <see cref="Record"/>.<see cref="Record.Type"/> property
 /// </remarks>
-public class RecordConverter : JsonConverter<Record>
+public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : Record
 {
   private class RecordType
   {
@@ -26,15 +26,15 @@ public class RecordConverter : JsonConverter<Record>
   }
 
   /// <summary>
-  /// Use <see cref="RecordConverter"/> for all Types inheriting from <see cref="Record"/>
+  /// Use <see cref="RecordConverter{TRecord}"/> for all Types inheriting from <see cref="Record"/>
   /// </summary>
   /// <param name="typeToConvert">Type to Convert</param>
-  public override bool CanConvert(Type typeToConvert) => typeof(Record).IsAssignableFrom(typeToConvert);
+  public override bool CanConvert(Type typeToConvert) => typeof(TRecord).IsAssignableFrom(typeToConvert);
 
   /// <summary>
   /// Serialize Record
   /// </summary>
-  public override void Write(Utf8JsonWriter writer, Record value, JsonSerializerOptions options)
+  public override void Write(Utf8JsonWriter writer, TRecord value, JsonSerializerOptions options)
   {
     var type = value.GetType();
     var record = Validate(value, type);
@@ -45,16 +45,16 @@ public class RecordConverter : JsonConverter<Record>
   /// Deserialize Record
   /// </summary>
   /// <exception cref="JsonException">Thrown when <see cref="Record"/> type cannot be found.</exception>
-  public override Record Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+  public override TRecord Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
   {
     var type = DeserializeRecordType(reader);
     var record = JsonSerializer.Deserialize(ref reader, type) as Record;
-    return _recordMigratorService.Migrate(Validate(record, type));
+    return _recordMigratorService.Migrate(Validate(record, type)) as TRecord;
   }
 
   private Type DeserializeRecordType(Utf8JsonReader reader)
   {
-    // Get RecordType String from Json
+    // Get Record.Type String from Json
     var typeString = JsonSerializer.Deserialize<RecordType>(ref reader)?.Type ??
                      
        // Throw Exception when json has no "Type" Property

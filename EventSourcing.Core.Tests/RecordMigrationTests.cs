@@ -40,7 +40,7 @@ public abstract class RecordMigrationTests
     {
       MigratorTypes = new List<Type> { typeof(InvalidPingRecordMigrator), typeof(InvalidPongRecordMigrator) }
     };
-    Assert.Throws<ArgumentException>(() => new RecordConverter(options));
+    Assert.Throws<ArgumentException>(() => new RecordConverter<Record>(options));
 
     return Task.CompletedTask;
   }
@@ -80,7 +80,7 @@ public abstract class RecordMigrationTests
     var e = new TrivialMigrationEventOriginal(Guid.NewGuid(), "something", 42, 42.00m);
     var aggregate = new MigratedAggregate();
     aggregate.Add(e);
-    var converter = new RecordConverter();
+    var converter = new RecordConverter<Event>();
     var options = new JsonSerializerOptions { WriteIndented = true };
 
     using var writeStream = new MemoryStream();
