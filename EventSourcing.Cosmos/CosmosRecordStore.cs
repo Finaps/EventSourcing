@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text.Json;
 using EventSourcing.Core;
 
@@ -23,10 +24,20 @@ public abstract class CosmosRecordStore<TRecord> where TRecord : Record
     
     Database = new CosmosClient(options.Value.ConnectionString, new CosmosClientOptions
     {
-      Serializer = new CosmosEventSerializer(new JsonSerializerOptions
+      Serializer = new CosmosRecordSerializer(new JsonSerializerOptions
       {
         Converters = { new RecordConverter(options.Value?.RecordConverterOptions) }
       })
-    }).GetDatabase(options.Value.Database);
+    }).GetDatabase(options.Value!.Database);
+  }
+  
+  protected static CosmosException CreateCosmosException(TransactionalBatchResponse response)
+  {
+    var subStatusCode = (int) response
+      .GetType()
+      .GetProperty("SubStatusCode", BindingFlags.NonPublic | BindingFlags.Instance)?
+      .GetValue(response)!;
+      
+    return new CosmosException(response.ErrorMessage, response.StatusCode, subStatusCode, response.ActivityId, response.RequestCharge);
   }
 }

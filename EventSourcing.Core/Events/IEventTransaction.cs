@@ -29,7 +29,7 @@ public interface IEventTransaction
   /// <summary>
   /// Commit Transaction
   /// </summary>
-  /// <exception cref="EventStoreException">
+  /// <exception cref="RecordStoreException">
   /// Thrown when a conflict occurs when commiting transaction,
   /// in which case none of the added or deleted <see cref="Event"/>s will be committed
   /// </exception>

@@ -28,7 +28,7 @@ public class CosmosSnapshotStore : CosmosRecordStore<Snapshot>, ISnapshotStore
   /// <param name="cancellationToken">Cancellation Token</param>
   /// <exception cref="InvalidOperationException">Thrown when snapshot container is not provided</exception>
   /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with empty AggregateId</exception>
-  /// <exception cref="EventStoreException">Thrown when conflicts occur when storing <see cref="Event"/>s</exception>
+  /// <exception cref="RecordStoreException">Thrown when conflicts occur when storing <see cref="Event"/>s</exception>
   public async Task AddAsync(Snapshot snapshot, CancellationToken cancellationToken = default)
   {
     RecordValidation.ValidateSnapshot(snapshot);
@@ -37,6 +37,16 @@ public class CosmosSnapshotStore : CosmosRecordStore<Snapshot>, ISnapshotStore
     transaction.CreateItem(snapshot);
 
     var response = await transaction.ExecuteAsync(cancellationToken);
-    if (!response.IsSuccessStatusCode) CosmosExceptionHelpers.Throw(response);
+
+    if (response.IsSuccessStatusCode) return;
+
+    var inner = CosmosExceptionHelpers.CreateCosmosException(response);
+
+    if (response.StatusCode == HttpStatusCode.Conflict)
+      throw new SnapshotStoreException($"Conflict while adding {snapshot.Format()}. Snapshot is already present in {nameof(CosmosSnapshotStore)}.", inner);
+
+    throw new SnapshotStoreException(
+      $"Exception while adding {snapshot.Format()}: {(int)response.StatusCode} {response.StatusCode.ToString()}. " +
+      $"See inner exception for details.", inner);
   }
 }

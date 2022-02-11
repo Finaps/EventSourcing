@@ -7,7 +7,7 @@ public class AggregateTransaction : IAggregateTransaction
   private readonly IEventTransaction _eventTransaction;
   private readonly ISnapshotStore? _snapshotStore;
   private readonly ILogger<AggregateService>? _logger;
-  private readonly List<Aggregate> _aggregates = new();
+  private readonly HashSet<Aggregate> _aggregates = new();
 
   public AggregateTransaction(IEventTransaction eventTransaction, ISnapshotStore? snapshotStore, ILogger<AggregateService>? logger)
   {
@@ -19,10 +19,12 @@ public class AggregateTransaction : IAggregateTransaction
   public IAggregateTransaction Add(Aggregate aggregate)
   {
     if (aggregate.Id == Guid.Empty)
-      throw new ArgumentException("Aggregate.Id cannot be empty", nameof(aggregate));
+      throw new ArgumentException($"Error adding {aggregate.Format()} to {nameof(AggregateTransaction)}. Aggregate.Id cannot be empty", nameof(aggregate));
+    
+    if (!_aggregates.Add(aggregate))
+      throw new ArgumentException($"Error adding {aggregate.Format()} to {nameof(AggregateTransaction)}. Aggregate already added.", nameof(aggregate));
 
     _eventTransaction.Add(aggregate.UncommittedEvents.ToList());
-    _aggregates.Add(aggregate);
 
     return this;
   }

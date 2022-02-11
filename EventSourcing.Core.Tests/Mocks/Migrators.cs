@@ -4,7 +4,7 @@ namespace EventSourcing.Core.Tests.Mocks;
 
 public class MigratorV1 : RecordMigrator<MigrationEvent, MigrationEventV2>
 {
-  public override MigrationEventV2 Convert(MigrationEvent e)
+  protected override MigrationEventV2 Convert(MigrationEvent e)
   {
     return Guid.TryParse(e.someId, out var guid)
       ? new MigrationEventV2(guid)
@@ -14,7 +14,7 @@ public class MigratorV1 : RecordMigrator<MigrationEvent, MigrationEventV2>
 
 public class MigratorV2 : RecordMigrator<MigrationEventV2, MigrationEventV3>
 {
-  public override MigrationEventV3 Convert(MigrationEventV2 e)
+  protected override MigrationEventV3 Convert(MigrationEventV2 e)
   {
     return e.someId == null
       ? new MigrationEventV3(new List<Guid>())
