@@ -8,7 +8,7 @@ public sealed class RecordTypeCache
     private static readonly List<Type> AssemblyRecordTypes = AppDomain.CurrentDomain
         .GetAssemblies()
         .SelectMany(x => x.GetTypes())
-        .Where(type => typeof(Record).IsAssignableFrom(type) && type.IsClass && !type.IsAbstract && type.IsPublic)
+        .Where(type => typeof(Record).IsAssignableFrom(type) && type.IsClass && !type.IsAbstract)
         .ToList();
     private static readonly Dictionary<Type, string> RecordTypeStrings =
         AssemblyRecordTypes.ToDictionary(type => type, type => type.GetCustomAttribute<RecordType>()?.Value ?? type.Name);
