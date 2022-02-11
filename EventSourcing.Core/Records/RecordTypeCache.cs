@@ -31,16 +31,25 @@ public sealed class RecordTypeCache
     public Type GetRecordType(string typeString)
     {
         if (!_recordTypes.TryGetValue(typeString, out var type))
-            throw new InvalidOperationException($"Record with Type '{typeString}' not found");
+            throw new InvalidOperationException(
+                $"Error getting record type string for {type}. {type} not provided in {nameof(RecordTypeCache)}.ctor. Ensure {type.Name} is added to {nameof(_recordTypes)}");
 
         return type;
     }
-    public string GetRecordTypeString(Type type) => GetRecordTypeString(type, _recordTypeStrings);
-    public static string GetAssemblyRecordTypeString(Type type) => GetRecordTypeString(type, RecordTypeStrings);
-    private static string GetRecordTypeString(Type type, IReadOnlyDictionary<Type, string> recordTypeStrings)
+    public string GetRecordTypeString(Type type)
     {
-        if(!recordTypeStrings.TryGetValue(type, out var typeString))
-            throw new InvalidOperationException($"Record type for Type '{type.Name}' not found");
+        if(!_recordTypeStrings.TryGetValue(type, out var typeString))
+            throw new InvalidOperationException(
+                $"Error getting record type string for {type}. {type} not found in Assembly. Ensure {type.Name} extends {typeof(Record)}");
+
+
+        return typeString;
+    }
+    public static string GetAssemblyRecordTypeString(Type type)
+    {
+        if(!RecordTypeStrings.TryGetValue(type, out var typeString))
+            throw new InvalidOperationException(
+                $"Error getting record type string for {type}. {type} not found in Assembly. Ensure {type.Name} extends {typeof(Record)}");
 
         return typeString;
     }
