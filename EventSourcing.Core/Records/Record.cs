@@ -51,7 +51,7 @@ public record Record
   protected Record()
   {
     RecordId = Guid.NewGuid();
-    Type = RecordTypeCache.GetRecordTypeStringStatic(GetType());
+    Type = RecordTypeCache.GetAssemblyRecordTypeString(GetType());
     Timestamp = DateTimeOffset.Now;
   }
   

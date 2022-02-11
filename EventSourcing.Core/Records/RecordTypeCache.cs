@@ -35,10 +35,11 @@ public sealed class RecordTypeCache
 
         return type;
     }
-    public string GetRecordTypeString(Type type) => GetRecordTypeStringStatic(type, _recordTypeStrings);
-    public static string GetRecordTypeStringStatic(Type type, Dictionary<Type, string>? recordTypeStrings = null)
+    public string GetRecordTypeString(Type type) => GetRecordTypeString(type, _recordTypeStrings);
+    public static string GetAssemblyRecordTypeString(Type type) => GetRecordTypeString(type, RecordTypeStrings);
+    private static string GetRecordTypeString(Type type, IReadOnlyDictionary<Type, string> recordTypeStrings)
     {
-        if(!(recordTypeStrings ?? RecordTypeStrings).TryGetValue(type, out var typeString))
+        if(!recordTypeStrings.TryGetValue(type, out var typeString))
             throw new InvalidOperationException($"Record type for Type '{type.Name}' not found");
 
         return typeString;

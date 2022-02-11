@@ -1,4 +1,3 @@
-using System.Reflection;
 using EventSourcing.Core.Types;
 
 namespace EventSourcing.Core;
@@ -22,40 +21,31 @@ public static class RecordValidation
     var partitionIds = events.Select(x => x.PartitionId).Distinct().ToList();
 
     if (partitionIds.Count > 1)
-      throw new RecordValidationException(message + "All Events must share the same PartitionId");
-    
+      throw new RecordValidationException(message + $"All Events must share the same PartitionId. Expected {partitionId}, Found [ {string.Join(", ", events.Select(x => x.PartitionId))} ]");    
     if (partitionIds.Single() != partitionId)
-      throw new RecordValidationException(message + "All Events in a transaction must share the same PartitionId");
-
+      throw new RecordValidationException(message + $"All Events in a transaction must share the same PartitionId. Expected {partitionId}, Found [ {string.Join(", ", events.Select(x => x.PartitionId))} ]");
     if (events.Select(x => x.AggregateId).Distinct().Count() > 1)
-      throw new RecordValidationException(message + "All Events must share the same AggregateId");
-
+      throw new RecordValidationException(message + $"All Events must share the same AggregateId. Found [ {string.Join(", ", events.Select(x => x.AggregateId))} ]");
     if (events.Select(x => x.RecordId).Distinct().Count() != events.Count)
-      throw new RecordValidationException(message + "All Events should have unique RecordIds");
-
+      throw new RecordValidationException(message + $"All Events should have unique RecordIds. Found [ {string.Join(", ", events.Select(x => x.RecordId))} ]");
     if (!IsConsecutive(events.Select(e => e.Index).ToList()))
-      throw new RecordValidationException(message + "Event indices must be consecutive");
-  }
+      throw new RecordValidationException(message + $"Event indices must be consecutive. Found [ {string.Join(", ", events.Select(x => x.Index))} ]");  }
 
   public static void ValidateRecord(Record r)
   {
     if (r.AggregateId == Guid.Empty)
-      Throw(r, "AggregateId should not be empty");
-    
+      Throw(r, $"{r.Type}.AggregateId should not be Guid.Empty");    
     if (r.RecordId == Guid.Empty)
-      Throw(r, "RecordId should not be empty");
-    
+      Throw(r, $"{r.Type}.RecordId should not be Guid.Empty");    
     if (string.IsNullOrEmpty(r.AggregateType))
-      Throw(r, "AggregateType should not be null or empty");
-    
+      Throw(r, $"{r.Type}.AggregateType should not be null or empty");    
     if (r.Index < 0)
-      Throw(r, "Index must be a non-negative integer");
-
-    var typeString = RecordTypeCache.GetRecordTypeStringStatic(r.GetType());
+      Throw(r, $"{r.Type}.Index ({r.Index}) must be a non-negative integer");
+    
+    var typeString = RecordTypeCache.GetAssemblyRecordTypeString(r.GetType());
     
     if(r.Type != typeString)
-      Throw(r, $"Invalid record type {r.Type}. Did you mean {typeString}?");
-  }
+      Throw(r, $"{r.GetType().Name}.Type ({r.Type}) should equal to {typeString}");  }
 
   public static void ValidateSnapshotForAggregate(Aggregate a, Snapshot s)
   {
@@ -70,7 +60,7 @@ public static class RecordValidation
     ValidateRecordForAggregate(a, e);
     
     if (e.Index != a.Version)
-      Throw(e, $"{eventType}.Index ({e.Index}) does not correspond with {aggregateType}.Version ({a.Version})");
+      Throw(e, $"{e.Type}.Index ({e.Index}) does not correspond with {aggregateType}.Version ({a.Version})");
   }
 
   public static void ValidateRecordForAggregate(Aggregate a, Record r)
@@ -80,18 +70,14 @@ public static class RecordValidation
     ValidateRecord(r);
 
     if (r.AggregateId != a.Id)
-      Throw(r, $"AggregateId ({r.AggregateId}) does not correspond with {aggregateType}.Id ({a.Id})");
-
+      Throw(r, $"{r.Type}.AggregateId ({r.AggregateId}) should equal {a.Type}.Id ({a.Id})");
     if (r.AggregateType != aggregateType)
-      Throw(r, $"AggregateType ({r.AggregateType}) does not correspond with typeof(Aggregate) ({aggregateType})");
-    
+      Throw(r, $"{r.AggregateType}.AggregateType ({r.AggregateType}) should equal ({a.Type}).Type ({a.Type})");    
     if (r.PartitionId != a.PartitionId)
-      Throw(r, $"PartitionId ({r.PartitionId}) does not correspond with {aggregateType}.PartitionId ({a.PartitionId})");
-  }
+      Throw(r, $"{r.Type}.PartitionId ({r.PartitionId}) should equal {a.Type}.PartitionId ({a.PartitionId})");  }
 
   private static void Throw(Record r, string message) =>
-    throw new RecordValidationException($"Error Validating {r.GetType().Name} with RecordId '{r.RecordId}': {message}");
-  
+    throw new RecordValidationException($"Error Validating {r.Format()}: {message}");  
   private static bool IsConsecutive(IList<long> numbers)
   {
     if (numbers.Count == 0) return true;
