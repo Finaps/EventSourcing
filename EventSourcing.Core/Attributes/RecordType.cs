@@ -6,8 +6,8 @@ public class RecordType : Attribute
 
     public RecordType(string recordType)
     {
-        if(string.IsNullOrEmpty(recordType))
-            throw new ArgumentNullException(nameof(recordType), "Record type cannot be an empty string");
+        if(string.IsNullOrWhiteSpace(recordType))
+            throw new ArgumentException("Record type cannot be white space", nameof(recordType));
         
         Value = recordType;
     }

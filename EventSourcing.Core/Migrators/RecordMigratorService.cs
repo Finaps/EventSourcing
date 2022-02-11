@@ -10,10 +10,10 @@ public class RecordMigratorService
     
     private readonly Dictionary<Type, IRecordMigrator?> _migrators;
     
-    public RecordMigratorService(RecordConverterOptions? options = null)
+    public RecordMigratorService(List<Type>? migratorTypes = null)
     {
         // Create dictionary mapping from Record.Type to Migrator Type
-        _migrators = (options?.MigratorTypes ?? AssemblyMigratorTypes)
+        _migrators = (migratorTypes ?? AssemblyMigratorTypes)
             .Select(type => Activator.CreateInstance(type) as IRecordMigrator)
             .ToDictionary(migrator => migrator!.Source, migrator => migrator);
         

@@ -22,7 +22,7 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
   public RecordConverter(RecordConverterOptions? options = null)
   {
     _recordTypeCache = new RecordTypeCache(options?.RecordTypes);
-    _recordMigratorService = new RecordMigratorService(options);
+    _recordMigratorService = new RecordMigratorService(options?.MigratorTypes);
   }
 
   /// <summary>
@@ -58,7 +58,10 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
     var typeString = JsonSerializer.Deserialize<RecordType>(ref reader)?.Type ??
                      
        // Throw Exception when json has no "Type" Property
-       throw new RecordValidationException($"Error while extracting record type string. Does the JSON contain a {nameof(Record.Type)} field?");
+       throw new RecordValidationException(
+         $"Error converting {typeof(TRecord)}. " +
+         $"Couldn't parse {typeof(TRecord)}.Type string from Json. " +
+         $"Does the Json contain a {nameof(Record.Type)} field?");
 
     return _recordTypeCache.GetRecordType(typeString);
   }
@@ -71,8 +74,10 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
       .ToList();
     
     if (missing.Count > 0)
-      throw new RecordValidationException($"Error validating {type} with RecordId '{record.RecordId}'.\n" +
-        $"One ore more non-nullable properties missing or null: {string.Join(", ", missing.Select(property => $"{type.Name}.{property}"))}");
+      throw new RecordValidationException(        
+        $"Error converting Json to {record.Format()}'.\n" +
+        $"One ore more non-nullable properties are missing or null: {string.Join(", ", missing.Select(property => $"{type.Name}.{property}"))}.\n" +
+        $"Either make properties nullable or use a RecordMigrator to handle {nameof(TRecord)} versioning.");
 
     return record;
   }
