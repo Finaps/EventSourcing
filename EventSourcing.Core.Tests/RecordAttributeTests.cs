@@ -15,7 +15,7 @@ public abstract class RecordAttributeTests
         
         await EventStore.AddAsync(new List<Event>{e});
         var result = await EventStore.Events
-                .Where(r => r.RecordId == e.RecordId && r.Type == recordType)
+                .Where(r => r.RecordId == e.RecordId)
                 .AsAsyncEnumerable()
                 .FirstOrDefaultAsync() as AttributeEvent;
         

@@ -50,11 +50,6 @@ public static class RecordValidation
     
     if (r.Index < 0)
       Throw(r, "Index must be a non-negative integer");
-
-    var recordType = RecordTypeProvider.Instance.GetRecordTypeString(r.GetType());
-    
-    if (r.Type != recordType)
-      Throw(r, $"Type ({r.Type}) does not correspond with record Type ({recordType})");
   }
 
   public static void ValidateSnapshotForAggregate(Aggregate a, Snapshot s)

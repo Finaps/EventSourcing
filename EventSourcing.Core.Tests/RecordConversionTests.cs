@@ -18,7 +18,7 @@ public class RecordConversionTests
   [Fact]
   public Task Converter_Throws_On_Missing_And_Null_Properties_On_Read_And_Write()
   {
-    var converter = new RecordConverter<Record>(new RecordConverterOptions
+    var converter = new RecordConverter(new RecordConverterOptions
     {
       RecordTypes = new List<Type> { typeof(TestRecord) }
     });

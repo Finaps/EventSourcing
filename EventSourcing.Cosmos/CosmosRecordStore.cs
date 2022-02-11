@@ -25,7 +25,7 @@ public abstract class CosmosRecordStore<TRecord> where TRecord : Record
     {
       Serializer = new CosmosEventSerializer(new JsonSerializerOptions
       {
-        Converters = { new RecordConverter<TRecord>(options.Value?.RecordConverterOptions) }
+        Converters = { new RecordConverter(options.Value?.RecordConverterOptions) }
       })
     }).GetDatabase(options.Value.Database);
   }
