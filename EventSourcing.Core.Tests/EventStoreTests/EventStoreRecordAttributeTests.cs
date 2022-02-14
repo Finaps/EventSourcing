@@ -33,7 +33,7 @@ public abstract partial class EventStoreTests
             .FirstOrDefaultAsync() as AttributeEvent;
         
         Assert.NotNull(result);
-        Assert.Equal(typeof(AttributeEvent).GetCustomAttribute<RecordType>()?.Value, result.Type);
+        Assert.Equal(typeof(AttributeEvent).GetCustomAttribute<RecordType>()!.Value, result!.Type);
         Assert.Equal(e.SomeString, result.SomeString);
     }
 }
