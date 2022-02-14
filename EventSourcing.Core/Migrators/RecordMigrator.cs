@@ -14,7 +14,7 @@ public abstract class RecordMigrator<TSource, TTarget> : IRecordMigrator where T
   public Record Convert(Record record) =>
     Convert((TSource) record) with {
         Timestamp = record.Timestamp,
-        Type = typeof(TTarget).Name,
+        Type = RecordTypeCache.GetAssemblyRecordTypeString(Target),
         AggregateId = record.AggregateId,
         AggregateType = record.AggregateType,
         Index = record.Index,
