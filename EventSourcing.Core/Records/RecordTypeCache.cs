@@ -32,7 +32,7 @@ public sealed class RecordTypeCache
     {
         if (!_recordTypes.TryGetValue(typeString, out var type))
             throw new InvalidOperationException(
-                $"Error getting record type string for {type}. {type} not provided in {nameof(RecordTypeCache)}.ctor. Ensure {type.Name} is added to {nameof(_recordTypes)}");
+                $"Error getting record type string for {type}. {type} not provided in {nameof(RecordTypeCache)}.ctor");
 
         return type;
     }
@@ -40,8 +40,7 @@ public sealed class RecordTypeCache
     {
         if(!_recordTypeStrings.TryGetValue(type, out var typeString))
             throw new InvalidOperationException(
-                $"Error getting record type string for {type}. {type} not found in Assembly. Ensure {type.Name} extends {typeof(Record)}");
-
+                $"Error getting record type string for {type}. {type} not provided in {nameof(RecordTypeCache)}.ctor");
 
         return typeString;
     }
@@ -56,7 +55,7 @@ public sealed class RecordTypeCache
     public IEnumerable<PropertyInfo> GetNonNullableRecordProperties(Type type)
     {
         if(!_nonNullableRecordProperties.TryGetValue(type, out var properties))
-            throw new InvalidOperationException($"Non-nullable record properties for Type '{type.Name}' not found");
+            throw new InvalidOperationException($"Error getting non-nullable properties for {type}. {type} not provided in {nameof(RecordTypeCache)}.ctor");
 
         return properties;
     }
