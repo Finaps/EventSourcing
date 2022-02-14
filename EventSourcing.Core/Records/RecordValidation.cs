@@ -36,9 +36,6 @@ public static class RecordValidation
 
   public static void ValidateRecord(Record r)
   {
-    if (r.Type != r.GetType().Name)
-      Throw(r, $"{r.GetType().Name}.Type ({r.Type}) should equal typeof({r.GetType().Name}).Name ({r.GetType().Name})");
-    
     if (r.AggregateId == Guid.Empty)
       Throw(r, $"{r.Type}.AggregateId should not be Guid.Empty");
     
@@ -50,6 +47,11 @@ public static class RecordValidation
     
     if (r.Index < 0)
       Throw(r, $"{r.Type}.Index ({r.Index}) must be a non-negative integer");
+    
+    var typeString = RecordTypeCache.GetAssemblyRecordTypeString(r.GetType());
+
+    if(r.Type != typeString)
+      Throw(r, $"{r.GetType().Name}.Type ({r.Type}) should equal to {typeString}");
   }
 
   public static void ValidateSnapshotForAggregate(Aggregate a, Snapshot s)

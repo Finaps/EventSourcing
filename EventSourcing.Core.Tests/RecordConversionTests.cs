@@ -1,7 +1,6 @@
 using System.IO;
 using System.Text;
 using System.Text.Json;
-using EventSourcing.Core.Migrations;
 
 namespace EventSourcing.Core.Tests;
 
