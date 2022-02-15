@@ -8,7 +8,6 @@ namespace EventSourcing.Cosmos.Tests;
 public class CosmosAggregateServiceTests : AggregateServiceTests
 {
   protected sealed override IEventStore EventStore { get; }
-  protected sealed override ISnapshotStore SnapshotStore { get; }
   protected sealed override IAggregateService AggregateService { get; }
 
   public CosmosAggregateServiceTests()
@@ -23,12 +22,10 @@ public class CosmosAggregateServiceTests : AggregateServiceTests
     {
       ConnectionString = configuration["Cosmos:ConnectionString"],
       Database = configuration["Cosmos:Database"],
-      EventsContainer = configuration["Cosmos:EventsContainer"],
-      SnapshotsContainer = configuration["Cosmos:SnapshotsContainer"]
+      Container = configuration["Cosmos:Container"]
     });
 
     EventStore = new CosmosEventStore(options);
-    SnapshotStore = new CosmosSnapshotStore(options);
-    AggregateService = new AggregateService(EventStore, SnapshotStore);
+    AggregateService = new AggregateService(EventStore);
   }
 }

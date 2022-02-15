@@ -25,6 +25,8 @@ public abstract class Aggregate
   /// </summary>
   public string Type { get; init; }
 
+  public string id => Id.ToString();
+
   /// <summary>
   /// Uncommitted Events
   /// </summary>

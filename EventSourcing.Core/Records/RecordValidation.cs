@@ -2,6 +2,14 @@ namespace EventSourcing.Core;
 
 public static class RecordValidation
 {
+  public static void ValidateSnapshot(Guid partitionId, Snapshot snapshot)
+  {
+    if (snapshot.PartitionId != partitionId)
+      Throw(snapshot, $"Snapshot PartitionId ('{snapshot.PartitionId}') not equal to Transaction PartitionId ('{partitionId}')");
+      
+    ValidateRecord(snapshot);
+  }
+  
   public static void ValidateSnapshot(Snapshot snapshot)
   {
     ValidateRecord(snapshot);

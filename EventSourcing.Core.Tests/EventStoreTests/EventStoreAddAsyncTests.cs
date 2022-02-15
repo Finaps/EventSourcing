@@ -31,7 +31,8 @@ public abstract partial class EventStoreTests
   [Fact]
   public async Task Cannot_Add_Null_Event_List()
   {
-    await Assert.ThrowsAsync<ArgumentNullException>(async () => await EventStore.AddAsync(null));
+    await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+      await EventStore.AddAsync((List<Event>) null));
   }
   
   [Fact]

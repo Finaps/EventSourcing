@@ -2,6 +2,13 @@ namespace EventSourcing.Core;
 
 public record Record
 {
+  public RecordKind Kind => this switch
+  {
+    Event => RecordKind.Event,
+    Snapshot => RecordKind.Snapshot,
+    _ => RecordKind.None
+  };
+  
   /// <summary>
   /// Unique Partition identifier
   /// </summary>
@@ -26,7 +33,7 @@ public record Record
   /// Aggregate type
   /// </summary>
   public string? AggregateType { get; init; }
-  
+
   /// <summary>
   /// Record type
   /// </summary>
@@ -40,8 +47,8 @@ public record Record
   /// <summary>
   /// Unique Database Identifier
   /// </summary>
-  public string id => GetId(AggregateId, Index);
-  
+  public string id => $"{Kind.ToString()}|{AggregateId}[{Index}]";
+
   /// <summary>
   /// Create new Record
   /// </summary>
@@ -51,14 +58,6 @@ public record Record
     Type = RecordTypeCache.GetAssemblyRecordTypeString(GetType());
     Timestamp = DateTimeOffset.Now;
   }
-  
-  /// <summary>
-  /// Construct Database Id from <see cref="Event.AggregateId"/> and <see cref="Index"/>
-  /// </summary>
-  /// <param name="aggregateId">Aggregate Id</param>
-  /// <param name="index">Record Index</param>
-  /// <returns>Record 'id' string</returns>
-  public static string GetId(Guid aggregateId, long index) => $"{aggregateId}[{index}]";
 
   public string Format()
   {

@@ -29,8 +29,7 @@ public class CosmosEventStoreTests : EventStoreTests
     {
       ConnectionString = configuration["Cosmos:ConnectionString"],
       Database = configuration["Cosmos:Database"],
-      EventsContainer = configuration["Cosmos:EventsContainer"],
-      SnapshotsContainer = configuration["Cosmos:SnapshotsContainer"]
+      Container = configuration["Cosmos:Container"]
     });
 
     EventStore = new CosmosEventStore(_options);
@@ -40,7 +39,7 @@ public class CosmosEventStoreTests : EventStoreTests
   public Task Throws_ArgumentException_With_Missing_ConnectionString()
   {
     Assert.Throws<ArgumentException>(() => new CosmosEventStore(Options.Create(new CosmosEventStoreOptions {
-      ConnectionString = " ", Database = "A", EventsContainer = "B"
+      ConnectionString = " ", Database = "A", Container = "B"
     })));
     
     return Task.CompletedTask;
@@ -50,7 +49,7 @@ public class CosmosEventStoreTests : EventStoreTests
   public Task Throws_ArgumentException_With_Missing_Database_Name()
   {
     Assert.Throws<ArgumentException>(() => new CosmosEventStore(Options.Create(new CosmosEventStoreOptions {
-      ConnectionString = "A", Database = null, EventsContainer = "B"
+      ConnectionString = "A", Database = null, Container = "B"
     })));
     
     return Task.CompletedTask;
@@ -62,7 +61,7 @@ public class CosmosEventStoreTests : EventStoreTests
   {
     Assert.Throws<ArgumentException>(() => new CosmosEventStore(Options.Create(new CosmosEventStoreOptions
     {
-      ConnectionString = "A", Database = "B", EventsContainer = ""
+      ConnectionString = "A", Database = "B", Container = ""
     })));
     
     return Task.CompletedTask;
@@ -76,7 +75,7 @@ public class CosmosEventStoreTests : EventStoreTests
       // Invalid Connection String
       ConnectionString = "AccountEndpoint=https://example.documents.azure.com:443/;AccountKey=JKnJg81PiP0kkqhCu0k3mKlEPEEBqlFxwM4eiyd3WX2HKUYAAglbc9vMRJQhDsUomD3VHpwrWO9O5nL4ENwLFw==;",
       Database = _options.Value.Database,
-      EventsContainer =_options.Value.EventsContainer
+      Container =_options.Value.Container
     }));
 
     var exception = await Assert.ThrowsAsync<EventStoreException>(async () =>
@@ -91,7 +90,7 @@ public class CosmosEventStoreTests : EventStoreTests
     {
       ConnectionString = _options.Value.ConnectionString,
       Database = "Invalid",
-      EventsContainer = _options.Value.EventsContainer
+      Container = _options.Value.Container
     }));
 
     var exception = await Assert.ThrowsAsync<EventStoreException>(async () =>
@@ -106,7 +105,7 @@ public class CosmosEventStoreTests : EventStoreTests
     {
       ConnectionString = _options.Value.ConnectionString,
       Database = _options.Value.Database,
-      EventsContainer = "Invalid"
+      Container = "Invalid"
     }));
 
     var exception = await Assert.ThrowsAsync<EventStoreException>(async () =>
@@ -122,7 +121,7 @@ public class CosmosEventStoreTests : EventStoreTests
       // Invalid Connection String
       ConnectionString = "AccountEndpoint=https://example.documents.azure.com:443/;AccountKey=JKnJg81PiP0kkqhCu0k3mKlEPEEBqlFxwM4eiyd3WX2HKUYAAglbc9vMRJQhDsUomD3VHpwrWO9O5nL4ENwLFw==;",
       Database = _options.Value.Database,
-      EventsContainer =_options.Value.EventsContainer
+      Container =_options.Value.Container
     }));
       
     var exception = await Assert.ThrowsAsync<EventStoreException>(async () =>
@@ -141,7 +140,7 @@ public class CosmosEventStoreTests : EventStoreTests
     {
       ConnectionString = _options.Value.ConnectionString,
       Database = "Invalid",
-      EventsContainer = _options.Value.EventsContainer
+      Container = _options.Value.Container
     }));
 
     var exception = await Assert.ThrowsAsync<EventStoreException>(async () =>
@@ -160,7 +159,7 @@ public class CosmosEventStoreTests : EventStoreTests
     {
       ConnectionString = _options.Value.ConnectionString,
       Database = _options.Value.Database,
-      EventsContainer = "Invalid"
+      Container = "Invalid"
     }));
 
     var exception = await Assert.ThrowsAsync<EventStoreException>(async () =>

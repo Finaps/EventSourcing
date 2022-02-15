@@ -1,6 +1,6 @@
 namespace EventSourcing.Core;
 
-public interface IEventTransaction
+public interface ITransaction
 {
   /// <summary>
   /// Partition Id Transaction is scoped to
@@ -17,15 +17,10 @@ public interface IEventTransaction
   /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with more than one unique <see cref="Event.PartitionId"/> or <see cref="Event.AggregateId"/></exception>
   /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with <see cref="Guid.Empty"/> <see cref="Event.AggregateId"/></exception>
   /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with nonconsecutive <see cref="Record.Index"/>s</exception>
-  IEventTransaction Add(IList<Event> events);
+  ITransaction Add(IList<Event> events);
+  ITransaction Add(Snapshot snapshot);
+  ITransaction Add(Aggregate aggregate);
 
-  /// <summary>
-  /// Delete all <see cref="Event"/>s for a given <see cref="Aggregate"/>
-  /// </summary>
-  /// <param name="aggregateId"><see cref="Aggregate"/>.<see cref="Aggregate.Id"/></param>
-  /// <param name="aggregateVersion"></param>
-  IEventTransaction Delete(Guid aggregateId, long aggregateVersion);
-  
   /// <summary>
   /// Commit Transaction
   /// </summary>
