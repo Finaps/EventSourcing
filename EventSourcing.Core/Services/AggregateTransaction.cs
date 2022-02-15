@@ -14,12 +14,12 @@ public class AggregateTransaction : IAggregateTransaction
   {
     if (aggregate.Id == Guid.Empty)
       throw new ArgumentException(
-        $"Error adding {aggregate.Format()} to {nameof(AggregateTransaction)}. Aggregate.Id cannot be empty",
+        $"Error adding {aggregate} to {nameof(AggregateTransaction)}. Aggregate.Id cannot be empty",
         nameof(aggregate));
 
     if (!_aggregates.Add(aggregate))
       throw new ArgumentException(
-        $"Error adding {aggregate.Format()} to {nameof(AggregateTransaction)}. Aggregate already added.",
+        $"Error adding {aggregate} to {nameof(AggregateTransaction)}. Aggregate already added.",
         nameof(aggregate));
 
     _transaction.Add(aggregate.UncommittedEvents.ToList());

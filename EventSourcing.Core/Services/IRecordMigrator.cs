@@ -18,5 +18,5 @@ public interface IRecordMigrator
   /// <summary>
   /// Convert: Convert an <see cref="Record"/> to it's successive version
   /// </summary>
-  Record Convert(Record record);
+  IndexedRecord Convert(IndexedRecord record);
 }

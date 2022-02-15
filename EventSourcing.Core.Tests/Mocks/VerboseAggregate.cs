@@ -1,6 +1,6 @@
 namespace EventSourcing.Core.Tests.Mocks;
 
-public class VerboseAggregate : Aggregate
+public record VerboseAggregate : Aggregate
 {
   public readonly List<Event> AppliedEvents = new();
 
