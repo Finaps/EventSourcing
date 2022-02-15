@@ -19,7 +19,7 @@ internal class CosmosRecordSerializer : CosmosSerializer
     using (stream)
     {
       if (stream.CanSeek && stream.Length == 0)
-        throw new RecordStoreException("Couldn't read Record Stream");
+        throw new EventStoreException("Couldn't read Record Stream");
 
       if (typeof(Stream).IsAssignableFrom(typeof(T)))
         return (T)(object) stream;

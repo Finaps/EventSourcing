@@ -2,10 +2,8 @@ using EventSourcing.Core.Tests.Mocks;
 
 namespace EventSourcing.Core.Tests;
 
-public abstract class SnapshotStoreTests
+public abstract partial class EventStoreTests
 {
-  protected abstract ISnapshotStore SnapshotStore { get; }
-
   [Fact]
   public async Task Cannot_Create_Snapshot_For_Aggregate_Without_Events()
   {
@@ -18,7 +16,7 @@ public abstract class SnapshotStoreTests
   {
     var aggregate = new SnapshotAggregate();
     aggregate.Add(new EmptyEvent());
-    await SnapshotStore.AddAsync(aggregate.CreateLinkedSnapshot());
+    await EventStore.AddAsync(aggregate.CreateLinkedSnapshot());
   }
 
   [Fact]
@@ -28,10 +26,10 @@ public abstract class SnapshotStoreTests
     aggregate.Add(new EmptyEvent());
     var snapshot = aggregate.CreateLinkedSnapshot();
     
-    await SnapshotStore.AddAsync(snapshot);
+    await EventStore.AddAsync(snapshot);
 
-    await Assert.ThrowsAnyAsync<RecordStoreException>(
-      async () => await SnapshotStore.AddAsync(snapshot));
+    await Assert.ThrowsAnyAsync<EventStoreException>(
+      async () => await EventStore.AddAsync(snapshot));
   }
   
   [Fact]
@@ -39,9 +37,9 @@ public abstract class SnapshotStoreTests
   {
     var aggregate = new SnapshotAggregate { PartitionId = Guid.NewGuid() };
     aggregate.Add(new EmptyEvent());
-    await SnapshotStore.AddAsync(aggregate.CreateLinkedSnapshot());
+    await EventStore.AddAsync(aggregate.CreateLinkedSnapshot());
 
-    var count = await SnapshotStore.Snapshots
+    var count = await EventStore.Snapshots
       .Where(x => x.PartitionId == aggregate.PartitionId)
       .AsAsyncEnumerable()
       .CountAsync();
@@ -54,9 +52,9 @@ public abstract class SnapshotStoreTests
   {
     var aggregate = new SnapshotAggregate();
     aggregate.Add(new EmptyEvent());
-    await SnapshotStore.AddAsync(aggregate.CreateLinkedSnapshot());
+    await EventStore.AddAsync(aggregate.CreateLinkedSnapshot());
 
-    var count = await SnapshotStore.Snapshots
+    var count = await EventStore.Snapshots
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
@@ -75,10 +73,10 @@ public abstract class SnapshotStoreTests
 
     Assert.NotEqual(snapshot.Index, snapshot2.Index);
 
-    await SnapshotStore.AddAsync(snapshot);
-    await SnapshotStore.AddAsync(snapshot2);
+    await EventStore.AddAsync(snapshot);
+    await EventStore.AddAsync(snapshot2);
 
-    var result = await SnapshotStore.Snapshots
+    var result = await EventStore.Snapshots
       .Where(x => x.AggregateId == aggregate.Id)
       .OrderByDescending(x => x.Index)
       .AsAsyncEnumerable()

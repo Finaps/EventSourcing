@@ -57,38 +57,7 @@ public abstract partial class EventStoreTests
     
     Assert.Equal(0, count);
   }
-  
-  [Fact]
-  public async Task Cannot_Delete_Events_When_Events_Are_Added_Concurrently()
-  {
-    var aggregate = new EmptyAggregate();
-    var events = new List<Event>();
-  
-    // First, store 10 events
-    for (var i = 0; i < 10; i++)
-      events.Add(aggregate.Add(new EmptyEvent()));
-    await EventStore.AddAsync(events);
-  
-    // Then, start transaction, deleting 10 events
-    var transaction = EventStore.CreateTransaction();
-    transaction.Delete(aggregate.Id, aggregate.Version);
-    
-    // Then store another event, simulating concurrency
-    var concurrentEvent = aggregate.Add(new EmptyEvent());
-    await EventStore.AddAsync(new List<Event> { concurrentEvent });
-  
-    // Check if committing transaction throws EventStoreException
-    await Assert.ThrowsAsync<EventStoreException>(async () => await transaction.CommitAsync());
-  
-    // Check if events were left untouched by transaction
-    var count = await EventStore.Events
-      .Where(x => x.AggregateId == aggregate.Id)
-      .AsAsyncEnumerable()
-      .CountAsync();
-    
-    Assert.Equal(11, count);
-  }
-  
+
   [Fact]
   public async Task Cannot_Add_Events_When_Events_Are_Deleted_Concurrently()
   {
