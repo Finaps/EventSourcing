@@ -11,16 +11,7 @@ public interface IAggregateTransaction
   /// <param name="aggregate"><see cref="Aggregate"/> to persist</param>
   /// <returns>Persisted <see cref="Aggregate"/></returns>
   IAggregateTransaction Add(Aggregate aggregate);
-  
-  /// <summary>
-  /// Delete <see cref="Aggregate"/> in the <see cref="IAggregateTransaction"/>
-  /// </summary>
-  /// <remarks>
-  /// When all <see cref="Aggregate"/>s have been added/deleted, call <see cref="CommitAsync"/> to commit them
-  /// </remarks>
-  /// <returns>Persisted <see cref="Aggregate"/></returns>
-  IAggregateTransaction Delete(Guid aggregateId, long aggregateVersion);
-  
+
   /// <summary>
   /// Commit <see cref="Aggregate"/> operations to the <see cref="IEventStore"/>
   /// </summary>

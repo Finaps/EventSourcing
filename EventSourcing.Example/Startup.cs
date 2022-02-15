@@ -35,7 +35,6 @@ public class Startup
     // Configure Cosmos connections
     services.Configure<CosmosEventStoreOptions>(Configuration.GetSection("Cosmos"));
     services.AddSingleton<IEventStore, CosmosEventStore>();
-    services.AddSingleton<ISnapshotStore, CosmosSnapshotStore>();
     // Configure AggregateService
     services.AddScoped<IAggregateService, AggregateService>();
   }

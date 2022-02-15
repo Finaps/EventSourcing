@@ -14,6 +14,7 @@ public interface IEventStore
   /// e.g. <c>System.Linq.Async</c> or <c>EventSourcing.Core.QueryableExtensions</c> work as intended.
   /// </remarks>
   IQueryable<Event> Events { get; }
+  IQueryable<Snapshot> Snapshots { get; }
 
   /// <summary>
   /// AddAsync: Store <see cref="Event"/>s to the <see cref="IEventStore"/>
@@ -27,7 +28,9 @@ public interface IEventStore
   /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with nonconsecutive <see cref="Record.Index"/>s</exception>
   /// <exception cref="RecordStoreException">Thrown when conflicts occur when storing <see cref="Event"/>s</exception>
   Task AddAsync(IList<Event> events, CancellationToken cancellationToken = default);
-
+  Task AddAsync(Snapshot snapshot, CancellationToken cancellationToken = default);
+  Task AddAsync(Aggregate aggregate, CancellationToken cancellationToken = default);
+    
   /// <summary>
   /// Delete <see cref="Event"/>s for an <see cref="Aggregate"/> from the <see cref="IEventStore"/>
   /// </summary>
@@ -45,32 +48,15 @@ public interface IEventStore
   Task DeleteAsync(Guid aggregateId, CancellationToken cancellationToken = default);
 
   /// <summary>
-  /// Get <see cref="Aggregate"/> Version 
-  /// </summary>
-  /// <param name="partitionId">Partition id</param>
-  /// <param name="aggregateId">Aggregate Id</param>
-  /// <param name="cancellationToken">Cancellation Token</param>
-  /// <returns>Aggregate Version</returns>
-  Task<long> GetAggregateVersionAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default);
-  
-  /// <summary>
-  /// Get <see cref="Aggregate"/> Version
-  /// </summary>
-  /// <param name="aggregateId">Aggregate Id</param>
-  /// <param name="cancellationToken">Cancellation Token</param>
-  /// <returns>Aggregate Version</returns>
-  Task<long> GetAggregateVersionAsync(Guid aggregateId, CancellationToken cancellationToken = default);
-
-  /// <summary>
   /// Create Event Transaction
   /// </summary>
   /// <param name="partitionId">Transaction Partition identifier</param>
   /// <returns></returns>
-  IEventTransaction CreateTransaction(Guid partitionId);
+  ITransaction CreateTransaction(Guid partitionId);
 
   /// <summary>
   /// Create Event Transaction for <see cref="Guid.Empty"/> partition
   /// </summary>
   /// <returns></returns>
-  IEventTransaction CreateTransaction();
+  ITransaction CreateTransaction();
 }

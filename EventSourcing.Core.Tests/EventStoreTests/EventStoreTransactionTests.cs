@@ -41,55 +41,6 @@ public abstract partial class EventStoreTests
   }
 
   [Fact]
-  public async Task Can_Delete_Events_In_Transaction()
-  {
-    var aggregate = new EmptyAggregate();
-    await EventStore.AddAsync(Enumerable.Range(0, 5)
-      .Select(_ => aggregate.Add(new Event()))
-      .ToList());
-
-    await EventStore.CreateTransaction()
-      .Delete(aggregate.Id, aggregate.Version)
-      .CommitAsync();
-
-    var count = await EventStore.Events
-      .Where(x => x.AggregateId == aggregate.Id)
-      .AsAsyncEnumerable()
-      .CountAsync();
-    
-    Assert.Equal(0, count);
-  }
-  
-  [Fact]
-  public async Task Can_Add_And_Delete_Events_In_Same_Transaction()
-  {
-    var aggregate = new EmptyAggregate();
-    await EventStore.AddAsync(Enumerable.Range(0, 5)
-      .Select(_ => aggregate.Add(new Event()))
-      .ToList());
-
-    var aggregate2 = new EmptyAggregate();
-
-    await EventStore.CreateTransaction()
-      .Add(Enumerable.Range(0, 5).Select(_ => aggregate2.Add(new Event())).ToList())
-      .Delete(aggregate.Id, aggregate.Version)
-      .CommitAsync();
-
-    var count = await EventStore.Events
-      .Where(x => x.AggregateId == aggregate.Id)
-      .AsAsyncEnumerable()
-      .CountAsync();
-
-    var count2 = await EventStore.Events
-      .Where(x => x.AggregateId == aggregate2.Id)
-      .AsAsyncEnumerable()
-      .CountAsync();
-    
-    Assert.Equal(0, count);
-    Assert.Equal(5, count2);
-  }
-
-  [Fact]
   public async Task Cannot_Add_Different_Partition_Key_In_Transaction()
   {
     var e = new EmptyEvent

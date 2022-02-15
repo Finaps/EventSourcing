@@ -8,7 +8,6 @@ namespace EventSourcing.Core.Tests;
 public abstract class RecordMigrationTests
 {
   protected abstract IEventStore EventStore { get; }
-  protected abstract ISnapshotStore SnapshotStore { get; }
   protected abstract IAggregateService AggregateService { get; }
 
   private class InvalidRecordMigrator : RecordMigrator<EmptyEvent, EmptyEvent>
