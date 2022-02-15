@@ -3,7 +3,7 @@ using EventSourcing.Core;
 
 namespace EventSourcing.Example.Domain.Orders;
 
-public class Order : Aggregate
+public record Order : Aggregate
 {
     public Guid BasketId { get; private set; }
     protected override void Apply(Event e)

@@ -3,10 +3,10 @@ using EventSourcing.Core.Migrations;
 namespace EventSourcing.Core;
 
 /// <summary>
-/// Custom <see cref="Record"/><see cref="JsonConverter{T}"/>
+/// Custom <see cref="IndexedRecord"/><see cref="JsonConverter{T}"/>
 /// </summary>
 /// <remarks>
-/// Enables Polymorphic Serialization and Deserialization using the <see cref="Record"/>.<see cref="Record.Type"/> property
+/// Enables Polymorphic Serialization and Deserialization using the <see cref="IndexedRecord"/>.<see cref="IndexedRecord.Type"/> property
 /// </remarks>
 public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : Record
 {
@@ -14,7 +14,7 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
   {
     public string? Type { get; set; }
   }
-  
+
   private readonly RecordTypeCache _recordTypeCache;
   private readonly RecordMigratorService _recordMigratorService;
 
@@ -25,7 +25,7 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
   }
 
   /// <summary>
-  /// Use <see cref="RecordConverter{TRecord}"/> for all Types inheriting from <see cref="Record"/>
+  /// Use <see cref="RecordConverter{TRecord}"/> for all Types inheriting from <see cref="IndexedRecord"/>
   /// </summary>
   /// <param name="typeToConvert">Type to Convert</param>
   public override bool CanConvert(Type typeToConvert) => typeof(TRecord).IsAssignableFrom(typeToConvert);
@@ -43,25 +43,30 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
   /// <summary>
   /// Deserialize Record
   /// </summary>
-  /// <exception cref="JsonException">Thrown when <see cref="Record"/> type cannot be found.</exception>
+  /// <exception cref="JsonException">Thrown when <see cref="IndexedRecord"/> type cannot be found.</exception>
   public override TRecord Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
   {
     var type = DeserializeRecordType(reader);
     var record = JsonSerializer.Deserialize(ref reader, type) as Record
                  ?? throw new JsonException($"Error Converting Json to {type.Name}.");
-    return (TRecord) _recordMigratorService.Migrate(Validate(record, type));
+
+    return (TRecord)(
+      record is IndexedRecord
+        ? _recordMigratorService.Migrate((IndexedRecord)Validate(record, type))
+        : record
+    );
   }
 
   private Type DeserializeRecordType(Utf8JsonReader reader)
   {
     // Get Record.Type String from Json
     var typeString = JsonSerializer.Deserialize<RecordType>(ref reader)?.Type ??
-                     
-       // Throw Exception when json has no "Type" Property
-       throw new RecordValidationException(
-         $"Error converting {typeof(TRecord)}. " +
-         $"Couldn't parse {typeof(TRecord)}.Type string from Json. " +
-         $"Does the Json contain a {nameof(Record.Type)} field?");
+
+                     // Throw Exception when json has no "Type" Property
+                     throw new RecordValidationException(
+                       $"Error converting {typeof(TRecord)}. " +
+                       $"Couldn't parse {typeof(TRecord)}.Type string from Json. " +
+                       $"Does the Json contain a {nameof(IndexedRecord.Type)} field?");
 
     return _recordTypeCache.GetRecordType(typeString);
   }
@@ -72,10 +77,10 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
       .Where(property => property.GetValue(record) == null)
       .Select(property => property.Name)
       .ToList();
-    
+
     if (missing.Count > 0)
       throw new RecordValidationException(
-        $"Error converting Json to {record.Format()}'.\n" +
+        $"Error converting Json to {record}'.\n" +
         $"One ore more non-nullable properties are missing or null: {string.Join(", ", missing.Select(property => $"{type.Name}.{property}"))}.\n" +
         $"Either make properties nullable or use a RecordMigrator to handle {nameof(TRecord)} versioning.");
 

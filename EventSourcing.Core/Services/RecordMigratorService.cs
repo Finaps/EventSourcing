@@ -20,7 +20,7 @@ public class RecordMigratorService
         ValidateMigrators();
     }
 
-    public Record Migrate(Record record)
+    public IndexedRecord Migrate(IndexedRecord record)
     {
         while (_migrators.TryGetValue(record.GetType(), out var migrator))
             record = migrator!.Convert(record);

@@ -6,7 +6,7 @@ namespace EventSourcing.Core.Tests;
 
 public class RecordConversionTests
 {
-  private record TestRecord : Record
+  private record TestRecord : IndexedRecord
   {
     public int A { get; init; }
     public string B { get; init; }
@@ -17,7 +17,7 @@ public class RecordConversionTests
   [Fact]
   public Task Converter_Throws_On_Missing_And_Null_Properties_On_Read_And_Write()
   {
-    var converter = new RecordConverter<Record>(new RecordConverterOptions
+    var converter = new RecordConverter<IndexedRecord>(new RecordConverterOptions
     {
       RecordTypes = new List<Type> { typeof(TestRecord) }
     });
@@ -44,7 +44,7 @@ public class RecordConversionTests
     var readException = Assert.Throws<RecordValidationException>(() =>
     {
       var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(faultyRecord)), true, default);
-      return converter.Read(ref reader, typeof(Record), default);
+      return converter.Read(ref reader, typeof(IndexedRecord), default);
     });
 
     // Assert for both exceptions the right exception messages are shown

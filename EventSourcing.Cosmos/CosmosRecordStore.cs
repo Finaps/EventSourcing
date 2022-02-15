@@ -7,7 +7,7 @@ namespace EventSourcing.Cosmos;
 /// <summary>
 /// Cosmos Client Base: Cosmos Connection for Querying and Storing <see cref="Event"/>s
 /// </summary>
-public abstract class CosmosRecordStore<TRecord> where TRecord : Record
+public abstract class CosmosRecordStore<TRecord> where TRecord : IndexedRecord
 {
   private protected readonly Database Database;
 

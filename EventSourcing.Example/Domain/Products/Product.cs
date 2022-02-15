@@ -6,7 +6,7 @@ using EventSourcing.Example.Domain.Shared;
 
 namespace EventSourcing.Example.Domain.Products;
 
-public class Product : Aggregate
+public record Product : Aggregate
 {
     public string Name { get; private set; }
     public int Quantity { get; private set; }

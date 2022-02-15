@@ -15,7 +15,7 @@ public record FundsTransferredEvent : FundsEvent
   public Guid CreditorAccount { get; init; }
 }
 
-public class BankAccount : Aggregate
+public record BankAccount : Aggregate
 {
   public List<FundsEvent> History { get; } = new();
   public decimal Balance { get; private set; }

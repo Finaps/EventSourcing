@@ -9,11 +9,11 @@ public abstract partial class EventStoreTests
     public async Task Can_Store_Attribute_Event_With_Correct_Type()
     {
         var e = new EmptyAggregate().Add(new AttributeEvent("something"));
-        var recordType = e.GetType().GetCustomAttribute<RecordType>()!.Value;
+        var recordType = e.GetType().GetCustomAttribute<RecordTypeAttribute>()!.Value;
 
         await EventStore.AddAsync(new List<Event>{e});
         var result = await EventStore.Events
-            .Where(r => r.RecordId == e.RecordId && r.Type == recordType)
+            .Where(r => r.Id == e.Id && r.Type == recordType)
             .AsAsyncEnumerable()
             .FirstOrDefaultAsync() as AttributeEvent;
 
@@ -28,12 +28,12 @@ public abstract partial class EventStoreTests
         await EventStore.AddAsync(new List<Event>{e});
 
         var result = await EventStore.Events
-            .Where(r => r.RecordId == e.RecordId)
+            .Where(r => r.Id == e.Id)
             .AsAsyncEnumerable()
             .FirstOrDefaultAsync() as AttributeEvent;
 
         Assert.NotNull(result);
-        Assert.Equal(typeof(AttributeEvent).GetCustomAttribute<RecordType>()!.Value, result!.Type);
+        Assert.Equal(typeof(AttributeEvent).GetCustomAttribute<RecordTypeAttribute>()!.Value, result!.Type);
         Assert.Equal(e.SomeString, result.SomeString);
     }
 }
