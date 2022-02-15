@@ -3,44 +3,18 @@ namespace EventSourcing.Core;
 /// <summary>
 /// Abstract Base <see cref="Aggregate"/>
 /// </summary>
-public abstract class Aggregate
+public abstract record Aggregate : Record
 {
-  /// <summary>
-  /// Unique Partition identifier
-  /// </summary>
-  public Guid PartitionId { get; init; }
-  
-  /// <summary>
-  /// Unique Aggregate identifier
-  /// </summary>
-  public Guid Id { get; init; }
-    
   /// <summary>
   /// The number of events applied to this aggregate.
   /// </summary>
   public long Version { get; private set; }
-    
-  /// <summary>
-  /// Aggregate type
-  /// </summary>
-  public string Type { get; init; }
-
-  public string id => Id.ToString();
 
   /// <summary>
   /// Uncommitted Events
   /// </summary>
   [JsonIgnore] public ImmutableArray<Event> UncommittedEvents => _uncommittedEvents.ToImmutableArray();
   [JsonIgnore] private readonly List<Event> _uncommittedEvents = new();
-
-  /// <summary>
-  /// Create new Aggregate
-  /// </summary>
-  protected Aggregate()
-  {
-    Id = Guid.NewGuid();
-    Type = GetType().Name;
-  }
 
   /// <summary>
   /// Apply Event
@@ -157,13 +131,6 @@ public abstract class Aggregate
   public bool IsSnapshotIntervalExceeded() => SnapshotInterval != 0 && UncommittedEvents.Any() &&
                                               UncommittedEvents.First().Index / SnapshotInterval != 
                                               (UncommittedEvents.Last().Index + 1) / SnapshotInterval;
-
-  public string Format()
-  {
-    var partitionId = PartitionId == Guid.Empty ? " " : $"{nameof(PartitionId)} = {PartitionId}, ";
-    var id = $"{nameof(Id)} = {Id}, ";
-    return $"{Type} {{ {partitionId}{id} }}";
-  }
 
   private void ValidateAndApplyEvent(Event e)
   {

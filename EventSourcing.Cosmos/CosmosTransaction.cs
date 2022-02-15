@@ -100,7 +100,7 @@ public class CosmosTransaction : ITransaction
       {
         HttpStatusCode.Conflict when x.Action == CosmosEventTransactionAction.CreateEvent =>
           $"Conflict while adding Event in {nameof(CosmosTransaction)}. " +
-          $"Adding {x.Event.Format()} failed, because an Event with Index {x.Event.Index} was already present in the {nameof(CosmosEventStore)}.",
+          $"Adding {x.Event} failed, because an Event with Index {x.Event.Index} was already present in the {nameof(CosmosEventStore)}.",
         HttpStatusCode.NotFound when x.Action == CosmosEventTransactionAction.ReadEvent =>
           $"Nonconsecutive Events Found while adding events for Aggregate with Id {x.Event.AggregateId}. " +
           $"Event with Index {x.Event.Index} not found while adding Event with Index {x.Event.Index+1} in {nameof(CosmosTransaction)}.",

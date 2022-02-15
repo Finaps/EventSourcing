@@ -1,6 +1,6 @@
 namespace EventSourcing.Core.Tests.Mocks;
 
-public class SnapshotAggregate : Aggregate
+public record SnapshotAggregate : Aggregate
 {
     public override long SnapshotInterval => 10;
 

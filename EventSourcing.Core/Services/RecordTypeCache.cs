@@ -11,7 +11,7 @@ public sealed class RecordTypeCache
         .Where(type => typeof(Record).IsAssignableFrom(type) && type.IsClass && !type.IsAbstract)
         .ToList();
     private static readonly Dictionary<Type, string> RecordTypeStrings =
-        AssemblyRecordTypes.ToDictionary(type => type, type => type.GetCustomAttribute<RecordType>()?.Value ?? type.Name);
+        AssemblyRecordTypes.ToDictionary(type => type, type => type.GetCustomAttribute<RecordTypeAttribute>()?.Value ?? type.Name);
 
     // Non-static RecordTypes cache
     private readonly Dictionary<string, Type> _recordTypes;
@@ -22,7 +22,7 @@ public sealed class RecordTypeCache
     {
         // Create dictionaries mapping from Record.Type string to Record Type and it's reverse
         _recordTypeStrings = recordTypes == null ? 
-            RecordTypeStrings : recordTypes.ToDictionary(type => type, type => type.GetCustomAttribute<RecordType>()?.Value ?? type.Name);
+            RecordTypeStrings : recordTypes.ToDictionary(type => type, type => type.GetCustomAttribute<RecordTypeAttribute>()?.Value ?? type.Name);
         _recordTypes = _recordTypeStrings.ToDictionary(kv => kv.Value, kv => kv.Key);
         // For each Record Type, create set of non-nullable properties for validation
         _nonNullableRecordProperties = _recordTypes.Values.ToDictionary(type => type, type => type.GetProperties()
@@ -48,7 +48,7 @@ public sealed class RecordTypeCache
     {
         if(!RecordTypeStrings.TryGetValue(type, out var typeString))
             throw new InvalidOperationException(
-                $"Error getting record type string for {type}. {type} not found in Assembly. Ensure {type.Name} extends {typeof(Record)}");
+                $"Error getting record type string for {type}. {type} not found in Assembly. Ensure {type.Name} extends {typeof(IndexedRecord)}");
 
         return typeString;
     }

@@ -6,7 +6,7 @@ using EventSourcing.Example.Domain.Shared;
 
 namespace EventSourcing.Example.Domain.Baskets;
 
-public class Basket : Aggregate
+public record Basket : Aggregate
 {
     public List<Item> Items { get; } = new();
     public bool CheckedOut;
