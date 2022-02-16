@@ -441,4 +441,30 @@ public abstract partial class AggregateServiceTests
 
     Assert.Throws<ArgumentException>(() => transaction.Add(aggregate));
   }
+  
+  [Fact]
+  public async Task Can_Snapshot_Aggregate_When_Appending_One_Event()
+  {
+    // To test for an previous issue where snapshotting was not happening when exactly one event was persisted
+    var aggregate = new SnapshotAggregate();
+    var eventsCount = aggregate.SnapshotInterval;
+    foreach (var _ in new int[eventsCount])
+    {
+      aggregate.Add(new EmptyEvent());
+      await AggregateService.PersistAsync(aggregate);
+    }
+
+    var snapshotResult = await SnapshotStore.Snapshots
+      .Where(x => x.AggregateId == aggregate.Id)
+      .AsAsyncEnumerable()
+      .SingleOrDefaultAsync();
+
+    var eventCount = await EventStore.Events
+      .Where(x => x.AggregateId == aggregate.Id)
+      .AsAsyncEnumerable()
+      .CountAsync();
+      
+    Assert.NotNull(snapshotResult);
+    Assert.Equal((int) aggregate.SnapshotInterval, eventCount);
+  }
 }
