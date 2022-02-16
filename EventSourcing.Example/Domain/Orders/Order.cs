@@ -5,7 +5,7 @@ namespace EventSourcing.Example.Domain.Orders;
 
 public class Order : Aggregate
 {
-    public Guid BasketId;
+    public Guid BasketId { get; private set; }
     protected override void Apply(Event e)
     {
         switch(e)

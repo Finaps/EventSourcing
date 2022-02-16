@@ -49,7 +49,7 @@ public abstract class Aggregate
   /// <summary>
   /// Snapshot interval length
   /// </summary>
-  public virtual long SnapshotInterval { get; }
+  [JsonIgnore] public virtual long SnapshotInterval { get; }
   
   /// <summary>
   /// Create Snapshot
@@ -152,9 +152,9 @@ public abstract class Aggregate
   public void ClearUncommittedEvents() => _uncommittedEvents.Clear();
   
 
-  public bool IsSnapshotIntervalExceeded() => SnapshotInterval != 0 &&
-                                          (UncommittedEvents.First().Index + 1) / SnapshotInterval !=
-                                          (UncommittedEvents.Last().Index + 1) / SnapshotInterval;
+  public bool IsSnapshotIntervalExceeded() => SnapshotInterval != 0 && 
+                                              UncommittedEvents.First().Index / SnapshotInterval != 
+                                              (UncommittedEvents.Last().Index + 1) / SnapshotInterval;
 
   public string Format()
   {
