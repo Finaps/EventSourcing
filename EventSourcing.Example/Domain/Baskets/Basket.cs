@@ -10,8 +10,8 @@ public class Basket : Aggregate
 {
     public List<Item> Items { get; } = new();
     public bool CheckedOut;
-    public DateTimeOffset BasketCreated { get; set; }
-    public DateTimeOffset BasketExpires { get; set; }
+    public DateTimeOffset BasketCreated { get; private set; }
+    public DateTimeOffset BasketExpires { get; private set; }
 
     protected override void Apply(Event e)
     {
@@ -69,7 +69,10 @@ public class Basket : Aggregate
             Add(new ProductRemovedFromBasketEvent(quantity, productId));
     }
     public void CheckoutBasket()
-    { 
+    {
+        if (Items.Count == 0)
+            throw new InvalidOperationException(
+                $"Cannot check out basket with id {Id}: Basket does not contain any items");
         Add(new BasketCheckedOutEvent());
     }
 }

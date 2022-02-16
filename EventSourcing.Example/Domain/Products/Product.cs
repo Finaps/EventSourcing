@@ -26,24 +26,14 @@ public class Product : Aggregate
                 break;
             case ProductSoldEvent soldEvent:
                 Quantity -= soldEvent.Quantity;
+                RemoveReservation(soldEvent.BasketId, soldEvent.Quantity);
                 break;
             case ProductReservedEvent reservedEvent:
                 if(DateTimeOffset.Now - reservedEvent.Timestamp <= reservedEvent.HeldFor)
                     Reservations.Add(new Reservation(reservedEvent.Quantity, reservedEvent.BasketId));
                 break;
             case ReservationRemovedEvent reservationRemovedEvent:
-                var reservation = Reservations.FirstOrDefault(x => x.BasketId == reservationRemovedEvent.BasketId);
-                if(reservation == null)
-                    break;
-                    
-                Reservations.Remove(reservation);
-                if (reservationRemovedEvent.Quantity < reservation.Quantity)
-                {
-                    Reservations.Add(reservation with
-                    {
-                        Quantity = reservation.Quantity - reservationRemovedEvent.Quantity
-                    });
-                }
+                RemoveReservation(reservationRemovedEvent.BasketId, reservationRemovedEvent.Quantity);
                 break;
         }
     }
@@ -76,9 +66,14 @@ public class Product : Aggregate
         if (CheckAvailability(quantity))
             Add(new ProductReservedEvent(quantity, basketId, Constants.ProductReservationExpires));
     }
-    public void RemoveReservation(Guid basketId, int quantity)
+    public void RemoveProductReservation(Guid basketId, int quantity)
     {
-        Add(new ReservationRemovedEvent(quantity, basketId));
+        if(Reservations.Any(x => x.BasketId == basketId))
+            Add(new ReservationRemovedEvent(quantity, basketId));
+    }
+    protected override Snapshot CreateSnapshot()
+    {
+        return new ProductSnapshot(Name, Quantity, Reservations);
     }
 
 
@@ -88,9 +83,20 @@ public class Product : Aggregate
     private bool CheckAvailabilityForBasket(Guid basketId, int quantity) => 
         Quantity - Reservations.Where(x => x.BasketId != basketId).Select(x => x.Quantity).Sum() >= quantity;
 
-    protected override Snapshot CreateSnapshot()
+    private void RemoveReservation(Guid basketId, int quantity)
     {
-        return new ProductSnapshot(Name, Quantity, Reservations);
+        var reservation = Reservations.FirstOrDefault(x => x.BasketId == basketId);
+        if(reservation == null)
+            return;
+                    
+        Reservations.Remove(reservation);
+        if (quantity < reservation.Quantity)
+        {
+            Reservations.Add(reservation with
+            {
+                Quantity = reservation.Quantity - quantity
+            });
+        }
     }
 }
     

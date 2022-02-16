@@ -36,13 +36,17 @@ public class BasketsController : Controller
     [HttpPost("{basketId:guid}/addItem")]
     public async Task<ActionResult<Basket>> AddItemToBasket([FromRoute] Guid basketId,[FromBody] AddProductToBasket request)
     {
-        var product = await _aggregateService.RehydrateAsync<Product>(request.ProductId);
-        product.ReserveProduct(basketId,request.Quantity);
+        var basket = await _aggregateService.RehydrateAsync<Basket>(basketId);
+        if(basket == null)
+            return BadRequest($"Basket with id {basketId} not found");
         
+        var product = await _aggregateService.RehydrateAsync<Product>(request.ProductId);
+        if (product == null)
+            return BadRequest($"Product with id {request.ProductId} not found");
+        product.ReserveProduct(basketId,request.Quantity);
         if (!product.Reservations.Any(x => x.BasketId == basketId && x.Quantity >= request.Quantity))
             return BadRequest($"Reservation of product {request.ProductId} failed: Insufficient stock");
 
-        var basket = await _aggregateService.RehydrateAsync<Basket>(basketId);
         basket.AddProduct(request.Quantity, request.ProductId);
         
         await _aggregateService.PersistAsync(new List<Aggregate> { product, basket });
@@ -51,14 +55,21 @@ public class BasketsController : Controller
     }
         
     [HttpPost("{basketId:guid}/checkout")]
-    public async Task<ActionResult<Guid>> CheckoutBasket([FromRoute] Guid basketId)
+    public async Task<ActionResult<Order>> CheckoutBasket([FromRoute] Guid basketId)
     {
         var basket = await _aggregateService.RehydrateAsync<Basket>(basketId);
+        if(basket == null)
+            return BadRequest($"Basket with id {basketId} not found");
+        if(basket.Items.Count == 0)
+            return BadRequest($"Cannot check out basket with id {basketId}: Basket does not contain any items");
+        
         var transaction = _aggregateService.CreateTransaction();
         
         foreach (var item in basket.Items)
         {
             var product = await _aggregateService.RehydrateAsync<Product>(item.ProductId);
+            if(product == null)
+                return BadRequest($"Product with id {item.ProductId} not found");
             product.PurchaseProduct(basketId, item.Quantity);
             transaction.Add(product);
         }
@@ -69,6 +80,6 @@ public class BasketsController : Controller
         
         await transaction.Add(basket).Add(order).CommitAsync();
         
-        return order.Id;
+        return order;
     }
 }
