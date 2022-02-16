@@ -20,7 +20,7 @@ public class TestsBase : IAsyncLifetime
     var path = Assembly.GetAssembly(typeof(Startup))?.Location;
     var hostBuilder = new WebHostBuilder()
       .UseContentRoot(Path.GetDirectoryName(path)!)
-      .ConfigureAppConfiguration(builder => builder.AddJsonFile("appsettings.local.json", false))
+      .ConfigureAppConfiguration(builder => builder.AddJsonFile("appsettings.local.json", true))
       // .UseSerilog((_, cfg) =>
       // {
       //   cfg.Enrich.FromLogContext().WriteTo.Console();
