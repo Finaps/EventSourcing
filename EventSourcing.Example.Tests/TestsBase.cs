@@ -21,10 +21,6 @@ public class TestsBase : IAsyncLifetime
     var hostBuilder = new WebHostBuilder()
       .UseContentRoot(Path.GetDirectoryName(path)!)
       .ConfigureAppConfiguration(builder => builder.AddJsonFile("appsettings.local.json", true))
-      // .UseSerilog((_, cfg) =>
-      // {
-      //   cfg.Enrich.FromLogContext().WriteTo.Console();
-      // })
       .UseStartup<Startup>();
     return new TestServer(hostBuilder);
   }
