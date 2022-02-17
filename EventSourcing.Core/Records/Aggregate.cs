@@ -1,3 +1,7 @@
+using System.Reflection;
+using System.Security.Cryptography;
+using EventSourcing.Core.Services;
+
 namespace EventSourcing.Core.Records;
 
 /// <summary>
@@ -31,7 +35,9 @@ public abstract record Aggregate : Record
   /// If true, persisting this Aggregate will store an Aggregate View
   /// </summary>
   public virtual bool ShouldStoreAggregateView { get; }
-  
+
+  public string AggregateHash => AggregateHashCache.Get(GetType());
+
   /// <summary>
   /// Create Snapshot
   /// </summary>
@@ -139,6 +145,11 @@ public abstract record Aggregate : Record
   public bool IsSnapshotIntervalExceeded() => SnapshotInterval != 0 &&
                                           (UncommittedEvents.First().Index + 1) / SnapshotInterval !=
                                           (UncommittedEvents.Last().Index + 1) / SnapshotInterval;
+
+  public virtual string ComputeAggregateHash()
+  {
+    return AggregateHashCache.GetMethodHash(GetType(), nameof(Apply)) + ShouldStoreAggregateView.GetHashCode();
+  }
 
   private void ValidateAndApplyEvent(Event e)
   {
