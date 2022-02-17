@@ -1,6 +1,7 @@
 using System.Reflection;
+using EventSourcing.Core.Records;
 
-namespace EventSourcing.Core;
+namespace EventSourcing.Core.Services;
 
 public sealed class RecordTypeCache
 {

@@ -1,6 +1,6 @@
-using EventSourcing.Core.Migrations;
+using EventSourcing.Core.Records;
 
-namespace EventSourcing.Core;
+namespace EventSourcing.Core.Services;
 
 /// <summary>
 /// Custom <see cref="IndexedRecord"/><see cref="JsonConverter{T}"/>

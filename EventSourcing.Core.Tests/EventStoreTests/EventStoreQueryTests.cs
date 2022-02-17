@@ -1,3 +1,4 @@
+using EventSourcing.Core.Records;
 using EventSourcing.Core.Tests.Mocks;
 
 namespace EventSourcing.Core.Tests;
@@ -130,7 +131,7 @@ public abstract partial class EventStoreTests
       MockEnum = MockEnum.C,
       MockFlagEnum = MockFlagEnum.A | MockFlagEnum.D,
 
-      MockNestedClass = new MockNestedClass
+      MockNestedRecord = new MockNestedRecord
       {
         MockBoolean = false,
         MockString = "Bonjour",
@@ -138,7 +139,7 @@ public abstract partial class EventStoreTests
         MockDouble = 0.999
       },
 
-      MockNestedClassList = new List<MockNestedClass>
+      MockNestedClassList = new List<MockNestedRecord>
       {
         new()
         {
@@ -168,10 +169,10 @@ public abstract partial class EventStoreTests
     Assert.Equal(e.MockDouble, result.MockDouble);
     Assert.Equal(e.MockEnum, result.MockEnum);
     Assert.Equal(e.MockFlagEnum, result.MockFlagEnum);
-    Assert.Equal(e.MockNestedClass.MockBoolean, result.MockNestedClass.MockBoolean);
-    Assert.Equal(e.MockNestedClass.MockString, result.MockNestedClass.MockString);
-    Assert.Equal(e.MockNestedClass.MockDecimal, result.MockNestedClass.MockDecimal);
-    Assert.Equal(e.MockNestedClass.MockDouble, result.MockNestedClass.MockDouble);
+    Assert.Equal(e.MockNestedRecord.MockBoolean, result.MockNestedRecord.MockBoolean);
+    Assert.Equal(e.MockNestedRecord.MockString, result.MockNestedRecord.MockString);
+    Assert.Equal(e.MockNestedRecord.MockDecimal, result.MockNestedRecord.MockDecimal);
+    Assert.Equal(e.MockNestedRecord.MockDouble, result.MockNestedRecord.MockDouble);
     Assert.Equal(e.MockNestedClassList.Single().MockBoolean, result.MockNestedClassList.Single().MockBoolean);
     Assert.Equal(e.MockNestedClassList.Single().MockString, result.MockNestedClassList.Single().MockString);
     Assert.Equal(e.MockNestedClassList.Single().MockDecimal, result.MockNestedClassList.Single().MockDecimal);

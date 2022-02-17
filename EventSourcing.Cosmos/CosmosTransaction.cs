@@ -1,4 +1,6 @@
 using EventSourcing.Core;
+using EventSourcing.Core.Records;
+using EventSourcing.Core.Services;
 
 namespace EventSourcing.Cosmos;
 

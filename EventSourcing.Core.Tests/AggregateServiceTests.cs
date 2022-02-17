@@ -1,3 +1,5 @@
+using EventSourcing.Core.Records;
+using EventSourcing.Core.Services;
 using EventSourcing.Core.Tests.Mocks;
 
 namespace EventSourcing.Core.Tests;

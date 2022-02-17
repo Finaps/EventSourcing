@@ -1,3 +1,6 @@
+using EventSourcing.Core.Records;
+using EventSourcing.Core.Services;
+
 namespace EventSourcing.Core;
 
 public static class RecordValidation

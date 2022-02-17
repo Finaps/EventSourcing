@@ -1,5 +1,6 @@
-using System.Text.Json;
 using EventSourcing.Core;
+using EventSourcing.Core.Records;
+using EventSourcing.Core.Services;
 
 namespace EventSourcing.Cosmos;
 
@@ -33,17 +34,7 @@ public class CosmosEventStore : IEventStore
     if (string.IsNullOrWhiteSpace(options.Value.Container))
       throw new ArgumentException(baseError + $"{nameof(CosmosEventStoreOptions)}.{nameof(CosmosEventStoreOptions.Container)} should not be empty", nameof(options));
 
-    var clientOptions = new CosmosClientOptions
-    {
-      Serializer = new CosmosRecordSerializer(new JsonSerializerOptions
-      {
-        Converters =
-        {
-          new RecordConverter<Event>(options.Value.RecordConverterOptions),
-          new RecordConverter<Snapshot>(options.Value.RecordConverterOptions)
-        }
-      })
-    };
+    var clientOptions = new CosmosClientOptions { Serializer = new CosmosRecordSerializer(options.Value) };
 
     _container = new CosmosClient(options.Value.ConnectionString, clientOptions)
       .GetDatabase(options.Value!.Database)
@@ -57,6 +48,10 @@ public class CosmosEventStore : IEventStore
   public IQueryable<Snapshot> Snapshots => _container
     .AsCosmosAsyncQueryable<Snapshot>()
     .Where(x => x.Kind == RecordKind.Snapshot);
+
+  public IQueryable<TView> GetView<TView>() where TView : View, new() => _container
+    .AsCosmosAsyncQueryable<TView>()
+    .Where(x => x.Kind == RecordKind.Aggregate && x.Type == new TView().Type);
 
   public async Task AddAsync(IList<Event> events, CancellationToken cancellationToken = default)
   {

@@ -1,4 +1,6 @@
-namespace EventSourcing.Core;
+using EventSourcing.Core.Records;
+
+namespace EventSourcing.Core.Services;
 
 /// <summary>
 /// Event Store Interface: Persisting <see cref="Event"/>s to a Database
@@ -15,6 +17,7 @@ public interface IEventStore
   /// </remarks>
   IQueryable<Event> Events { get; }
   IQueryable<Snapshot> Snapshots { get; }
+  IQueryable<TView> GetView<TView>() where TView : View, new();
 
   /// <summary>
   /// AddAsync: Store <see cref="Event"/>s to the <see cref="IEventStore"/>

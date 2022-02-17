@@ -1,4 +1,6 @@
-namespace EventSourcing.Core.Migrations;
+using EventSourcing.Core.Records;
+
+namespace EventSourcing.Core.Services;
 
 /// <summary>
 /// Event Migrator: Converting an <see cref="Record"/> to it's successive version
