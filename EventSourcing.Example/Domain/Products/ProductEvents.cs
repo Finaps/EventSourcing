@@ -8,4 +8,3 @@ public record ProductReservedEvent(int Quantity, Guid BasketId, TimeSpan HeldFor
 public record ReservationRemovedEvent(int Quantity, Guid BasketId) : Event;
 public record ProductSoldEvent(int Quantity, Guid BasketId) : Event;
 public record ProductStockAddedEvent(int Quantity) : Event;
-public record InsufficientStockEvent(Guid BasketId) : Event;

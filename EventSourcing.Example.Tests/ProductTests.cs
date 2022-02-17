@@ -67,6 +67,7 @@ public class ProductTests : TestsBase
 
         var snapshotStore = GetService<ISnapshotStore>();
         var snapshot = await snapshotStore!.Snapshots.Where(x => x.AggregateId == productId).AsAsyncEnumerable().FirstAsync() as ProductSnapshot;
+        
         Assert.NotNull(snapshot);
         Assert.Equal(ProductName, snapshot!.Name);
         Assert.Equal(ProductQuantity + snapshotInterval - 1, snapshot.Quantity);
