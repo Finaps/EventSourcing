@@ -1,4 +1,4 @@
-using EventSourcing.Core.Migrations;
+using EventSourcing.Core.Services;
 
 namespace EventSourcing.Core.Tests.Mocks;
 

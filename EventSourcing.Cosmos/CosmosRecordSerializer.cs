@@ -2,37 +2,44 @@ using System.IO;
 using System.Text.Json;
 using Azure.Core.Serialization;
 using EventSourcing.Core;
+using EventSourcing.Core.Records;
+using EventSourcing.Core.Services;
 
 namespace EventSourcing.Cosmos;
 
 internal class CosmosRecordSerializer : CosmosSerializer
 {
-  private readonly JsonObjectSerializer _serializer;
+  private readonly JsonObjectSerializer _serializer = new ();
+  private readonly JsonObjectSerializer _recordSerializer;
 
-  public CosmosRecordSerializer(JsonSerializerOptions jsonSerializerOptions)
+  public CosmosRecordSerializer(CosmosEventStoreOptions options)
   {
-    _serializer = new JsonObjectSerializer(jsonSerializerOptions);
+    _recordSerializer = new JsonObjectSerializer(new JsonSerializerOptions
+    {
+      Converters =
+      {
+        new RecordConverter<Event>(options.RecordConverterOptions),
+        new RecordConverter<Snapshot>(options.RecordConverterOptions),
+        new RecordConverter<Aggregate>(options.RecordConverterOptions)
+      }
+    });
   }
 
   public override T FromStream<T>(Stream stream)
   {
-    using (stream)
-    {
-      if (stream.CanSeek && stream.Length == 0)
-        throw new EventStoreException("Couldn't read Record Stream");
-
-      if (typeof(Stream).IsAssignableFrom(typeof(T)))
-        return (T)(object) stream;
-
-      return (T)_serializer.Deserialize(stream, typeof(T), default)!;
-    }
+    using (stream) return (T) GetSerializer<T>().Deserialize(stream, typeof(T), default)!;
   }
 
   public override Stream ToStream<T>(T input)
   {
-    var streamPayload = new MemoryStream();
-    _serializer.Serialize(streamPayload, input, typeof(T), default);
-    streamPayload.Position = 0;
-    return streamPayload;
+    var stream = new MemoryStream();
+    _recordSerializer.Serialize(stream, input, typeof(T), default);
+    stream.Position = 0;
+    return stream;
   }
+
+  private JsonObjectSerializer GetSerializer<T>() =>
+    typeof(T) == typeof(Event[]) || typeof(T) == typeof(Snapshot[])
+      ? _recordSerializer
+      : _serializer;
 }

@@ -1,4 +1,4 @@
-namespace EventSourcing.Core;
+namespace EventSourcing.Core.Records;
 
 public record IndexedRecord : Record
 {

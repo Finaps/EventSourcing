@@ -1,3 +1,3 @@
-namespace EventSourcing.Core;
+namespace EventSourcing.Core.Records;
 
 public record Snapshot : IndexedRecord;

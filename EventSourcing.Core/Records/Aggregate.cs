@@ -1,4 +1,4 @@
-namespace EventSourcing.Core;
+namespace EventSourcing.Core.Records;
 
 /// <summary>
 /// Abstract Base <see cref="Aggregate"/>

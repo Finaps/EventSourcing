@@ -1,4 +1,6 @@
-namespace EventSourcing.Core;
+using EventSourcing.Core.Records;
+
+namespace EventSourcing.Core.Services;
 
 public class AggregateService : IAggregateService
 {

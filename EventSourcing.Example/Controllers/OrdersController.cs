@@ -1,6 +1,7 @@
 using EventSourcing.Core;
 using System;
 using System.Threading.Tasks;
+using EventSourcing.Core.Services;
 using EventSourcing.Example.Domain.Orders;
 using Microsoft.AspNetCore.Mvc;
 

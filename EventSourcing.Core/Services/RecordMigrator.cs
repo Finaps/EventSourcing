@@ -1,4 +1,6 @@
-namespace EventSourcing.Core.Migrations;
+using EventSourcing.Core.Records;
+
+namespace EventSourcing.Core.Services;
 
 public abstract class RecordMigrator<TSource, TTarget> : IRecordMigrator
   where TSource : IndexedRecord where TTarget : IndexedRecord

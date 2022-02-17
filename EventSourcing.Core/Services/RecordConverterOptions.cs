@@ -1,4 +1,4 @@
-namespace EventSourcing.Core;
+namespace EventSourcing.Core.Services;
 
 public class RecordConverterOptions
 {

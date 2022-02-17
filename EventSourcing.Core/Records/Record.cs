@@ -1,4 +1,6 @@
-namespace EventSourcing.Core;
+using EventSourcing.Core.Services;
+
+namespace EventSourcing.Core.Records;
 
 public enum RecordKind { None, Event, Snapshot, Aggregate }
 

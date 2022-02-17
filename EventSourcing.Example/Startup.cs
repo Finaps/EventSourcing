@@ -1,4 +1,5 @@
 using EventSourcing.Core;
+using EventSourcing.Core.Services;
 using EventSourcing.Cosmos;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
