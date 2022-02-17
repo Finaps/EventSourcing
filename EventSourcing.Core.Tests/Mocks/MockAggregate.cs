@@ -83,6 +83,8 @@ public record MockSnapshot : Snapshot, IMock
 
 public record MockAggregate : Aggregate, IMock
 {
+  public override bool ShouldStoreAggregateView => true;
+
   public bool MockBoolean { get; private set; }
   public string MockString { get; private set; }
   public decimal MockDecimal { get; private set; }

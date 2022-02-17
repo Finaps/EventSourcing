@@ -68,9 +68,10 @@ public class AggregateService : IAggregateService
   public async Task DeleteAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) =>
     await _store.DeleteAsync(partitionId, aggregateId, cancellationToken);
 
-  public IAggregateTransaction CreateTransaction(Guid partitionId) =>
+  public IAggregateTransaction CreateTransaction(Guid partitionId) => 
     new AggregateTransaction(_store.CreateTransaction(partitionId));
   public IAggregateTransaction CreateTransaction() =>
     CreateTransaction(Guid.Empty);
-
+  public IQueryable<TView> GetView<TView>() where TView : View, new() =>
+    _store.GetView<TView>();
 }

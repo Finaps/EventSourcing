@@ -16,20 +16,19 @@ public class AggregateTransaction : IAggregateTransaction
   {
     if (aggregate.Id == Guid.Empty)
       throw new ArgumentException(
-        $"Error adding {aggregate} to {nameof(AggregateTransaction)}. Aggregate.Id cannot be empty",
-        nameof(aggregate));
+        $"Error adding {aggregate} to {nameof(AggregateTransaction)}. Aggregate.Id cannot be empty", nameof(aggregate));
 
     if (!_aggregates.Add(aggregate))
       throw new ArgumentException(
-        $"Error adding {aggregate} to {nameof(AggregateTransaction)}. Aggregate already added.",
-        nameof(aggregate));
+        $"Error adding {aggregate} to {nameof(AggregateTransaction)}. Aggregate already added.", nameof(aggregate));
 
     _transaction.Add(aggregate.UncommittedEvents.ToList());
 
     if (aggregate.IsSnapshotIntervalExceeded())
       _transaction.Add(aggregate.CreateLinkedSnapshot());
 
-    _transaction.Add(aggregate);
+    if (aggregate.ShouldStoreAggregateView)
+      _transaction.Add(aggregate);
 
     return this;
   }
