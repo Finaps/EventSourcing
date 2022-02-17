@@ -13,9 +13,9 @@ public class TestsBase : IAsyncLifetime
   private static readonly SemaphoreSlim Semaphore = new(8);
   public async Task InitializeAsync() => await Semaphore.WaitAsync();
   public Task DisposeAsync() => Task.FromResult(Semaphore.Release());
-  private static readonly TestServer Server = GetServer();
-  protected static TService? GetService<TService>() => GetServer().Services.GetService<TService>();
-  protected static TestServer GetServer()
+  public static readonly TestServer Server = GetServer();
+  protected static TService? GetService<TService>() => Server.Services.GetService<TService>();
+  private static TestServer GetServer()
   {
     var path = Assembly.GetAssembly(typeof(Startup))?.Location;
     var hostBuilder = new WebHostBuilder()
