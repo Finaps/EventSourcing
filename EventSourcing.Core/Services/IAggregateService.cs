@@ -70,7 +70,7 @@ public interface IAggregateService
   IAggregateTransaction CreateTransaction();
   
   /// <summary>
-  /// Query Aggregate Views
+  /// Query Aggregate View
   /// </summary>
   /// <typeparam name="TView"></typeparam>
   /// <returns><see cref="IQueryable"/> of <see cref="TView"/></returns>

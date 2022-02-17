@@ -8,9 +8,11 @@ public abstract record View : Record
   /// The number of events applied to this aggregate.
   /// </summary>
   public long Version { get; init; }
+
+  protected View(string type) => Type = type;
 }
 
 public record View<TAggregate> : View where TAggregate : Aggregate
 {
-  public View() => Type = RecordTypeCache.GetAssemblyRecordTypeString(typeof(TAggregate));
+  public View() : base(RecordTypeCache.GetAssemblyRecordTypeString(typeof(TAggregate))) { }
 }

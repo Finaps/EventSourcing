@@ -11,16 +11,31 @@ public interface IEventStore
   /// Queryable and AsyncEnumerable Collection of <see cref="Events"/>s
   /// </summary>
   /// <remarks>
-  /// Implementations of this method should implement the <c cref="IQueryable{T}">IQueryable</c> and
-  /// <c cref="IAsyncEnumerable{T}">IAsyncEnumerable</c> interfaces, such that the async extensions
-  /// e.g. <c>System.Linq.Async</c> or <c>EventSourcing.Core.QueryableExtensions</c> work as intended.
+  /// To finalize the query, call <see cref="QueryableExtensions.AsAsyncEnumerable{T}"/>
+  /// and use <c>System.Linq.Async</c>'s extension methods to get the results of your query
   /// </remarks>
   IQueryable<Event> Events { get; }
+  
+  /// <summary>
+  /// Queryable and AsyncEnumerable Collection of <see cref="Snapshot"/>s
+  /// </summary>
+  /// <remarks>
+  /// To finalize the query, call <see cref="QueryableExtensions.AsAsyncEnumerable{T}"/>
+  /// and use <c>System.Linq.Async</c>'s extension methods to get the results of your query
+  /// </remarks>
   IQueryable<Snapshot> Snapshots { get; }
+  
+  /// <summary>
+  /// Queryable and AsyncEnumerable Collection of <see cref="View{TAggregate}"/>s
+  /// </summary>
+  /// <remarks>
+  /// To finalize the query, call <see cref="QueryableExtensions.AsAsyncEnumerable{T}"/>
+  /// and use <c>System.Linq.Async</c>'s extension methods to get the results of your query.
+  /// </remarks>
   IQueryable<TView> GetView<TView>() where TView : View, new();
 
   /// <summary>
-  /// AddAsync: Store <see cref="Event"/>s to the <see cref="IEventStore"/>
+  /// Store <see cref="Event"/>s to the <see cref="IEventStore"/>
   /// </summary>
   /// <param name="events"><see cref="Event"/>s to add</param>
   /// <param name="cancellationToken">Cancellation Token</param>
@@ -31,7 +46,19 @@ public interface IEventStore
   /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with nonconsecutive <see cref="IndexedRecord.Index"/>s</exception>
   /// <exception cref="RecordStoreException">Thrown when conflicts occur when storing <see cref="Event"/>s</exception>
   Task AddAsync(IList<Event> events, CancellationToken cancellationToken = default);
+  
+  /// <summary>
+  /// Store <see cref="Snapshot"/> to the <see cref="IEventStore"/>
+  /// </summary>
+  /// <param name="snapshot"><see cref="Snapshot"/> to add</param>
+  /// <param name="cancellationToken">Cancellation Token</param>
   Task AddAsync(Snapshot snapshot, CancellationToken cancellationToken = default);
+  
+  /// <summary>
+  /// Store <see cref="Aggregate"/> to the <see cref="IEventStore"/>
+  /// </summary>
+  /// <param name="aggregate"><see cref="Aggregate"/> to add</param>
+  /// <param name="cancellationToken">Cancellation Token</param>
   Task AddAsync(Aggregate aggregate, CancellationToken cancellationToken = default);
     
   /// <summary>

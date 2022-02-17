@@ -27,6 +27,9 @@ public abstract record Aggregate : Record
   /// </summary>
   public virtual long SnapshotInterval { get; }
   
+  /// <summary>
+  /// If true, persisting this Aggregate will store an Aggregate View
+  /// </summary>
   public virtual bool ShouldStoreAggregateView { get; }
   
   /// <summary>
@@ -129,7 +132,10 @@ public abstract record Aggregate : Record
   /// </summary>
   public void ClearUncommittedEvents() => _uncommittedEvents.Clear();
   
-
+  /// <summary>
+  /// Calculates if the snapshot interval has been exceeded (and a snapshot thus has to be created)
+  /// </summary>
+  /// <returns></returns>
   public bool IsSnapshotIntervalExceeded() => SnapshotInterval != 0 &&
                                           (UncommittedEvents.First().Index + 1) / SnapshotInterval !=
                                           (UncommittedEvents.Last().Index + 1) / SnapshotInterval;
