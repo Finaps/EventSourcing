@@ -70,6 +70,13 @@ public interface IAggregateService
   IAggregateTransaction CreateTransaction();
   
   /// <summary>
+  /// Query Aggregate Views
+  /// </summary>
+  /// <typeparam name="TView"></typeparam>
+  /// <returns><see cref="IQueryable"/> of <see cref="TView"/></returns>
+  IQueryable<TView> GetView<TView>() where TView : View, new();
+  
+  /// <summary>
   /// Rehydrate <see cref="Aggregate"/>
   /// </summary>
   /// <param name="aggregateId">Unique identifier of <see cref="Aggregate"/> to rehydrate</param>
