@@ -27,6 +27,8 @@ public abstract record Aggregate : Record
   /// </summary>
   [JsonIgnore] public virtual long SnapshotInterval { get; }
   
+  public virtual bool ShouldStoreAggregateView { get; }
+  
   /// <summary>
   /// Create Snapshot
   /// </summary>
