@@ -28,7 +28,11 @@ public class ProductsController : Controller
     [HttpGet("{id:Guid}")]
     public async Task<ActionResult<Product>> GetProduct([FromRoute] Guid id)
     {
-        return await _aggregateService.RehydrateAsync<Product>(id);
+        var product = await _aggregateService.RehydrateAsync<Product>(id);
+        if(product == null)
+            return BadRequest($"Product with id {id} not found");
+        
+        return product;
     }
     
     [HttpPost("{id:Guid}/addStock")]

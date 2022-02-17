@@ -20,6 +20,10 @@ public class OrdersController : Controller
     [HttpGet("{id:Guid}")]
     public async Task<ActionResult<Order>> GetOrder([FromRoute] Guid id)
     {
-        return await _aggregateService.RehydrateAsync<Order>(id);
+        var order = await _aggregateService.RehydrateAsync<Order>(id);
+        if(order == null)
+            return BadRequest($"Order with id {id} not found");
+        
+        return order;
     }
 }

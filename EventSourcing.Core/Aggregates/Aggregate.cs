@@ -152,7 +152,7 @@ public abstract class Aggregate
   public void ClearUncommittedEvents() => _uncommittedEvents.Clear();
   
 
-  public bool IsSnapshotIntervalExceeded() => SnapshotInterval != 0 && 
+  public bool IsSnapshotIntervalExceeded() => SnapshotInterval != 0 && UncommittedEvents.Any() &&
                                               UncommittedEvents.First().Index / SnapshotInterval != 
                                               (UncommittedEvents.Last().Index + 1) / SnapshotInterval;
 
