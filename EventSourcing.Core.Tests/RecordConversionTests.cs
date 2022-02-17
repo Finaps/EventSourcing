@@ -1,6 +1,8 @@
 using System.IO;
 using System.Text;
 using System.Text.Json;
+using EventSourcing.Core.Records;
+using EventSourcing.Core.Services;
 
 namespace EventSourcing.Core.Tests;
 

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using EventSourcing.Core;
+using EventSourcing.Core.Records;
+using EventSourcing.Core.Services;
 using EventSourcing.Example.Domain.Baskets;
 using EventSourcing.Example.Domain.Orders;
 using EventSourcing.Example.Domain.Products;

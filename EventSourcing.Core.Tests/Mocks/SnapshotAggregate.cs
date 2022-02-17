@@ -1,3 +1,5 @@
+using EventSourcing.Core.Records;
+
 namespace EventSourcing.Core.Tests.Mocks;
 
 public record SnapshotAggregate : Aggregate
@@ -20,11 +22,11 @@ public record SnapshotAggregate : Aggregate
     }
 
     protected override Snapshot CreateSnapshot() =>
-        new MockSnapshot { Counter = Counter };
+        new SimpleSnapshot { Counter = Counter };
 
     protected override void ApplySnapshot(Snapshot s)
     {
-        if (s is not MockSnapshot snapshot)
+        if (s is not SimpleSnapshot snapshot)
             throw new InvalidOperationException();
         
         SnapshotsAppliedAfterHydration++;

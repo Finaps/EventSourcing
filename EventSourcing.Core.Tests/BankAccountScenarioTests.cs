@@ -1,3 +1,5 @@
+using EventSourcing.Core.Records;
+
 namespace EventSourcing.Core.Tests;
 
 public record FundsEvent : Event

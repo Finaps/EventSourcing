@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text.Json;
-using EventSourcing.Core.Migrations;
+using EventSourcing.Core.Records;
+using EventSourcing.Core.Services;
 using EventSourcing.Core.Tests.Mocks;
 
 namespace EventSourcing.Core.Tests;

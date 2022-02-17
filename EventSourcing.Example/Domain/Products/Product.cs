@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using EventSourcing.Core;
+using EventSourcing.Core.Records;
 using EventSourcing.Example.Domain.Shared;
 
 namespace EventSourcing.Example.Domain.Products;

@@ -1,4 +1,6 @@
-namespace EventSourcing.Core;
+using EventSourcing.Core.Services;
+
+namespace EventSourcing.Core.Records;
 
 public abstract record View : Record
 {
