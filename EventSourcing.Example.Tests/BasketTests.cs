@@ -10,7 +10,7 @@ public class BasketTests : TestsBase
 {
     private const string ProductName = "TestProduct";
     private const int ProductQuantity = 10;
-    private readonly HttpClient _client = GetServer().CreateClient();
+    private readonly HttpClient _client = Server.CreateClient();
     
     [Fact]
     public async Task Can_Create_Basket()
