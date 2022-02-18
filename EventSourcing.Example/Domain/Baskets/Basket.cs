@@ -83,7 +83,7 @@ public record Basket : Aggregate
     {
         if (Items.Count == 0 || Items.Sum(x => x.Quantity) == 0)
             throw new InvalidOperationException(
-                $"Cannot check out basket with id {Id}: Basket does not contain any items");
+                $"Cannot check out basket with id {RecordId}: Basket does not contain any items");
         Add(new BasketCheckedOutEvent());
     }
     

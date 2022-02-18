@@ -42,7 +42,7 @@ public abstract partial class EventStoreTests
     await EventStore.AddAsync(events);
 
     var count = await EventStore.Events
-      .Where(x => x.AggregateId == aggregate.Id)
+      .Where(x => x.AggregateId == aggregate.RecordId)
       .AsAsyncEnumerable()
       .CountAsync();
 
@@ -70,7 +70,7 @@ public abstract partial class EventStoreTests
     await EventStore.AddAsync(events2);
 
     var result = await EventStore.Events
-      .Where(x => x.AggregateId == aggregate.Id)
+      .Where(x => x.AggregateId == aggregate.RecordId)
       .Where(x => x.Index > 0)
       .AsAsyncEnumerable()
       .ToListAsync();
@@ -102,15 +102,15 @@ public abstract partial class EventStoreTests
     // Therefore I test the same thing by two assertions.
 
     var result = await EventStore.Events
-      .Where(x => x.AggregateId == aggregate.Id)
+      .Where(x => x.AggregateId == aggregate.RecordId)
       .Where(x => x.AggregateType == aggregate.Type)
       .AsAsyncEnumerable()
       .ToListAsync();
 
-    Assert.All(result, e => Assert.Equal(aggregate.Id, e.AggregateId));
+    Assert.All(result, e => Assert.Equal(aggregate.RecordId, e.AggregateId));
 
     var result2 = await EventStore.Events
-      .Where(x => x.AggregateId == aggregate2.Id)
+      .Where(x => x.AggregateId == aggregate2.RecordId)
       .Where(x => x.AggregateType == aggregate.Type)
       .AsAsyncEnumerable()
       .ToListAsync();
@@ -157,7 +157,7 @@ public abstract partial class EventStoreTests
     await EventStore.AddAsync(new List<Event> { e });
 
     var result = (await EventStore.Events
-        .Where(x => x.AggregateId == aggregate.Id)
+        .Where(x => x.AggregateId == aggregate.RecordId)
         .AsAsyncEnumerable()
         .ToListAsync())
       .Cast<MockEvent>()

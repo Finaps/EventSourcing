@@ -17,7 +17,6 @@ public static class TestExtensions
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
         PropertyNameCaseInsensitive = true
-        
     };
     
     public class GuidResponse

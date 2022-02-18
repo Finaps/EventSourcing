@@ -80,14 +80,14 @@ public abstract partial class EventStoreTests
         .ToList());
     
     // Then delete the first 5 events, simulating concurrency
-    await EventStore.DeleteAsync(aggregate.Id);
+    await EventStore.DeleteAsync(aggregate.RecordId);
 
     // Check if committing transaction throws NonConsecutiveException
     await Assert.ThrowsAsync<EventStoreException>(async () => await transaction.CommitAsync());
 
     // check if events were deleted and transaction did not add additional events
     var count = await EventStore.Events
-      .Where(x => x.AggregateId == aggregate.Id)
+      .Where(x => x.AggregateId == aggregate.RecordId)
       .AsAsyncEnumerable()
       .CountAsync();
     

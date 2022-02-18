@@ -48,7 +48,7 @@ public abstract partial class EventStoreTests
 
     var view = await EventStore
       .GetView<MockAggregateView>()
-      .Where(x => x.Id == aggregate.Id)
+      .Where(x => x.RecordId == aggregate.RecordId)
       .AsAsyncEnumerable()
       .SingleAsync();
     

@@ -22,7 +22,7 @@ public abstract class RecordMigrator<TSource, TTarget> : IRecordMigrator
       
       PartitionId = record.PartitionId,
       AggregateId = record.AggregateId,
-      Id = record.Id,
+      RecordId = record.RecordId,
       
       Index = record.Index,
       Timestamp = record.Timestamp

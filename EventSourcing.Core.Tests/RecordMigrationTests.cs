@@ -52,7 +52,7 @@ public abstract class RecordMigrationTests
     aggregate.Add(new MigrationEventV2(someId));
     await AggregateService.PersistAsync(aggregate);
 
-    var rehydrated = await AggregateService.RehydrateAsync<MigratedAggregate>(aggregate.Id);
+    var rehydrated = await AggregateService.RehydrateAsync<MigratedAggregate>(aggregate.RecordId);
 
     Assert.NotNull(rehydrated);
     Assert.Single(rehydrated.SomeIds);
@@ -66,7 +66,7 @@ public abstract class RecordMigrationTests
     var aggregate = new MigratedAggregate();
     aggregate.Add(new MigrationEvent(someId.ToString()));
     await AggregateService.PersistAsync(aggregate);
-    var rehydrated = await AggregateService.RehydrateAsync<MigratedAggregate>(aggregate.Id);
+    var rehydrated = await AggregateService.RehydrateAsync<MigratedAggregate>(aggregate.RecordId);
 
     Assert.NotNull(rehydrated);
     Assert.Single(rehydrated.SomeIds);
