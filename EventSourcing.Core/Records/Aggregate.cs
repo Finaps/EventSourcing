@@ -1,5 +1,3 @@
-using System.Reflection;
-using System.Security.Cryptography;
 using EventSourcing.Core.Services;
 
 namespace EventSourcing.Core.Records;
@@ -7,12 +5,10 @@ namespace EventSourcing.Core.Records;
 /// <summary>
 /// Abstract Base <see cref="Aggregate"/>
 /// </summary>
-public abstract record Aggregate : Record
+public abstract record Aggregate : Record, IAggregate
 {
-  /// <summary>
-  /// The number of events applied to this aggregate.
-  /// </summary>
   public long Version { get; private set; }
+  public string Hash => AggregateHashCache.Get(GetType());
 
   /// <summary>
   /// Uncommitted Events
@@ -35,9 +31,7 @@ public abstract record Aggregate : Record
   /// If true, persisting this Aggregate will store an Aggregate View
   /// </summary>
   public virtual bool ShouldStoreAggregateView { get; }
-
-  public string AggregateHash => AggregateHashCache.Get(GetType());
-
+  
   /// <summary>
   /// Create Snapshot
   /// </summary>

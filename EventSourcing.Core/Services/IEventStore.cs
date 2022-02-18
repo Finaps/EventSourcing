@@ -25,6 +25,8 @@ public interface IEventStore
   /// </remarks>
   IQueryable<Snapshot> Snapshots { get; }
   
+  IQueryable<View> Views { get; }
+  
   /// <summary>
   /// Queryable and AsyncEnumerable Collection of <see cref="View{TAggregate}"/>s
   /// </summary>
@@ -33,6 +35,24 @@ public interface IEventStore
   /// and use <c>System.Linq.Async</c>'s extension methods to get the results of your query.
   /// </remarks>
   IQueryable<TView> GetView<TView>() where TView : View, new();
+
+  /// <summary>
+  /// Get View by PartitionId & AggregateId
+  /// </summary>
+  /// <param name="partitionId">Unique Partition identifier</param>
+  /// <param name="aggregateId">Unique Aggregate identifier</param>
+  /// <typeparam name="TView">View Type</typeparam>
+  /// <returns>View of Aggregate</returns>
+  Task<TView> GetViewAsync<TView>(Guid partitionId, Guid aggregateId) where TView : View, new();
+
+  /// <summary>
+  /// Get View by AggregateId
+  /// </summary>
+  /// <param name="aggregateId">Unique Aggregate identifier</param>
+  /// <typeparam name="TView">View Type</typeparam>
+  /// <returns>View of Aggregate</returns>
+  async Task<TView> GetViewAsync<TView>(Guid aggregateId) where TView : View, new() =>
+    await GetViewAsync<TView>(Guid.Empty, aggregateId);
 
   /// <summary>
   /// Store <see cref="Event"/>s to the <see cref="IEventStore"/>

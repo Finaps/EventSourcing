@@ -2,17 +2,18 @@ using EventSourcing.Core.Services;
 
 namespace EventSourcing.Core.Records;
 
-public abstract record View : Record
+public abstract record View : IAggregate
 {
-  /// <summary>
-  /// The number of events applied to this aggregate.
-  /// </summary>
+  public RecordKind Kind { get; init; }
+  public string Type { get; init; }
+  public Guid PartitionId { get; init; }
+  public Guid Id { get; init; }
+  
   public long Version { get; init; }
-
-  protected View(string type) => Type = type;
+  public string Hash { get; init; }
 }
 
 public record View<TAggregate> : View where TAggregate : Aggregate
 {
-  public View() : base(RecordTypeCache.GetAssemblyRecordTypeString(typeof(TAggregate))) { }
+  protected View() => Type = RecordTypeCache.GetAssemblyRecordTypeString(typeof(TAggregate));
 }

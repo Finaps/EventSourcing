@@ -49,9 +49,16 @@ public class CosmosEventStore : IEventStore
     .AsCosmosAsyncQueryable<Snapshot>()
     .Where(x => x.Kind == RecordKind.Snapshot);
 
+  public IQueryable<View> Views => _container
+    .AsCosmosAsyncQueryable<View>()
+    .Where(x => x.Kind == RecordKind.Aggregate);
+
   public IQueryable<TView> GetView<TView>() where TView : View, new() => _container
     .AsCosmosAsyncQueryable<TView>()
     .Where(x => x.Kind == RecordKind.Aggregate && x.Type == new TView().Type);
+
+  public async Task<TView> GetViewAsync<TView>(Guid partitionId, Guid aggregateId) where TView : View, new() =>
+    await _container.ReadItemAsync<TView>(aggregateId.ToString(), new PartitionKey(partitionId.ToString()));
 
   public async Task AddAsync(IList<Event> events, CancellationToken cancellationToken = default)
   {
