@@ -18,7 +18,7 @@ public abstract partial class AggregateServiceTests
     await AggregateService.PersistAsync(aggregate);
 
     var result = await EventStore.Events
-      .Where(x => x.AggregateId == aggregate.Id)
+      .Where(x => x.AggregateId == aggregate.RecordId)
       .AsAsyncEnumerable()
       .SingleOrDefaultAsync();
 
@@ -28,7 +28,7 @@ public abstract partial class AggregateServiceTests
   [Fact]
   public Task Cannot_Add_Event_With_Empty_Aggregate_Id()
   {
-    var aggregate = new SimpleAggregate { Id = Guid.Empty };
+    var aggregate = new SimpleAggregate { RecordId = Guid.Empty };
     Assert.Throws<RecordValidationException>(() => aggregate.Add(new EmptyEvent()));
     
     return Task.CompletedTask;
@@ -48,7 +48,7 @@ public abstract partial class AggregateServiceTests
     await AggregateService.PersistAsync(aggregate);
 
     var eventCount = await EventStore.Events
-      .Where(x => x.AggregateId == aggregate.Id)
+      .Where(x => x.AggregateId == aggregate.RecordId)
       .AsAsyncEnumerable()
       .CountAsync();
 
@@ -68,7 +68,7 @@ public abstract partial class AggregateServiceTests
 
     await AggregateService.PersistAsync(aggregate);
 
-    var rehydrated = await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate.Id);
+    var rehydrated = await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate.RecordId);
 
     Assert.Equal(events.Count, rehydrated?.Counter);
   }
@@ -83,7 +83,7 @@ public abstract partial class AggregateServiceTests
 
     await AggregateService.PersistAsync(aggregate);
 
-    var rehydrated = await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate.Id, DateTimeOffset.Now);
+    var rehydrated = await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate.RecordId, DateTimeOffset.Now);
 
     Assert.Equal(2, rehydrated?.Counter);
   }
@@ -116,7 +116,7 @@ public abstract partial class AggregateServiceTests
 
     await AggregateService.PersistAsync(aggregate);
 
-    var result = await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate.Id);
+    var result = await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate.RecordId);
 
     Assert.NotNull(result);
     Assert.Empty(result!.UncommittedEvents);
@@ -133,11 +133,11 @@ public abstract partial class AggregateServiceTests
     };
 
     await AggregateService.PersistAsync(aggregate);
-    await AggregateService.RehydrateAndPersistAsync<SimpleAggregate>(aggregate.Id,
+    await AggregateService.RehydrateAndPersistAsync<SimpleAggregate>(aggregate.RecordId,
       a => a.Add(new EmptyEvent()));
 
     var count = await EventStore.Events
-      .Where(x => x.AggregateId == aggregate.Id)
+      .Where(x => x.AggregateId == aggregate.RecordId)
       .AsAsyncEnumerable()
       .CountAsync();
 
@@ -155,11 +155,11 @@ public abstract partial class AggregateServiceTests
     };
 
     await AggregateService.PersistAsync(aggregate);
-    await AggregateService.RehydrateAndPersistAsync<SimpleAggregate>(aggregate.PartitionId, aggregate.Id,
+    await AggregateService.RehydrateAndPersistAsync<SimpleAggregate>(aggregate.PartitionId, aggregate.RecordId,
       a => a.Add(new EmptyEvent()));
 
     var count = await EventStore.Events
-      .Where(x => x.AggregateId == aggregate.Id)
+      .Where(x => x.AggregateId == aggregate.RecordId)
       .AsAsyncEnumerable()
       .CountAsync();
 
@@ -177,12 +177,12 @@ public abstract partial class AggregateServiceTests
     await AggregateService.PersistAsync(aggregate);
 
     var snapshotResult = await EventStore.Snapshots
-      .Where(x => x.AggregateId == aggregate.Id)
+      .Where(x => x.AggregateId == aggregate.RecordId)
       .AsAsyncEnumerable()
       .SingleOrDefaultAsync();
 
     var eventCount = await EventStore.Events
-      .Where(x => x.AggregateId == aggregate.Id)
+      .Where(x => x.AggregateId == aggregate.RecordId)
       .AsAsyncEnumerable()
       .CountAsync();
       
@@ -201,12 +201,12 @@ public abstract partial class AggregateServiceTests
     await AggregateService.PersistAsync(aggregate);
 
     var snapshotCount = await EventStore.Snapshots
-      .Where(x => x.AggregateId == aggregate.Id)
+      .Where(x => x.AggregateId == aggregate.RecordId)
       .AsAsyncEnumerable()
       .CountAsync();
     
     var eventCount = await EventStore.Events
-      .Where(x => x.AggregateId == aggregate.Id)
+      .Where(x => x.AggregateId == aggregate.RecordId)
       .AsAsyncEnumerable()
       .CountAsync();
 
@@ -225,12 +225,12 @@ public abstract partial class AggregateServiceTests
     await AggregateService.PersistAsync(aggregate);
     
     var snapshotCount = await EventStore.Snapshots
-      .Where(x => x.AggregateId == aggregate.Id)
+      .Where(x => x.AggregateId == aggregate.RecordId)
       .AsAsyncEnumerable()
       .CountAsync();
     
     var eventCount = await EventStore.Events
-      .Where(x => x.AggregateId == aggregate.Id)
+      .Where(x => x.AggregateId == aggregate.RecordId)
       .AsAsyncEnumerable()
       .CountAsync();
       
@@ -247,7 +247,7 @@ public abstract partial class AggregateServiceTests
       aggregate.Add(new EmptyEvent());
 
     await AggregateService.PersistAsync(aggregate);
-    var result = await AggregateService.RehydrateAsync<SnapshotAggregate>(aggregate.Id);
+    var result = await AggregateService.RehydrateAsync<SnapshotAggregate>(aggregate.RecordId);
       
     Assert.NotNull(result);
     Assert.Equal((int) eventsCount, result?.Counter);
@@ -276,15 +276,15 @@ public abstract partial class AggregateServiceTests
       aggregate.Add(new EmptyEvent());
     await AggregateService.PersistAsync(aggregate);
 
-    var result = await AggregateService.RehydrateAsync<SnapshotAggregate>(aggregate.Id, date);
+    var result = await AggregateService.RehydrateAsync<SnapshotAggregate>(aggregate.RecordId, date);
     
     var snapshotCount = await EventStore.Snapshots
-      .Where(x => x.AggregateId == aggregate.Id)
+      .Where(x => x.AggregateId == aggregate.RecordId)
       .AsAsyncEnumerable()
       .CountAsync();
 
     var eventsCount = await EventStore.Events
-      .Where(x => x.AggregateId == aggregate.Id)
+      .Where(x => x.AggregateId == aggregate.RecordId)
       .AsAsyncEnumerable()
       .CountAsync();
 
@@ -314,10 +314,10 @@ public abstract partial class AggregateServiceTests
       aggregate.Add(new EmptyEvent());
     await AggregateService.PersistAsync(aggregate);
       
-    var result = await AggregateService.RehydrateAsync<SnapshotAggregate>(aggregate.Id);
+    var result = await AggregateService.RehydrateAsync<SnapshotAggregate>(aggregate.RecordId);
     
     var snapshotCount = await EventStore.Snapshots
-      .Where(x => x.AggregateId == aggregate.Id)
+      .Where(x => x.AggregateId == aggregate.RecordId)
       .AsAsyncEnumerable()
       .CountAsync();
       
@@ -342,10 +342,10 @@ public abstract partial class AggregateServiceTests
       aggregate.Add(new EmptyEvent());
     await AggregateService.PersistAsync(aggregate);
       
-    var result = await AggregateService.RehydrateAsync<SnapshotAggregate>(aggregate.Id);
+    var result = await AggregateService.RehydrateAsync<SnapshotAggregate>(aggregate.RecordId);
 
     var snapshotCount = await EventStore.Snapshots
-      .Where(x => x.AggregateId == aggregate.Id)
+      .Where(x => x.AggregateId == aggregate.RecordId)
       .AsAsyncEnumerable()
       .CountAsync();
       
@@ -375,10 +375,10 @@ public abstract partial class AggregateServiceTests
 
     await transaction.CommitAsync();
 
-    var result1 = await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate1.Id);
+    var result1 = await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate1.RecordId);
     Assert.Equal(3, result1?.Counter);
 
-    var result2 = await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate2.Id);
+    var result2 = await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate2.RecordId);
     Assert.Equal(4, result2?.Counter);
   }
   
@@ -405,11 +405,11 @@ public abstract partial class AggregateServiceTests
     await Assert.ThrowsAsync<EventStoreException>(async () => await transaction.CommitAsync());
 
     // Since we manually committed the first event of aggregate1, we still expect one here
-    var result1 = await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate1.Id);
+    var result1 = await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate1.RecordId);
     Assert.Equal(1, result1?.Counter);
 
     // aggregate2 should not have been committed
-    Assert.Null(await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate2.Id));
+    Assert.Null(await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate2.RecordId));
   }
   
   [Fact]
@@ -426,7 +426,7 @@ public abstract partial class AggregateServiceTests
     await transaction.CommitAsync();
 
     // aggregate should not have been committed
-    Assert.Null(await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate.Id));
+    Assert.Null(await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate.RecordId));
   }
   
   [Fact]
@@ -487,7 +487,7 @@ public abstract partial class AggregateServiceTests
 
     var view = await EventStore
       .GetView<MockAggregateView>()
-      .Where(x => x.Id == aggregate.Id)
+      .Where(x => x.RecordId == aggregate.RecordId)
       .AsAsyncEnumerable()
       .SingleAsync();
     
@@ -515,13 +515,13 @@ public abstract partial class AggregateServiceTests
       await AggregateService.PersistAsync(aggregate);
     }
 
-    var snapshotResult = await SnapshotStore.Snapshots
-      .Where(x => x.AggregateId == aggregate.Id)
+    var snapshotResult = await EventStore.Snapshots
+      .Where(x => x.AggregateId == aggregate.RecordId)
       .AsAsyncEnumerable()
       .SingleOrDefaultAsync();
 
     var eventCount = await EventStore.Events
-      .Where(x => x.AggregateId == aggregate.Id)
+      .Where(x => x.AggregateId == aggregate.RecordId)
       .AsAsyncEnumerable()
       .CountAsync();
       

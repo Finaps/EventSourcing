@@ -65,7 +65,7 @@ public abstract record Aggregate : Record
     return CreateSnapshot() with
     {
       PartitionId = PartitionId,
-      AggregateId = Id,
+      AggregateId = RecordId,
       AggregateType = Type,
       Index = Version - 1
     };
@@ -87,7 +87,7 @@ public abstract record Aggregate : Record
     e = e with
     {
       PartitionId = PartitionId,
-      AggregateId = Id,
+      AggregateId = RecordId,
       AggregateType = Type,
       Index = Version
     };
@@ -114,7 +114,7 @@ public abstract record Aggregate : Record
     if (aggregateId == Guid.Empty)
       throw new ArgumentException($"Error Rehydrating {typeof(TAggregate)}. Aggregate Id should not be Guid.Empty. ", nameof(aggregateId));
 
-    var aggregate = new TAggregate { PartitionId = partitionId, Id = aggregateId };
+    var aggregate = new TAggregate { PartitionId = partitionId, RecordId = aggregateId };
     
     if (snapshot != null)
       aggregate.ValidateAndApplySnapshot(snapshot);

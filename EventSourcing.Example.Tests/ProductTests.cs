@@ -1,4 +1,5 @@
 ﻿using EventSourcing.Core;
+using EventSourcing.Core.Services;
 using EventSourcing.Example.Domain.Products;
 using EventSourcing.Example.Tests.DTOs;
 using Xunit;
@@ -20,7 +21,7 @@ public class ProductTests : TestsBase
         var product = await response.AsDto<ProductDto>();
 
         Assert.NotNull(product);
-        Assert.NotEqual(Guid.Empty, product!.Id);
+        Assert.NotEqual(Guid.Empty, product!.RecordId);
         Assert.Equal(create.Name, product.Name);
         Assert.Equal(create.Quantity, product.Quantity);
     }
@@ -33,7 +34,7 @@ public class ProductTests : TestsBase
         var product = await response.AsDto<ProductDto>();
 
         Assert.NotNull(product);
-        Assert.NotEqual(Guid.Empty, product!.Id);
+        Assert.NotEqual(Guid.Empty, product!.RecordId);
         Assert.Equal(ProductName, product.Name);
         Assert.Equal(ProductQuantity, product.Quantity);
     }
@@ -65,7 +66,7 @@ public class ProductTests : TestsBase
 
         Assert.Equal(ProductQuantity + snapshotInterval, product!.Quantity);
 
-        var snapshotStore = GetService<ISnapshotStore>();
+        var snapshotStore = GetService<IEventStore>();
         var snapshot = await snapshotStore!.Snapshots.Where(x => x.AggregateId == productId).AsAsyncEnumerable().FirstAsync() as ProductSnapshot;
         
         Assert.NotNull(snapshot);

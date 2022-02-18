@@ -14,7 +14,7 @@ public class AggregateTransaction : IAggregateTransaction
 
   public IAggregateTransaction Add(Aggregate aggregate)
   {
-    if (aggregate.Id == Guid.Empty)
+    if (aggregate.RecordId == Guid.Empty)
       throw new ArgumentException(
         $"Error adding {aggregate} to {nameof(AggregateTransaction)}. Aggregate.Id cannot be empty", nameof(aggregate));
 

@@ -55,7 +55,7 @@ public abstract partial class EventStoreTests
     await EventStore.AddAsync(aggregate.CreateLinkedSnapshot());
 
     var count = await EventStore.Snapshots
-      .Where(x => x.AggregateId == aggregate.Id)
+      .Where(x => x.AggregateId == aggregate.RecordId)
       .AsAsyncEnumerable()
       .CountAsync();
 
@@ -77,7 +77,7 @@ public abstract partial class EventStoreTests
     await EventStore.AddAsync(snapshot2);
 
     var result = await EventStore.Snapshots
-      .Where(x => x.AggregateId == aggregate.Id)
+      .Where(x => x.AggregateId == aggregate.RecordId)
       .OrderByDescending(x => x.Index)
       .AsAsyncEnumerable()
       .FirstOrDefaultAsync();
