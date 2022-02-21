@@ -13,7 +13,7 @@ public static class SnapshotService
     .GroupBy(x => x.AggregateType)
     .ToDictionary(x => x.Key, x => x.ToList());
 
-  public static List<Snapshot> GetSnapshots(Aggregate aggregate) => 
+  public static List<Snapshot> CreateSnapshots(Aggregate aggregate) => 
     AggregateViewFactories.TryGetValue(aggregate.GetType(), out var factories)
       ? factories
         .Where(x => x.IsSnapshotIntervalExceeded(aggregate))
