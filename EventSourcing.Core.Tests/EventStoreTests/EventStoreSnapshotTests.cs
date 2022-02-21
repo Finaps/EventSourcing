@@ -8,7 +8,9 @@ public abstract partial class EventStoreTests
   public async Task Cannot_Create_Snapshot_For_Aggregate_Without_Events()
   {
     var aggregate = new SnapshotAggregate();
-    Assert.Throws<InvalidOperationException>(() => aggregate.CreateLinkedSnapshot());
+    var factory = new SimpleSnapshotFactory();
+
+    Assert.Throws<InvalidOperationException>(() => factory.CreateSnapshot(aggregate));
   }
   
   [Fact]
@@ -16,7 +18,9 @@ public abstract partial class EventStoreTests
   {
     var aggregate = new SnapshotAggregate();
     aggregate.Add(new EmptyEvent());
-    await EventStore.AddAsync(aggregate.CreateLinkedSnapshot());
+    
+    var factory = new SimpleSnapshotFactory();
+    await EventStore.AddAsync(factory.CreateSnapshot(aggregate));
   }
 
   [Fact]
@@ -24,7 +28,10 @@ public abstract partial class EventStoreTests
   {
     var aggregate = new SnapshotAggregate();
     aggregate.Add(new EmptyEvent());
-    var snapshot = aggregate.CreateLinkedSnapshot();
+
+    var factory = new SimpleSnapshotFactory();
+
+    var snapshot = factory.CreateSnapshot(aggregate);
     
     await EventStore.AddAsync(snapshot);
 
@@ -37,7 +44,9 @@ public abstract partial class EventStoreTests
   {
     var aggregate = new SnapshotAggregate { PartitionId = Guid.NewGuid() };
     aggregate.Add(new EmptyEvent());
-    await EventStore.AddAsync(aggregate.CreateLinkedSnapshot());
+    
+    var factory = new SimpleSnapshotFactory();
+    await EventStore.AddAsync(factory.CreateSnapshot(aggregate));
 
     var count = await EventStore.Snapshots
       .Where(x => x.PartitionId == aggregate.PartitionId)
@@ -52,10 +61,12 @@ public abstract partial class EventStoreTests
   {
     var aggregate = new SnapshotAggregate();
     aggregate.Add(new EmptyEvent());
-    await EventStore.AddAsync(aggregate.CreateLinkedSnapshot());
+
+    var factory = new SimpleSnapshotFactory();
+    await EventStore.AddAsync(factory.CreateSnapshot(aggregate));
 
     var count = await EventStore.Snapshots
-      .Where(x => x.AggregateId == aggregate.RecordId)
+      .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
 
@@ -67,9 +78,12 @@ public abstract partial class EventStoreTests
   {
     var aggregate = new SnapshotAggregate();
     aggregate.Add(new EmptyEvent());
-    var snapshot = aggregate.CreateLinkedSnapshot();
+    
+    var factory = new SimpleSnapshotFactory();
+    
+    var snapshot = factory.CreateSnapshot(aggregate);
     aggregate.Add(new EmptyEvent());
-    var snapshot2 = aggregate.CreateLinkedSnapshot();
+    var snapshot2 = factory.CreateSnapshot(aggregate);
 
     Assert.NotEqual(snapshot.Index, snapshot2.Index);
 
@@ -77,12 +91,12 @@ public abstract partial class EventStoreTests
     await EventStore.AddAsync(snapshot2);
 
     var result = await EventStore.Snapshots
-      .Where(x => x.AggregateId == aggregate.RecordId)
+      .Where(x => x.AggregateId == aggregate.Id)
       .OrderByDescending(x => x.Index)
       .AsAsyncEnumerable()
       .FirstOrDefaultAsync();
 
     Assert.NotNull(result);
-    Assert.Equal(snapshot2.Index, result.Index);
+    Assert.Equal(snapshot2.Index, result!.Index);
   }
 }

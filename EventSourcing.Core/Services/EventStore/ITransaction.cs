@@ -1,6 +1,4 @@
-using EventSourcing.Core.Records;
-
-namespace EventSourcing.Core.Services;
+namespace EventSourcing.Core;
 
 public interface ITransaction
 {
@@ -34,7 +32,7 @@ public interface ITransaction
   /// </summary>
   /// <param name="aggregate"></param>
   /// <returns></returns>
-  ITransaction Add(Aggregate aggregate);
+  ITransaction Add(View view);
 
   /// <summary>
   /// Commit Transaction

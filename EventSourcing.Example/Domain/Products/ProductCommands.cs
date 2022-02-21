@@ -1,5 +1,3 @@
-using System;
-
 namespace EventSourcing.Example.Domain.Products;
 
 public record CreateProduct(string Name, int Quantity);

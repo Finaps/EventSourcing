@@ -1,5 +1,4 @@
 using System.Reflection;
-using EventSourcing.Core.Records;
 using EventSourcing.Core.Tests.Mocks;
 
 namespace EventSourcing.Core.Tests;
@@ -14,7 +13,7 @@ public abstract partial class EventStoreTests
 
         await EventStore.AddAsync(new List<Event>{e});
         var result = await EventStore.Events
-            .Where(r => r.RecordId == e.RecordId && r.Type == recordType)
+            .Where(r => r.Id == e.Id && r.Type == recordType)
             .AsAsyncEnumerable()
             .FirstOrDefaultAsync() as AttributeEvent;
 
@@ -29,7 +28,7 @@ public abstract partial class EventStoreTests
         await EventStore.AddAsync(new List<Event>{e});
 
         var result = await EventStore.Events
-            .Where(r => r.RecordId == e.RecordId)
+            .Where(r => r.Id == e.Id)
             .AsAsyncEnumerable()
             .FirstOrDefaultAsync() as AttributeEvent;
 

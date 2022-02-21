@@ -1,10 +1,6 @@
-using System;
-using EventSourcing.Core;
-using EventSourcing.Core.Records;
-
 namespace EventSourcing.Example.Domain.Orders;
 
-public record Order : Aggregate
+public class Order : Aggregate
 {
     public Guid BasketId { get; private set; }
     protected override void Apply(Event e)

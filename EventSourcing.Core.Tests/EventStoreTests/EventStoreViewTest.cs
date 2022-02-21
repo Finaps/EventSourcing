@@ -44,11 +44,11 @@ public abstract partial class EventStoreTests
       MockStringSet = new HashSet<string> { "No", "Duplicates", "Duplicates", "Here" }
     });
 
-    await EventStore.AddAsync(aggregate);
+    await EventStore.AddAsync(new MockAggregateViewFactory().CreateView(aggregate));
 
     var view = await EventStore
       .GetView<MockAggregateView>()
-      .Where(x => x.RecordId == aggregate.RecordId)
+      .Where(x => x.Id == aggregate.Id)
       .AsAsyncEnumerable()
       .SingleAsync();
     

@@ -1,6 +1,4 @@
-using EventSourcing.Core.Records;
-
-namespace EventSourcing.Core.Services;
+namespace EventSourcing.Core;
 
 public class AggregateService : IAggregateService
 {
@@ -17,10 +15,8 @@ public class AggregateService : IAggregateService
 
   public async Task<TAggregate?> RehydrateAsync<TAggregate>(Guid partitionId, Guid aggregateId, DateTimeOffset date,
     CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
-  {
-    var snapshot = new TAggregate().SnapshotInterval == 0
-      ? null
-      : await _store.Snapshots
+  { 
+    var snapshot = await _store.Snapshots
       .Where(x => 
         x.PartitionId == partitionId &&
         x.AggregateId == aggregateId &&

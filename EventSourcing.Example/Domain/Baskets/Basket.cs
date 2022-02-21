@@ -1,13 +1,9 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using EventSourcing.Core;
-using EventSourcing.Core.Records;
 using EventSourcing.Example.Domain.Shared;
 
 namespace EventSourcing.Example.Domain.Baskets;
 
-public record Basket : Aggregate
+public class Basket : Aggregate
 {
     public List<Item> Items { get; } = new();
     public bool CheckedOut;
@@ -83,7 +79,7 @@ public record Basket : Aggregate
     {
         if (Items.Count == 0 || Items.Sum(x => x.Quantity) == 0)
             throw new InvalidOperationException(
-                $"Cannot check out basket with id {RecordId}: Basket does not contain any items");
+                $"Cannot check out basket with id {Id}: Basket does not contain any items");
         Add(new BasketCheckedOutEvent());
     }
     

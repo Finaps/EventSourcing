@@ -1,8 +1,6 @@
-using EventSourcing.Core.Records;
-
 namespace EventSourcing.Core.Tests.Mocks;
 
-public record EmptyAggregate : Aggregate
+public class EmptyAggregate : Aggregate
 {
   protected override void Apply(Event e) {}
 }

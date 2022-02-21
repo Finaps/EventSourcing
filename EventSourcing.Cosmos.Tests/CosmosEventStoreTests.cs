@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using EventSourcing.Core;
-using EventSourcing.Core.Records;
-using EventSourcing.Core.Services;
 using EventSourcing.Core.Tests;
 using EventSourcing.Core.Tests.Mocks;
 using Microsoft.Extensions.Configuration;

@@ -1,5 +1,3 @@
-using System;
-
 namespace EventSourcing.Example.Domain.Baskets;
 
 public record AddProductToBasket(Guid ProductId, int Quantity);

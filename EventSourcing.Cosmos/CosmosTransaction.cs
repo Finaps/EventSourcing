@@ -1,6 +1,4 @@
 using EventSourcing.Core;
-using EventSourcing.Core.Records;
-using EventSourcing.Core.Services;
 
 namespace EventSourcing.Cosmos;
 
@@ -13,7 +11,7 @@ public class CosmosTransaction : ITransaction
     ReadEvent,
     CreateEvent,
     CreateSnapshot,
-    CreateAggregate
+    CreateView
   }
   
   private static readonly TransactionalBatchItemRequestOptions BatchItemRequestOptions = new()
@@ -73,10 +71,10 @@ public class CosmosTransaction : ITransaction
     return this;
   }
 
-  public ITransaction Add(Aggregate aggregate)
+  public ITransaction Add(View view)
   {
-    _batch.UpsertItem(aggregate, BatchItemRequestOptions);
-    _actions.Add((CosmosEventTransactionAction.CreateAggregate, aggregate));
+    _batch.UpsertItem(view, BatchItemRequestOptions);
+    _actions.Add((CosmosEventTransactionAction.CreateView, view));
 
     return this;
   }

@@ -1,5 +1,4 @@
 using System.Reflection;
-using EventSourcing.Core;
 
 namespace EventSourcing.Cosmos;
 

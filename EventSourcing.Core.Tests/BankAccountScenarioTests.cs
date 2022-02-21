@@ -1,5 +1,3 @@
-using EventSourcing.Core.Records;
-
 namespace EventSourcing.Core.Tests;
 
 public record FundsEvent : Event
@@ -17,7 +15,7 @@ public record FundsTransferredEvent : FundsEvent
   public Guid CreditorAccount { get; init; }
 }
 
-public record BankAccount : Aggregate
+public class BankAccount : Aggregate
 {
   public List<FundsEvent> History { get; } = new();
   public decimal Balance { get; private set; }
@@ -39,9 +37,9 @@ public record BankAccount : Aggregate
         Balance -= withdraw.Amount;
         break;
       case FundsTransferredEvent transfer:
-        if (RecordId == transfer.DebtorAccount)
+        if (Id == transfer.DebtorAccount)
           Balance -= transfer.Amount;
-        else if (RecordId == transfer.CreditorAccount)
+        else if (Id == transfer.CreditorAccount)
           Balance += transfer.Amount;
         else
           throw new InvalidOperationException("Not debtor nor creditor of this transaction");
@@ -73,7 +71,7 @@ public abstract partial class AggregateServiceTests
     account.Deposit(100);
     await AggregateService.PersistAsync(account);
 
-    var aggregate = await AggregateService.RehydrateAsync<BankAccount>(account.RecordId);
+    var aggregate = await AggregateService.RehydrateAsync<BankAccount>(account.Id);
     aggregate!.Deposit(50);
     await AggregateService.PersistAsync(aggregate);
   }
@@ -85,7 +83,7 @@ public abstract partial class AggregateServiceTests
     account.Deposit(100);
     await AggregateService.PersistAsync(account);
 
-    await AggregateService.RehydrateAndPersistAsync<BankAccount>(account.RecordId, x => x.Deposit(50));
+    await AggregateService.RehydrateAndPersistAsync<BankAccount>(account.Id, x => x.Deposit(50));
   }
 
   [Fact]
@@ -99,8 +97,8 @@ public abstract partial class AggregateServiceTests
 
     var transfer = new FundsTransferredEvent
     {
-      DebtorAccount = account.RecordId,
-      CreditorAccount = anotherAccount.RecordId,
+      DebtorAccount = account.Id,
+      CreditorAccount = anotherAccount.Id,
       Amount = 20
     };
 
@@ -109,8 +107,8 @@ public abstract partial class AggregateServiceTests
 
     await AggregateService.PersistAsync(new[] { account, anotherAccount });
 
-    var result1 = await AggregateService.RehydrateAsync<BankAccount>(account.RecordId);
-    var result2 = await AggregateService.RehydrateAsync<BankAccount>(anotherAccount.RecordId);
+    var result1 = await AggregateService.RehydrateAsync<BankAccount>(account.Id);
+    var result2 = await AggregateService.RehydrateAsync<BankAccount>(anotherAccount.Id);
 
     Assert.Equal(80, result1?.Balance);
     Assert.Equal(20, result2?.Balance);

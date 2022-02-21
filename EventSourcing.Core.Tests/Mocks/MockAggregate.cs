@@ -1,5 +1,3 @@
-using EventSourcing.Core.Records;
-
 namespace EventSourcing.Core.Tests.Mocks;
 
 public enum MockEnum
@@ -81,10 +79,8 @@ public record MockSnapshot : Snapshot, IMock
   public HashSet<string> MockStringSet { get; init; }
 }
 
-public record MockAggregate : Aggregate, IMock
+public class MockAggregate : Aggregate, IMock
 {
-  public override bool ShouldStoreAggregateView => true;
-
   public bool MockBoolean { get; private set; }
   public string MockString { get; private set; }
   public decimal MockDecimal { get; private set; }
@@ -116,7 +112,7 @@ public record MockAggregate : Aggregate, IMock
   }
 }
 
-public record MockAggregateView : View<MockAggregate>, IMock
+public record MockAggregateView : View, IMock
 {
   public bool MockBoolean { get; init; }
   public string MockString { get; init; }
@@ -128,4 +124,21 @@ public record MockAggregateView : View<MockAggregate>, IMock
   public List<MockNestedRecord> MockNestedClassList { get; init; }
   public List<float> MockFloatList { get; init; }
   public HashSet<string> MockStringSet { get; init; }
+}
+
+public class MockAggregateViewFactory : ViewFactory<MockAggregate, MockAggregateView>
+{
+  protected override MockAggregateView CreateView(MockAggregate aggregate) => new()
+  {
+    MockBoolean = aggregate.MockBoolean,
+    MockString = aggregate.MockString,
+    MockDecimal = aggregate.MockDecimal,
+    MockDouble = aggregate.MockDouble,
+    MockEnum = aggregate.MockEnum,
+    MockFlagEnum = aggregate.MockFlagEnum,
+    MockNestedRecord = aggregate.MockNestedRecord,
+    MockNestedClassList = aggregate.MockNestedClassList,
+    MockFloatList = aggregate.MockFloatList,
+    MockStringSet = aggregate.MockStringSet
+  };
 }

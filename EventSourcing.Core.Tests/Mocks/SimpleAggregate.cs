@@ -1,8 +1,6 @@
-using EventSourcing.Core.Records;
-
 namespace EventSourcing.Core.Tests.Mocks;
 
-internal record SimpleAggregate : Aggregate
+internal class SimpleAggregate : Aggregate
 {
   public int Counter { get; private set; }
 

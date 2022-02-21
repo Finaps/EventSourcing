@@ -2,8 +2,6 @@ using System.IO;
 using System.Text.Json;
 using Azure.Core.Serialization;
 using EventSourcing.Core;
-using EventSourcing.Core.Records;
-using EventSourcing.Core.Services;
 
 namespace EventSourcing.Cosmos;
 
@@ -18,9 +16,9 @@ internal class CosmosRecordSerializer : CosmosSerializer
     {
       Converters =
       {
-        new RecordConverter<Event>(options.RecordConverterOptions),
         new RecordConverter<Snapshot>(options.RecordConverterOptions),
-        new RecordConverter<Aggregate>(options.RecordConverterOptions)
+        new RecordConverter<Event>(options.RecordConverterOptions),
+        new RecordConverter<View>(options.RecordConverterOptions)
       }
     });
   }

@@ -1,7 +1,3 @@
-using System;
-using EventSourcing.Core;
-using EventSourcing.Core.Records;
-
 namespace EventSourcing.Example.Domain.Baskets;
 
 public record BasketCreatedEvent(TimeSpan ExpirationTime) : Event;

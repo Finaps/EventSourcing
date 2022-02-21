@@ -1,6 +1,4 @@
-using EventSourcing.Core.Records;
-
-namespace EventSourcing.Core.Services;
+namespace EventSourcing.Core;
 
 /// <summary>
 /// Aggregate Service Interface: Rehydrating and Persisting <see cref="Aggregate"/>s from <see cref="Event"/>s

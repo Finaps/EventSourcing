@@ -1,4 +1,3 @@
-using EventSourcing.Core.Records;
 using EventSourcing.Core.Tests.Mocks;
 
 namespace EventSourcing.Core.Tests;
@@ -80,14 +79,14 @@ public abstract partial class EventStoreTests
         .ToList());
     
     // Then delete the first 5 events, simulating concurrency
-    await EventStore.DeleteAsync(aggregate.RecordId);
+    await EventStore.DeleteAsync(aggregate.Id);
 
     // Check if committing transaction throws NonConsecutiveException
     await Assert.ThrowsAsync<EventStoreException>(async () => await transaction.CommitAsync());
 
     // check if events were deleted and transaction did not add additional events
     var count = await EventStore.Events
-      .Where(x => x.AggregateId == aggregate.RecordId)
+      .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
     

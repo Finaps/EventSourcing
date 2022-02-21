@@ -1,22 +1,19 @@
-using EventSourcing.Core.Services;
+namespace EventSourcing.Core;
 
-namespace EventSourcing.Core.Records;
-
-public enum RecordKind { None, Event, Snapshot, Aggregate, View }
+public enum RecordKind { None, Event, Snapshot, View }
 
 /// <summary>
-/// Base Record for <see cref="Event"/>s, <see cref="Snapshot"/>s, <see cref="Aggregate"/>s and <see cref="View"/>s
+/// Base Record for <see cref="Event"/>s, <see cref="Snapshot"/>s and <see cref="View"/>s
 /// </summary>
-public record Record
+public abstract record Record
 {
   /// <summary>
   /// <see cref="RecordKind"/> of this Record. used to discern between Record kinds in database queries
   /// </summary>
   public RecordKind Kind => this switch
   {
-    Event => RecordKind.Event,
     Snapshot => RecordKind.Snapshot,
-    Aggregate => RecordKind.Aggregate,
+    Event => RecordKind.Event,
     View => RecordKind.View,
     _ => RecordKind.None
   };
@@ -40,19 +37,19 @@ public record Record
   /// <summary>
   /// Unique Record identifier.
   /// </summary>
-  public Guid RecordId { get; init; }
+  public Guid Id { get; init; }
   
   /// <summary>
   /// Unique Database identifier.
   /// </summary>
-  public virtual string id => RecordId.ToString();
+  public abstract string id { get; }
 
   /// <summary>
   /// Create new Record
   /// </summary>
   protected Record()
   {
-    RecordId = Guid.NewGuid();
+    Id = Guid.NewGuid();
     Type = RecordTypeCache.GetAssemblyRecordTypeString(GetType());
   }
 }
