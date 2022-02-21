@@ -2,12 +2,12 @@ namespace EventSourcing.Core;
 
 public class AggregateTransaction : IAggregateTransaction
 {
-  private readonly ITransaction _transaction;
+  private readonly IRecordTransaction _recordTransaction;
   private readonly HashSet<Aggregate> _aggregates = new();
 
-  public AggregateTransaction(ITransaction transaction)
+  public AggregateTransaction(IRecordTransaction recordTransaction)
   {
-    _transaction = transaction;
+    _recordTransaction = recordTransaction;
   }
 
   public IAggregateTransaction Add(Aggregate aggregate)
@@ -20,20 +20,20 @@ public class AggregateTransaction : IAggregateTransaction
       throw new ArgumentException(
         $"Error adding {aggregate} to {nameof(AggregateTransaction)}. Aggregate already added.", nameof(aggregate));
 
-    _transaction.Add(aggregate.UncommittedEvents.ToList());
+    _recordTransaction.AddEvents(aggregate.UncommittedEvents.ToList());
 
     foreach (var snapshot in SnapshotService.GetSnapshots(aggregate))
-      _transaction.Add(snapshot);
+      _recordTransaction.AddSnapshot(snapshot);
 
     foreach (var view in ViewService.GetViews(aggregate))
-      _transaction.Add(view);
+      _recordTransaction.AddView(view);
 
     return this;
   }
 
   public async Task CommitAsync(CancellationToken cancellationToken)
   {
-    await _transaction.CommitAsync(cancellationToken);
+    await _recordTransaction.CommitAsync(cancellationToken);
 
     foreach (var aggregate in _aggregates)
       aggregate.ClearUncommittedEvents();

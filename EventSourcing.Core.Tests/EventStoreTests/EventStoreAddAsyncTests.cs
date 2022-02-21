@@ -7,7 +7,7 @@ public abstract partial class EventStoreTests
   [Fact]
   public async Task Can_Add_Event()
   {
-    await EventStore.AddAsync(new Event[] { new EmptyAggregate().Add(new EmptyEvent()) });
+    await RecordStore.AddEventsAsync(new Event[] { new EmptyAggregate().Add(new EmptyEvent()) });
   }
 
   [Fact]
@@ -19,20 +19,20 @@ public abstract partial class EventStoreTests
     for (var i = 0; i < 10; i++)
       events.Add(aggregate.Add(new EmptyEvent()));
 
-    await EventStore.AddAsync(events);
+    await RecordStore.AddEventsAsync(events);
   }
 
   [Fact]
   public async Task Can_Add_Empty_Event_List()
   {
-    await EventStore.AddAsync(Array.Empty<Event>());
+    await RecordStore.AddEventsAsync(Array.Empty<Event>());
   }
 
   [Fact]
   public async Task Cannot_Add_Null_Event_List()
   {
     await Assert.ThrowsAsync<ArgumentNullException>(async () =>
-      await EventStore.AddAsync((List<Event>) null));
+      await RecordStore.AddEventsAsync((List<Event>) null));
   }
   
   [Fact]
@@ -45,7 +45,7 @@ public abstract partial class EventStoreTests
     e2 = e2 with { Index = 0 };
 
     await Assert.ThrowsAnyAsync<RecordValidationException>(
-      async () => await EventStore.AddAsync(new Event[] { e1, e2 }));
+      async () => await RecordStore.AddEventsAsync(new Event[] { e1, e2 }));
   }
 
   [Fact]
@@ -58,7 +58,7 @@ public abstract partial class EventStoreTests
     var event2 = aggregate2.Add(new EmptyEvent());
 
     await Assert.ThrowsAnyAsync<RecordValidationException>(
-      async () => await EventStore.AddAsync(new Event[] { event1, event2 }));
+      async () => await RecordStore.AddEventsAsync(new Event[] { event1, event2 }));
   }
   
   [Fact]
@@ -69,6 +69,6 @@ public abstract partial class EventStoreTests
     var e2 = aggregate.Add(new EmptyEvent()) with { Index = 2 };
 
     await Assert.ThrowsAnyAsync<RecordValidationException>(
-      async () => await EventStore.AddAsync(new Event[] { e1, e2 }));
+      async () => await RecordStore.AddEventsAsync(new Event[] { e1, e2 }));
   }
 }

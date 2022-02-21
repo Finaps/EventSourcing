@@ -16,9 +16,9 @@ public abstract partial class EventStoreTests
       aggregate1.Add(new EmptyEvent())
     };
 
-    await EventStore.AddAsync(events1);
+    await RecordStore.AddEventsAsync(events1);
 
-    var count = await EventStore.Events
+    var count = await RecordStore.Events
       .Where(x => x.PartitionId == aggregate1.PartitionId)
       .AsAsyncEnumerable()
       .CountAsync();
@@ -38,9 +38,9 @@ public abstract partial class EventStoreTests
       aggregate.Add(new EmptyEvent())
     };
 
-    await EventStore.AddAsync(events);
+    await RecordStore.AddEventsAsync(events);
 
-    var count = await EventStore.Events
+    var count = await RecordStore.Events
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
@@ -65,10 +65,10 @@ public abstract partial class EventStoreTests
       aggregate2.Add(new EmptyEvent())
     };
 
-    await EventStore.AddAsync(events);
-    await EventStore.AddAsync(events2);
+    await RecordStore.AddEventsAsync(events);
+    await RecordStore.AddEventsAsync(events2);
 
-    var result = await EventStore.Events
+    var result = await RecordStore.Events
       .Where(x => x.AggregateId == aggregate.Id)
       .Where(x => x.Index > 0)
       .AsAsyncEnumerable()
@@ -94,13 +94,13 @@ public abstract partial class EventStoreTests
       aggregate2.Add(new EmptyEvent())
     };
 
-    await EventStore.AddAsync(events);
-    await EventStore.AddAsync(events2);
+    await RecordStore.AddEventsAsync(events);
+    await RecordStore.AddEventsAsync(events2);
 
     // If I just would query all events by Type, I'd get all events from the history of tests
     // Therefore I test the same thing by two assertions.
 
-    var result = await EventStore.Events
+    var result = await RecordStore.Events
       .Where(x => x.AggregateId == aggregate.Id)
       .Where(x => x.AggregateType == aggregate.Type)
       .AsAsyncEnumerable()
@@ -108,7 +108,7 @@ public abstract partial class EventStoreTests
 
     Assert.All(result, e => Assert.Equal(aggregate.Id, e.AggregateId));
 
-    var result2 = await EventStore.Events
+    var result2 = await RecordStore.Events
       .Where(x => x.AggregateId == aggregate2.Id)
       .Where(x => x.AggregateType == aggregate.Type)
       .AsAsyncEnumerable()
@@ -153,9 +153,9 @@ public abstract partial class EventStoreTests
       MockStringSet = new HashSet<string> { "A", "B", "C", "C" }
     });
 
-    await EventStore.AddAsync(new List<Event> { e });
+    await RecordStore.AddEventsAsync(new List<Event> { e });
 
-    var result = (await EventStore.Events
+    var result = (await RecordStore.Events
         .Where(x => x.AggregateId == aggregate.Id)
         .AsAsyncEnumerable()
         .ToListAsync())

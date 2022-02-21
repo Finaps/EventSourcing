@@ -30,7 +30,7 @@ public abstract record Record
   /// Unique Partition identifier.
   /// </summary>
   /// <remarks>
-  /// <see cref="ITransaction"/> and <see cref="IAggregateTransaction"/> are scoped to <see cref="PartitionId"/>
+  /// <see cref="IRecordTransaction"/> and <see cref="IAggregateTransaction"/> are scoped to <see cref="PartitionId"/>
   /// </remarks>
   public Guid PartitionId { get; init; }
   

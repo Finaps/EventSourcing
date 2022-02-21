@@ -4,7 +4,7 @@ namespace EventSourcing.Core.Tests;
 
 public abstract partial class AggregateServiceTests
 {
-  protected abstract IEventStore EventStore { get; }
+  protected abstract IRecordStore RecordStore { get; }
   protected abstract IAggregateService AggregateService { get; }
 
   [Fact]
@@ -15,7 +15,7 @@ public abstract partial class AggregateServiceTests
 
     await AggregateService.PersistAsync(aggregate);
 
-    var result = await EventStore.Events
+    var result = await RecordStore.Events
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .SingleOrDefaultAsync();
@@ -45,7 +45,7 @@ public abstract partial class AggregateServiceTests
 
     await AggregateService.PersistAsync(aggregate);
 
-    var eventCount = await EventStore.Events
+    var eventCount = await RecordStore.Events
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
@@ -134,7 +134,7 @@ public abstract partial class AggregateServiceTests
     await AggregateService.RehydrateAndPersistAsync<SimpleAggregate>(aggregate.Id,
       a => a.Add(new EmptyEvent()));
 
-    var count = await EventStore.Events
+    var count = await RecordStore.Events
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
@@ -156,7 +156,7 @@ public abstract partial class AggregateServiceTests
     await AggregateService.RehydrateAndPersistAsync<SimpleAggregate>(aggregate.PartitionId, aggregate.Id,
       a => a.Add(new EmptyEvent()));
 
-    var count = await EventStore.Events
+    var count = await RecordStore.Events
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
@@ -176,12 +176,12 @@ public abstract partial class AggregateServiceTests
 
     await AggregateService.PersistAsync(aggregate);
 
-    var snapshotResult = await EventStore.Snapshots
+    var snapshotResult = await RecordStore.Snapshots
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .SingleOrDefaultAsync();
 
-    var eventCount = await EventStore.Events
+    var eventCount = await RecordStore.Events
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
@@ -202,12 +202,12 @@ public abstract partial class AggregateServiceTests
 
     await AggregateService.PersistAsync(aggregate);
 
-    var snapshotCount = await EventStore.Snapshots
+    var snapshotCount = await RecordStore.Snapshots
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
     
-    var eventCount = await EventStore.Events
+    var eventCount = await RecordStore.Events
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .LongCountAsync();
@@ -228,12 +228,12 @@ public abstract partial class AggregateServiceTests
 
     await AggregateService.PersistAsync(aggregate);
     
-    var snapshotCount = await EventStore.Snapshots
+    var snapshotCount = await RecordStore.Snapshots
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
     
-    var eventCount = await EventStore.Events
+    var eventCount = await RecordStore.Events
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .LongCountAsync();
@@ -285,12 +285,12 @@ public abstract partial class AggregateServiceTests
 
     var result = await AggregateService.RehydrateAsync<SnapshotAggregate>(aggregate.Id, date);
     
-    var snapshotCount = await EventStore.Snapshots
+    var snapshotCount = await RecordStore.Snapshots
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
 
-    var eventsCount = await EventStore.Events
+    var eventsCount = await RecordStore.Events
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
@@ -325,7 +325,7 @@ public abstract partial class AggregateServiceTests
       
     var result = await AggregateService.RehydrateAsync<SnapshotAggregate>(aggregate.Id);
     
-    var snapshotCount = await EventStore.Snapshots
+    var snapshotCount = await RecordStore.Snapshots
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
@@ -355,7 +355,7 @@ public abstract partial class AggregateServiceTests
       
     var result = await AggregateService.RehydrateAsync<SnapshotAggregate>(aggregate.Id);
 
-    var snapshotCount = await EventStore.Snapshots
+    var snapshotCount = await RecordStore.Snapshots
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
@@ -411,9 +411,9 @@ public abstract partial class AggregateServiceTests
     transaction.Add(aggregate2);
 
     // Sneakily commit first event of first aggregate before committing transaction
-    await EventStore.AddAsync(new List<Event> { aggregate1.UncommittedEvents.First() });
+    await RecordStore.AddEventsAsync(new List<Event> { aggregate1.UncommittedEvents.First() });
 
-    await Assert.ThrowsAsync<EventStoreException>(async () => await transaction.CommitAsync());
+    await Assert.ThrowsAsync<RecordStoreException>(async () => await transaction.CommitAsync());
 
     // Since we manually committed the first event of aggregate1, we still expect one here
     var result1 = await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate1.Id);
@@ -498,8 +498,8 @@ public abstract partial class AggregateServiceTests
 
     await AggregateService.PersistAsync(aggregate);
 
-    var view = await EventStore
-      .GetView<MockAggregateView>()
+    var view = await RecordStore
+      .GetViews<MockAggregateView>()
       .Where(x => x.Id == aggregate.Id)
       .AsAsyncEnumerable()
       .SingleAsync();
@@ -530,12 +530,12 @@ public abstract partial class AggregateServiceTests
       await AggregateService.PersistAsync(aggregate);
     }
 
-    var snapshotResult = await EventStore.Snapshots
+    var snapshotResult = await RecordStore.Snapshots
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .SingleOrDefaultAsync();
 
-    var eventCount = await EventStore.Events
+    var eventCount = await RecordStore.Events
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();

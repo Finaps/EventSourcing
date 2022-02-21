@@ -13,10 +13,10 @@ public abstract partial class EventStoreTests
 
     e2 = e2 with { Index = 0 };
 
-    await EventStore.AddAsync(new Event[] { e1 });
+    await RecordStore.AddEventsAsync(new Event[] { e1 });
 
-    await Assert.ThrowsAnyAsync<EventStoreException>(
-      async () => await EventStore.AddAsync(new Event[] { e2 }));
+    await Assert.ThrowsAnyAsync<RecordStoreException>(
+      async () => await RecordStore.AddEventsAsync(new Event[] { e2 }));
   }
   
   [Fact]
@@ -24,12 +24,12 @@ public abstract partial class EventStoreTests
   {
     var aggregate = new EmptyAggregate();
     var e1 = aggregate.Add(new EmptyEvent());
-    await EventStore.AddAsync(new List<Event> { e1 });
+    await RecordStore.AddEventsAsync(new List<Event> { e1 });
 
     var e2 = aggregate.Add(new EmptyEvent()) with { Index = 2 };
 
-    await Assert.ThrowsAnyAsync<EventStoreException>(
-      async () => await EventStore.AddAsync(new Event[] { e2 }));
+    await Assert.ThrowsAnyAsync<RecordStoreException>(
+      async () => await RecordStore.AddEventsAsync(new Event[] { e2 }));
   }
   
   [Fact]
@@ -39,18 +39,18 @@ public abstract partial class EventStoreTests
     var e2 = new EmptyEvent { AggregateId = Guid.NewGuid(), AggregateType = "AggregateType" };
 
     // Commit e1 in an earlier transaction
-    await EventStore.AddAsync(new List<Event> { e1 });
+    await RecordStore.AddEventsAsync(new List<Event> { e1 });
 
     // Try to commit both e1 & e2
-    var transaction = EventStore.CreateTransaction()
-      .Add(new List<Event> { e1 })
-      .Add(new List<Event> { e2 });
+    var transaction = RecordStore.CreateTransaction()
+      .AddEvents(new List<Event> { e1 })
+      .AddEvents(new List<Event> { e2 });
 
     // Check commit throws a concurrency exception
-    await Assert.ThrowsAsync<EventStoreException>(async () => await transaction.CommitAsync());
+    await Assert.ThrowsAsync<RecordStoreException>(async () => await transaction.CommitAsync());
 
     // Ensure e2 was not committed
-    var count = await EventStore.Events
+    var count = await RecordStore.Events
       .Where(x => x.AggregateId == e2.AggregateId)
       .AsAsyncEnumerable()
       .CountAsync();
@@ -64,28 +64,28 @@ public abstract partial class EventStoreTests
     var aggregate = new EmptyAggregate();
     
     // Add 5 Events
-    await EventStore.AddAsync(Enumerable
+    await RecordStore.AddEventsAsync(Enumerable
       .Range(0, 5)
       .Select(_ => aggregate.Add(new EmptyEvent()))
       .Cast<Event>()
       .ToList());
 
     // Then, start transaction, adding 5 additional events
-    var transaction = EventStore.CreateTransaction()
-      .Add(Enumerable
+    var transaction = RecordStore.CreateTransaction()
+      .AddEvents(Enumerable
         .Range(0, 5)
         .Select(_ => aggregate.Add(new EmptyEvent()))
         .Cast<Event>()
         .ToList());
     
     // Then delete the first 5 events, simulating concurrency
-    await EventStore.DeleteAsync(aggregate.Id);
+    await RecordStore.DeleteEventsAsync(aggregate.Id);
 
     // Check if committing transaction throws NonConsecutiveException
-    await Assert.ThrowsAsync<EventStoreException>(async () => await transaction.CommitAsync());
+    await Assert.ThrowsAsync<RecordStoreException>(async () => await transaction.CommitAsync());
 
     // check if events were deleted and transaction did not add additional events
-    var count = await EventStore.Events
+    var count = await RecordStore.Events
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();

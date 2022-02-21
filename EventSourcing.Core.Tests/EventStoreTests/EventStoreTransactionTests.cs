@@ -9,11 +9,11 @@ public abstract partial class EventStoreTests
   {
     var e = new EmptyEvent { AggregateId = Guid.NewGuid(), AggregateType = "AggregateType" };
 
-    await EventStore.CreateTransaction()
-      .Add(new List<Event> { e })
+    await RecordStore.CreateTransaction()
+      .AddEvents(new List<Event> { e })
       .CommitAsync();
 
-    var count = await EventStore.Events
+    var count = await RecordStore.Events
       .Where(x => x.AggregateId == e.AggregateId)
       .AsAsyncEnumerable()
       .CountAsync();
@@ -27,12 +27,12 @@ public abstract partial class EventStoreTests
     var e1 = new EmptyEvent { AggregateId = Guid.NewGuid(), AggregateType = "AggregateType" };
     var e2 = new EmptyEvent { AggregateId = Guid.NewGuid(), AggregateType = "AggregateType" };
 
-    await EventStore.CreateTransaction()
-      .Add(new List<Event> { e1 })
-      .Add(new List<Event> { e2 })
+    await RecordStore.CreateTransaction()
+      .AddEvents(new List<Event> { e1 })
+      .AddEvents(new List<Event> { e2 })
       .CommitAsync();
 
-    var count = await EventStore.Events
+    var count = await RecordStore.Events
       .Where(x => x.AggregateId == e1.AggregateId || x.AggregateId == e2.AggregateId)
       .AsAsyncEnumerable()
       .CountAsync();
@@ -49,12 +49,12 @@ public abstract partial class EventStoreTests
       AggregateId = Guid.NewGuid()
     };
 
-    var transaction = EventStore.CreateTransaction(Guid.NewGuid());
-    Assert.Throws<RecordValidationException>(() => transaction.Add(new List<Event> { e }));
+    var transaction = RecordStore.CreateTransaction(Guid.NewGuid());
+    Assert.Throws<RecordValidationException>(() => transaction.AddEvents(new List<Event> { e }));
     await transaction.CommitAsync();
       
     // Ensure e was not committed
-    var count = await EventStore.Events
+    var count = await RecordStore.Events
       .Where(x => x.PartitionId == e.PartitionId && x.AggregateId == e.AggregateId)
       .AsAsyncEnumerable()
       .CountAsync();
