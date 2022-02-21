@@ -1,5 +1,10 @@
 namespace EventSourcing.Core;
 
+/// <summary>
+/// Create <see cref="TSnapshot"/> for <see cref="TAggregate"/>
+/// </summary>
+/// <typeparam name="TAggregate"><see cref="Aggregate"/> type</typeparam>
+/// <typeparam name="TSnapshot"><see cref="View"/> type</typeparam>
 public abstract class SnapshotFactory<TAggregate, TSnapshot> : ISnapshotFactory
   where TAggregate : Aggregate where TSnapshot : Snapshot
 {
@@ -8,17 +13,12 @@ public abstract class SnapshotFactory<TAggregate, TSnapshot> : ISnapshotFactory
 
   public abstract long SnapshotInterval { get; }
   
-  /// <summary>
-  /// Calculates if the snapshot interval has been exceeded (and a snapshot thus has to be created)
-  /// </summary>
-  /// <returns></returns>
+
   public bool IsSnapshotIntervalExceeded(Aggregate aggregate) =>
     SnapshotInterval != 0 && aggregate.UncommittedEvents.Any() && 
     aggregate.UncommittedEvents.First().Index / SnapshotInterval != 
     (aggregate.UncommittedEvents.Last().Index + 1) / SnapshotInterval;
-
-  protected abstract TSnapshot CreateSnapshot(TAggregate aggregate);
-
+  
   public Snapshot CreateSnapshot(Aggregate aggregate)
   {
     if (aggregate.Version == 0)
@@ -33,4 +33,11 @@ public abstract class SnapshotFactory<TAggregate, TSnapshot> : ISnapshotFactory
       Index = aggregate.Version - 1
     };
   }
+
+  /// <summary>
+  /// Create <see cref="TSnapshot"/> defined for a particular <see cref="TAggregate"/>
+  /// </summary>
+  /// <param name="aggregate">Source <see cref="TAggregate"/></param>
+  /// <returns>Resulting <see cref="TSnapshot"/>s of <see cref="TAggregate"/></returns>
+  protected abstract TSnapshot CreateSnapshot(TAggregate aggregate);
 }

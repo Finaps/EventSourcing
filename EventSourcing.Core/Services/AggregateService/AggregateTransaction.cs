@@ -22,10 +22,10 @@ public class AggregateTransaction : IAggregateTransaction
 
     _recordTransaction.AddEvents(aggregate.UncommittedEvents.ToList());
 
-    foreach (var snapshot in SnapshotService.GetSnapshots(aggregate))
+    foreach (var snapshot in SnapshotService.CreateSnapshots(aggregate))
       _recordTransaction.AddSnapshot(snapshot);
 
-    foreach (var view in ViewService.GetViews(aggregate))
+    foreach (var view in ViewService.CreateViews(aggregate))
       _recordTransaction.AddView(view);
 
     return this;
