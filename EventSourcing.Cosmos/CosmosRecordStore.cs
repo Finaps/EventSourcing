@@ -3,10 +3,21 @@ using EventSourcing.Core;
 namespace EventSourcing.Cosmos;
 
 /// <summary>
-/// Cosmos Event Store: Cosmos Connection for Querying and Storing <see cref="Event"/>s
+/// Cosmos Record Store: Cosmos Connection for Querying and Storing <see cref="Record"/>s
 /// </summary>
-public class CosmosEventStore : IEventStore
+public class CosmosRecordStore : IRecordStore
 {
+  internal static readonly ItemRequestOptions ItemRequestOptions = new()
+  {
+    EnableContentResponseOnWrite = false
+  };
+  
+  internal static readonly TransactionalBatchItemRequestOptions BatchItemRequestOptions = new()
+  {
+    EnableContentResponseOnWrite = false
+  };
+  
+  private const int MaxTransactionSize = 100;
   private const string ReservationToken = "<RESERVED>";
   
   private readonly Container _container;
@@ -16,7 +27,7 @@ public class CosmosEventStore : IEventStore
   /// </summary>
   /// <param name="options">Cosmos Event Store Options</param>
   /// <exception cref="ArgumentException"></exception>
-  public CosmosEventStore(IOptions<CosmosEventStoreOptions> options)
+  public CosmosRecordStore(IOptions<CosmosEventStoreOptions> options)
   {
     const string baseError = "Error Constructing Cosmos Event Store. ";
     
@@ -51,40 +62,37 @@ public class CosmosEventStore : IEventStore
     .AsCosmosAsyncQueryable<View>()
     .Where(x => x.Kind == RecordKind.View);
 
-  public IQueryable<TView> GetView<TView>() where TView : View, new() => _container
+  public IQueryable<TView> GetViews<TView>() where TView : View, new() => _container
     .AsCosmosAsyncQueryable<TView>()
     .Where(x => x.Kind == RecordKind.View && x.Type == new TView().Type);
 
-  public async Task<TView> GetViewAsync<TView>(Guid partitionId, Guid aggregateId) where TView : View, new() =>
+  public async Task<TView> GetViewByIdAsync<TView>(Guid partitionId, Guid aggregateId) where TView : View, new() =>
     await _container.ReadItemAsync<TView>(aggregateId.ToString(), new PartitionKey(partitionId.ToString()));
 
-  public async Task AddAsync(IList<Event> events, CancellationToken cancellationToken = default)
+  public async Task AddEventsAsync(IList<Event> events, CancellationToken cancellationToken = default)
   {
     if (events == null) throw new ArgumentNullException(nameof(events));
     if (events.Count == 0) return;
 
     await CreateTransaction(events.First().PartitionId)
-      .Add(events)
+      .AddEvents(events)
       .CommitAsync(cancellationToken);
   }
 
-  public async Task AddAsync(Snapshot snapshot, CancellationToken cancellationToken = default) =>
+  public async Task AddSnapshotAsync(Snapshot snapshot, CancellationToken cancellationToken = default) =>
     await CreateTransaction(snapshot.PartitionId)
-      .Add(snapshot)
+      .AddSnapshot(snapshot)
       .CommitAsync(cancellationToken);
 
-  public async Task AddAsync(View view, CancellationToken cancellationToken = default) =>
+  public async Task AddViewAsync(View view, CancellationToken cancellationToken = default) =>
     await CreateTransaction(view.PartitionId)
-      .Add(view)
+      .AddView(view)
       .CommitAsync(cancellationToken);
 
-  public async Task DeleteAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
+  public async Task DeleteEventsAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
   {
     var partitionKey = new PartitionKey(partitionId.ToString());
-    var options = new ItemRequestOptions { EnableContentResponseOnWrite = false };
-    var batchOptions = new TransactionalBatchItemRequestOptions { EnableContentResponseOnWrite = false };
-    const int maxTransactionSize = 100;
-    
+
     // Get existing Event Indices
     var eventIndices = await Events
       .Where(x => x.PartitionId == partitionId && x.AggregateId == aggregateId)
@@ -94,7 +102,7 @@ public class CosmosEventStore : IEventStore
       .ToListAsync(cancellationToken);
 
     if (!eventIndices.Any())
-      throw new EventStoreException($"Couldn't Delete Records with PartitionId '{partitionId}' and AggregateId '{aggregateId}': No Events found");
+      throw new RecordStoreException($"Couldn't Delete Records with PartitionId '{partitionId}' and AggregateId '{aggregateId}': No Events found");
 
     var reservation = new Event
     {
@@ -106,23 +114,29 @@ public class CosmosEventStore : IEventStore
     };
 
     // Create Reservation on Event Stream
-    var response = await _container.CreateItemAsync(reservation, partitionKey, options, cancellationToken);
+    var response = await _container.CreateItemAsync(reservation, partitionKey, ItemRequestOptions, cancellationToken);
 
     if (response.StatusCode != HttpStatusCode.Created)
-      throw new EventStoreException("Couldn't create reservation while deleting Events");
-
-    // Delete Aggregate View
-    await _container.DeleteItemStreamAsync(aggregateId.ToString(), partitionKey, options, cancellationToken);
+      throw new RecordStoreException("Couldn't create reservation while deleting Events");
     
     // Delete Events
-    foreach (var indices in eventIndices.Chunk(maxTransactionSize))
+    foreach (var indices in eventIndices.Chunk(MaxTransactionSize))
     {
       var batch = _container.CreateTransactionalBatch(partitionKey);
       foreach (var index in indices)
-        batch.DeleteItem(new Event { PartitionId = partitionId, AggregateId = aggregateId, Index = index }.id, batchOptions);
+        batch.DeleteItem(new Event { PartitionId = partitionId, AggregateId = aggregateId, Index = index }.id, BatchItemRequestOptions);
       await batch.ExecuteAsync(cancellationToken);
     }
-    
+
+    // Delete Reservation
+    await _container.DeleteItemStreamAsync(reservation.id, partitionKey, ItemRequestOptions, cancellationToken);
+  }
+
+  public async Task DeleteEventsAsync(Guid aggregateId, CancellationToken cancellationToken = default) =>
+    await DeleteEventsAsync(Guid.Empty, aggregateId, cancellationToken);
+
+  public async Task DeleteSnapshotsAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
+  {
     // Get Existing Snapshot Indices
     var snapshotIndices = await Snapshots
       .Where(x => x.PartitionId == partitionId && x.AggregateId == aggregateId)
@@ -132,23 +146,39 @@ public class CosmosEventStore : IEventStore
       .ToListAsync(cancellationToken);
     
     // Delete Snapshots
-    foreach (var indices in snapshotIndices.Chunk(maxTransactionSize))
+    foreach (var indices in snapshotIndices.Chunk(MaxTransactionSize))
     {
-      var batch = _container.CreateTransactionalBatch(partitionKey);
+      var batch = _container.CreateTransactionalBatch(new PartitionKey(partitionId.ToString()));
       foreach (var index in indices)
-        batch.DeleteItem(new Snapshot { PartitionId = partitionId, AggregateId = aggregateId, Index = index }.id, batchOptions);
+        batch.DeleteItem(new Snapshot { PartitionId = partitionId, AggregateId = aggregateId, Index = index }.id, BatchItemRequestOptions);
       await batch.ExecuteAsync(cancellationToken);
     }
-    
-    // Delete Reservation
-    await _container.DeleteItemStreamAsync(reservation.id, partitionKey, options, cancellationToken);
   }
 
-  public async Task DeleteAsync(Guid aggregateId, CancellationToken cancellationToken = default) =>
-    await DeleteAsync(Guid.Empty, aggregateId, cancellationToken);
+  public async Task DeleteSnapshotsAsync(Guid aggregateId, CancellationToken cancellationToken = default) =>
+    await DeleteSnapshotsAsync(Guid.Empty, aggregateId, cancellationToken);
 
-  public ITransaction CreateTransaction() => CreateTransaction(Guid.Empty);
+  public async Task DeleteViewsAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
+  {
+    // Get Existing View Types
+    var types = await Views
+      .Where(x => x.PartitionId == partitionId && x.Id == aggregateId)
+      .Select(x => x.Type)
+      .AsAsyncEnumerable()
+      .ToListAsync(cancellationToken);
+    
+    // Delete Views
+    var batch = _container.CreateTransactionalBatch(new PartitionKey(partitionId.ToString()));
+    foreach (var t in types)
+      batch.DeleteItem(new View { PartitionId = partitionId, Id = aggregateId, Type = t }.id, BatchItemRequestOptions);
+    await batch.ExecuteAsync(cancellationToken);
+  }
 
-  public ITransaction CreateTransaction(Guid partitionId) =>
-    new CosmosTransaction(_container, partitionId);
+  public async Task DeleteViewsAsync(Guid aggregateId, CancellationToken cancellationToken = default) =>
+    await DeleteSnapshotsAsync(Guid.Empty, aggregateId, cancellationToken);
+
+  public IRecordTransaction CreateTransaction() => CreateTransaction(Guid.Empty);
+
+  public IRecordTransaction CreateTransaction(Guid partitionId) =>
+    new CosmosRecordTransaction(_container, partitionId);
 }

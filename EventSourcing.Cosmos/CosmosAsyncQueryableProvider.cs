@@ -37,7 +37,7 @@ internal class CosmosAsyncQueryable<TResult> : IOrderedQueryable<TResult>, IAsyn
       }
       catch (CosmosException e)
       {
-        throw new EventStoreException(
+        throw new RecordStoreException(
           $"Encountered {nameof(CosmosException)} while querying {typeof(TResult).Name}s: {(int)e.StatusCode} {e.StatusCode.ToString()}. " +
           "See inner exception for details.", e);
       }

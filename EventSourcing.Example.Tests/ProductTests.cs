@@ -66,7 +66,7 @@ public class ProductTests : TestsBase
 
         Assert.Equal(ProductQuantity + snapshotInterval, product!.Quantity);
 
-        var snapshotStore = GetService<IEventStore>();
+        var snapshotStore = GetService<IRecordStore>();
         var snapshot = await snapshotStore!.Snapshots.Where(x => x.AggregateId == productId).AsAsyncEnumerable().FirstAsync() as ProductSnapshot;
         
         Assert.NotNull(snapshot);

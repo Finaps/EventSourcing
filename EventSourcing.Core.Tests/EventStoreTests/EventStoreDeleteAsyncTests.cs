@@ -13,11 +13,11 @@ public abstract partial class EventStoreTests
     for (var i = 0; i < 10; i++)
       events.Add(aggregate.Add(new EmptyEvent()));
 
-    await EventStore.AddAsync(events);
+    await RecordStore.AddEventsAsync(events);
 
-    await EventStore.DeleteAsync(aggregate.Id);
+    await RecordStore.DeleteEventsAsync(aggregate.Id);
 
-    var count = await EventStore.Events
+    var count = await RecordStore.Events
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();

@@ -13,7 +13,7 @@ public interface IAggregateTransaction
   IAggregateTransaction Add(Aggregate aggregate);
 
   /// <summary>
-  /// Commit <see cref="Aggregate"/> operations to the <see cref="IEventStore"/>
+  /// Commit <see cref="Aggregate"/> operations to the <see cref="IRecordStore"/>
   /// </summary>
   /// <exception cref="RecordStoreException">
   /// Thrown when a conflict occurs when commiting transaction,

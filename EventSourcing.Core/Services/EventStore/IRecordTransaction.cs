@@ -1,9 +1,9 @@
 namespace EventSourcing.Core;
 
-public interface ITransaction
+public interface IRecordTransaction
 {
   /// <summary>
-  /// Partition Id <see cref="ITransaction"/> is scoped to
+  /// Partition Id <see cref="IRecordTransaction"/> is scoped to
   /// </summary>
   Guid PartitionId { get; }
 
@@ -16,28 +16,28 @@ public interface ITransaction
   /// <param name="events"><see cref="Event"/>s to add</param>
   /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with more than one unique <see cref="Event.PartitionId"/> or <see cref="Event.AggregateId"/></exception>
   /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with <see cref="Guid.Empty"/> <see cref="Event.AggregateId"/></exception>
-  /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with nonconsecutive <see cref="IndexedRecord.Index"/>s</exception>
-  /// <returns>This <see cref="ITransaction"/></returns>
-  ITransaction Add(IList<Event> events);
+  /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with nonconsecutive <see cref="Event.Index"/>s</exception>
+  /// <returns>This <see cref="IRecordTransaction"/></returns>
+  IRecordTransaction AddEvents(IList<Event> events);
   
   /// <summary>
   /// Add <see cref="Snapshot"/>
   /// </summary>
   /// <param name="snapshot"><see cref="Snapshot"/> to add</param>
-  /// <returns>This <see cref="ITransaction"/></returns>
-  ITransaction Add(Snapshot snapshot);
+  /// <returns>This <see cref="IRecordTransaction"/></returns>
+  IRecordTransaction AddSnapshot(Snapshot snapshot);
   
   /// <summary>
-  /// Add <see cref="Aggregate"/> View
+  /// Add <see cref="View"/>
   /// </summary>
-  /// <param name="aggregate"></param>
+  /// <param name="view"><see cref="View"/></param>
   /// <returns></returns>
-  ITransaction Add(View view);
+  IRecordTransaction AddView(View view);
 
   /// <summary>
   /// Commit Transaction
   /// </summary>
-  /// <exception cref="EventStoreException">
+  /// <exception cref="RecordStoreException">
   /// Thrown when a conflict occurs when commiting transaction,
   /// in which case none of the added or deleted <see cref="Event"/>s will be committed
   /// </exception>

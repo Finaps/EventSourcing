@@ -1,7 +1,7 @@
 namespace EventSourcing.Core;
 
 /// <summary>
-/// Aggregate Service Interface: Rehydrating and Persisting <see cref="Aggregate"/>s from <see cref="Event"/>s
+/// Allows Rehydrating and Persisting <see cref="Aggregate"/>s from <see cref="Event"/> streams
 /// </summary>
 public interface IAggregateService
 {
@@ -12,7 +12,7 @@ public interface IAggregateService
   /// <param name="aggregateId">Unique identifier of <see cref="Aggregate"/> to rehydrate</param>
   /// <param name="cancellationToken">Cancellation Token</param>
   /// <typeparam name="TAggregate">Type of <see cref="Aggregate"/></typeparam>
-  /// <returns><see cref="Aggregate"/> of type <see cref="TAggregate"/> or null when not found</returns>
+  /// <returns><see cref="Aggregate"/> of type <see cref="TAggregate"/> or <c>null</c> when not found</returns>
   Task<TAggregate?> RehydrateAsync<TAggregate>(Guid partitionId, Guid aggregateId,
     CancellationToken cancellationToken = default) where TAggregate : Aggregate, new();
   
@@ -46,15 +46,6 @@ public interface IAggregateService
   Task PersistAsync(IEnumerable<Aggregate> aggregates, CancellationToken cancellationToken = default);
 
   /// <summary>
-  /// Delete <see cref="Aggregate"/>
-  /// </summary>
-  /// <param name="partitionId">Unique partition identifier of <see cref="Aggregate"/> to rehydrate</param>
-  /// <param name="aggregateId">Unique identifier of <see cref="Aggregate"/> to rehydrate</param>
-  /// <param name="cancellationToken"></param>
-  /// <returns></returns>
-  Task DeleteAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default);
-  
-  /// <summary>
   /// Create Aggregate Transaction
   /// </summary>
   /// <param name="partitionId">Transaction Partition identifier</param>
@@ -66,14 +57,7 @@ public interface IAggregateService
   /// </summary>
   /// <returns></returns>
   IAggregateTransaction CreateTransaction();
-  
-  /// <summary>
-  /// Query Aggregate View
-  /// </summary>
-  /// <typeparam name="TView"></typeparam>
-  /// <returns><see cref="IQueryable"/> of <see cref="TView"/></returns>
-  IQueryable<TView> GetView<TView>() where TView : View, new();
-  
+
   /// <summary>
   /// Rehydrate <see cref="Aggregate"/>
   /// </summary>
@@ -97,15 +81,6 @@ public interface IAggregateService
     CancellationToken cancellationToken = default) where TAggregate : Aggregate, new() =>
     await RehydrateAsync<TAggregate>(Guid.Empty, aggregateId, date, cancellationToken);
 
-  /// <summary>
-  /// Delete <see cref="Aggregate"/>
-  /// </summary>
-  /// <param name="aggregateId">Unique identifier of <see cref="Aggregate"/> to rehydrate</param>
-  /// <param name="cancellationToken"></param>
-  /// <returns></returns>
-  public async Task DeleteAsync(Guid aggregateId, CancellationToken cancellationToken = default) =>
-    await DeleteAsync(Guid.Empty, aggregateId, cancellationToken);
-  
   /// <summary>
   /// Rehydrate and Persist <see cref="Aggregate"/>
   /// </summary>

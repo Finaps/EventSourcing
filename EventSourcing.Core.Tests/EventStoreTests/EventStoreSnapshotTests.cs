@@ -20,11 +20,11 @@ public abstract partial class EventStoreTests
     aggregate.Add(new EmptyEvent());
     
     var factory = new SimpleSnapshotFactory();
-    await EventStore.AddAsync(factory.CreateSnapshot(aggregate));
+    await RecordStore.AddSnapshotAsync(factory.CreateSnapshot(aggregate));
   }
 
   [Fact]
-  public async Task Cannot_Add_Snapshot_With_Duplicate_AggregateId_And_Version()
+  public async Task Can_Add_Snapshot_With_Duplicate_AggregateId_And_Version()
   {
     var aggregate = new SnapshotAggregate();
     aggregate.Add(new EmptyEvent());
@@ -33,10 +33,10 @@ public abstract partial class EventStoreTests
 
     var snapshot = factory.CreateSnapshot(aggregate);
     
-    await EventStore.AddAsync(snapshot);
-
-    await Assert.ThrowsAnyAsync<EventStoreException>(
-      async () => await EventStore.AddAsync(snapshot));
+    await RecordStore.AddSnapshotAsync(snapshot);
+    await RecordStore.AddSnapshotAsync(snapshot);
+    
+    // does not throw exception
   }
   
   [Fact]
@@ -46,9 +46,9 @@ public abstract partial class EventStoreTests
     aggregate.Add(new EmptyEvent());
     
     var factory = new SimpleSnapshotFactory();
-    await EventStore.AddAsync(factory.CreateSnapshot(aggregate));
+    await RecordStore.AddSnapshotAsync(factory.CreateSnapshot(aggregate));
 
-    var count = await EventStore.Snapshots
+    var count = await RecordStore.Snapshots
       .Where(x => x.PartitionId == aggregate.PartitionId)
       .AsAsyncEnumerable()
       .CountAsync();
@@ -63,9 +63,9 @@ public abstract partial class EventStoreTests
     aggregate.Add(new EmptyEvent());
 
     var factory = new SimpleSnapshotFactory();
-    await EventStore.AddAsync(factory.CreateSnapshot(aggregate));
+    await RecordStore.AddSnapshotAsync(factory.CreateSnapshot(aggregate));
 
-    var count = await EventStore.Snapshots
+    var count = await RecordStore.Snapshots
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
@@ -87,10 +87,10 @@ public abstract partial class EventStoreTests
 
     Assert.NotEqual(snapshot.Index, snapshot2.Index);
 
-    await EventStore.AddAsync(snapshot);
-    await EventStore.AddAsync(snapshot2);
+    await RecordStore.AddSnapshotAsync(snapshot);
+    await RecordStore.AddSnapshotAsync(snapshot2);
 
-    var result = await EventStore.Snapshots
+    var result = await RecordStore.Snapshots
       .Where(x => x.AggregateId == aggregate.Id)
       .OrderByDescending(x => x.Index)
       .AsAsyncEnumerable()

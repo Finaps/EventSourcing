@@ -7,7 +7,7 @@ namespace EventSourcing.Cosmos.Tests;
 
 public class CosmosAggregateServiceTests : AggregateServiceTests
 {
-  protected sealed override IEventStore EventStore { get; }
+  protected sealed override IRecordStore RecordStore { get; }
   protected sealed override IAggregateService AggregateService { get; }
 
   public CosmosAggregateServiceTests()
@@ -25,7 +25,7 @@ public class CosmosAggregateServiceTests : AggregateServiceTests
       Container = configuration["Cosmos:Container"]
     });
 
-    EventStore = new CosmosEventStore(options);
-    AggregateService = new AggregateService(EventStore);
+    RecordStore = new CosmosRecordStore(options);
+    AggregateService = new AggregateService(RecordStore);
   }
 }

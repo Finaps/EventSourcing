@@ -7,7 +7,7 @@ namespace EventSourcing.Cosmos.Tests;
 
 public class CosmosRecordMigrationTests: RecordMigrationTests
 {
-    protected sealed override IEventStore EventStore { get; }
+    protected sealed override IRecordStore RecordStore { get; }
     protected sealed override IAggregateService AggregateService { get; }
 
     public CosmosRecordMigrationTests()
@@ -25,7 +25,7 @@ public class CosmosRecordMigrationTests: RecordMigrationTests
             Container = configuration["Cosmos:Container"],
         });
 
-        EventStore = new CosmosEventStore(options);
-        AggregateService = new AggregateService(EventStore);
+        RecordStore = new CosmosRecordStore(options);
+        AggregateService = new AggregateService(RecordStore);
     }
 }

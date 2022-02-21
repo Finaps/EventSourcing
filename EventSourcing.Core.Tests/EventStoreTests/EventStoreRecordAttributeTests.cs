@@ -11,8 +11,8 @@ public abstract partial class EventStoreTests
         var e = new EmptyAggregate().Add(new AttributeEvent("something"));
         var recordType = e.GetType().GetCustomAttribute<RecordTypeAttribute>()!.Value;
 
-        await EventStore.AddAsync(new List<Event>{e});
-        var result = await EventStore.Events
+        await RecordStore.AddEventsAsync(new List<Event>{e});
+        var result = await RecordStore.Events
             .Where(r => r.Id == e.Id && r.Type == recordType)
             .AsAsyncEnumerable()
             .FirstOrDefaultAsync() as AttributeEvent;
@@ -25,9 +25,9 @@ public abstract partial class EventStoreTests
     {
         var e = new EmptyAggregate().Add(new AttributeEvent("something"));
 
-        await EventStore.AddAsync(new List<Event>{e});
+        await RecordStore.AddEventsAsync(new List<Event>{e});
 
-        var result = await EventStore.Events
+        var result = await RecordStore.Events
             .Where(r => r.Id == e.Id)
             .AsAsyncEnumerable()
             .FirstOrDefaultAsync() as AttributeEvent;
