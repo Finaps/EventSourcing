@@ -1,5 +1,3 @@
-using System;
-
 namespace EventSourcing.Example.Domain.Shared;
 
 public static class Constants

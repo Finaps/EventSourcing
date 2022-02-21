@@ -1,6 +1,4 @@
-using EventSourcing.Core.Records;
-
-namespace EventSourcing.Core.Services;
+namespace EventSourcing.Core;
 
 public class AggregateTransaction : IAggregateTransaction
 {
@@ -14,7 +12,7 @@ public class AggregateTransaction : IAggregateTransaction
 
   public IAggregateTransaction Add(Aggregate aggregate)
   {
-    if (aggregate.RecordId == Guid.Empty)
+    if (aggregate.Id == Guid.Empty)
       throw new ArgumentException(
         $"Error adding {aggregate} to {nameof(AggregateTransaction)}. Aggregate.Id cannot be empty", nameof(aggregate));
 
@@ -24,11 +22,11 @@ public class AggregateTransaction : IAggregateTransaction
 
     _transaction.Add(aggregate.UncommittedEvents.ToList());
 
-    if (aggregate.IsSnapshotIntervalExceeded())
-      _transaction.Add(aggregate.CreateLinkedSnapshot());
+    foreach (var snapshot in SnapshotService.GetSnapshots(aggregate))
+      _transaction.Add(snapshot);
 
-    if (aggregate.ShouldStoreAggregateView)
-      _transaction.Add(aggregate);
+    foreach (var view in ViewService.GetViews(aggregate))
+      _transaction.Add(view);
 
     return this;
   }

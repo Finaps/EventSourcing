@@ -1,7 +1,6 @@
 using System.Reflection;
-using EventSourcing.Core.Records;
 
-namespace EventSourcing.Core.Services;
+namespace EventSourcing.Core;
 
 public sealed class RecordTypeCache
 {
@@ -49,7 +48,7 @@ public sealed class RecordTypeCache
     {
         if(!RecordTypeStrings.TryGetValue(type, out var typeString))
             throw new InvalidOperationException(
-                $"Error getting record type string for {type}. {type} not found in Assembly. Ensure {type.Name} extends {typeof(IndexedRecord)}");
+                $"Error getting record type string for {type}. {type} not found in Assembly. Ensure {type.Name} extends {typeof(Record)}");
 
         return typeString;
     }

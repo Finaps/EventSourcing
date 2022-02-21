@@ -1,10 +1,31 @@
-namespace EventSourcing.Core.Records;
+namespace EventSourcing.Core;
 
 /// <summary>
 /// Abstract Base <see cref="Aggregate"/>
 /// </summary>
-public abstract record Aggregate : Record
+public abstract class Aggregate
 {
+  /// <summary>
+  /// String representation of Record Type
+  /// </summary>
+  /// <remarks>
+  /// Can be overridden using <see cref="RecordTypeAttribute"/>
+  /// </remarks>
+  public string Type { get; init; }
+  
+  /// <summary>
+  /// Unique Partition identifier.
+  /// </summary>
+  /// <remarks>
+  /// <see cref="ITransaction"/> and <see cref="IAggregateTransaction"/> are scoped to <see cref="PartitionId"/>
+  /// </remarks>
+  public Guid PartitionId { get; init; }
+  
+  /// <summary>
+  /// Unique Record identifier.
+  /// </summary>
+  public Guid Id { get; init; }
+  
   /// <summary>
   /// The number of events applied to this aggregate.
   /// </summary>
@@ -15,6 +36,20 @@ public abstract record Aggregate : Record
   /// </summary>
   [JsonIgnore] public ImmutableArray<Event> UncommittedEvents => _uncommittedEvents.ToImmutableArray();
   [JsonIgnore] private readonly List<Event> _uncommittedEvents = new();
+  
+  /// <summary>
+  /// Clear Uncommitted Events
+  /// </summary>
+  public void ClearUncommittedEvents() => _uncommittedEvents.Clear();
+  
+  /// <summary>
+  /// Create new Record
+  /// </summary>
+  protected Aggregate()
+  {
+    Id = Guid.NewGuid();
+    Type = GetType().Name;
+  }
 
   /// <summary>
   /// Apply Event
@@ -22,55 +57,6 @@ public abstract record Aggregate : Record
   /// <param name="e"><see cref="Event"/> to apply</param>
   protected abstract void Apply(Event e);
 
-  /// <summary>
-  /// Snapshot interval length
-  /// </summary>
-  [JsonIgnore] public virtual long SnapshotInterval { get; }
-  
-  /// <summary>
-  /// If true, persisting this Aggregate will store an Aggregate View
-  /// </summary>
-  public virtual bool ShouldStoreAggregateView { get; }
-  
-  /// <summary>
-  /// Create Snapshot
-  /// </summary>
-  /// <returns><see cref="Snapshot"/></returns>
-  protected virtual Snapshot CreateSnapshot() =>
-    throw new NotImplementedException(
-      "Error creating snapshot. " +
-      $"{GetType()}.{nameof(CreateSnapshot)} is not implemented. " +
-      $"{nameof(CreateSnapshot)} and {nameof(ApplySnapshot)} should be implemented when {nameof(SnapshotInterval)} > 0.");
-  
-  /// <summary>
-  /// Apply Snapshot
-  /// </summary>
-  /// <param name="s"><see cref="Snapshot"/> to apply</param>
-  protected virtual void ApplySnapshot(Snapshot s) =>
-    throw new NotImplementedException(
-      "Error applying snapshot. " +
-      $"{GetType()}.{nameof(ApplySnapshot)} is not implemented. " +
-      $"{nameof(CreateSnapshot)} and {nameof(ApplySnapshot)} should be implemented when {nameof(SnapshotInterval)} > 0.");
-
-  /// <summary>
-  /// Create Snapshot
-  /// </summary>
-  /// <returns></returns>
-  public Snapshot CreateLinkedSnapshot()
-  {
-    if (Version == 0)
-      throw new InvalidOperationException(
-        "Error creating snapshot. Snapshots are undefined for aggregates with version 0.");
-    
-    return CreateSnapshot() with
-    {
-      PartitionId = PartitionId,
-      AggregateId = RecordId,
-      AggregateType = Type,
-      Index = Version - 1
-    };
-  } 
-    
   /// <summary>
   /// Add Event to Aggregate
   /// </summary>
@@ -84,10 +70,13 @@ public abstract record Aggregate : Record
   /// <exception cref="ArgumentException">Thrown when an invalid <see cref="Event"/> is added.</exception>
   public TEvent Add<TEvent>(TEvent e) where TEvent : Event
   {
+    if (e is Snapshot)
+      throw new ArgumentException("Cannot 'Add' Snapshot to Aggregate");
+    
     e = e with
     {
       PartitionId = PartitionId,
-      AggregateId = RecordId,
+      AggregateId = Id,
       AggregateType = Type,
       Index = Version
     };
@@ -114,7 +103,7 @@ public abstract record Aggregate : Record
     if (aggregateId == Guid.Empty)
       throw new ArgumentException($"Error Rehydrating {typeof(TAggregate)}. Aggregate Id should not be Guid.Empty. ", nameof(aggregateId));
 
-    var aggregate = new TAggregate { PartitionId = partitionId, RecordId = aggregateId };
+    var aggregate = new TAggregate { PartitionId = partitionId, Id = aggregateId };
     
     if (snapshot != null)
       aggregate.ValidateAndApplySnapshot(snapshot);
@@ -127,19 +116,6 @@ public abstract record Aggregate : Record
     return aggregate.Version == 0 ? null : aggregate;
   }
 
-  /// <summary>
-  /// Clear Uncommitted Events
-  /// </summary>
-  public void ClearUncommittedEvents() => _uncommittedEvents.Clear();
-  
-  /// <summary>
-  /// Calculates if the snapshot interval has been exceeded (and a snapshot thus has to be created)
-  /// </summary>
-  /// <returns></returns>
-  public bool IsSnapshotIntervalExceeded() => SnapshotInterval != 0 && UncommittedEvents.Any() &&
-                                              UncommittedEvents.First().Index / SnapshotInterval != 
-                                              (UncommittedEvents.Last().Index + 1) / SnapshotInterval;
-
   private void ValidateAndApplyEvent(Event e)
   {
     RecordValidation.ValidateEventForAggregate(this, e);
@@ -150,7 +126,7 @@ public abstract record Aggregate : Record
   private void ValidateAndApplySnapshot(Snapshot s)
   {
     RecordValidation.ValidateSnapshotForAggregate(this, s);
-    ApplySnapshot(s);
+    Apply(s);
     Version = s.Index + 1;
   }
 }

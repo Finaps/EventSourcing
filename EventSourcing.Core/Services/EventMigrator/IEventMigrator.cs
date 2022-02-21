@@ -1,11 +1,9 @@
-using EventSourcing.Core.Records;
-
-namespace EventSourcing.Core.Services;
+namespace EventSourcing.Core;
 
 /// <summary>
 /// Event Migrator: Converting an <see cref="Record"/> to it's successive version
 /// </summary>
-public interface IRecordMigrator
+public interface IEventMigrator
 {
   /// <summary>
   /// Source: Type of the source <see cref="Record"/> to migrate
@@ -20,5 +18,5 @@ public interface IRecordMigrator
   /// <summary>
   /// Convert: Convert an <see cref="Record"/> to it's successive version
   /// </summary>
-  IndexedRecord Convert(IndexedRecord record);
+  Event Convert(Event record);
 }

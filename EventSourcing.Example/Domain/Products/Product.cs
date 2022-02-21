@@ -1,18 +1,13 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using EventSourcing.Core;
-using EventSourcing.Core.Records;
 using EventSourcing.Example.Domain.Shared;
 
 namespace EventSourcing.Example.Domain.Products;
 
-public record Product : Aggregate
+public class Product : Aggregate
 {
     public string Name { get; private set; }
     public int Quantity { get; private set; }
     public List<Reservation> Reservations { get; private set; } = new();
-    public override long SnapshotInterval => 10; // For easier testing the snapshotting mechanism we set it to a relatively low number
 
     protected override void Apply(Event e)
     {
@@ -38,6 +33,12 @@ public record Product : Aggregate
                 break;
             case ReservationRemovedEvent reservationRemovedEvent:
                 RemoveReservation(reservationRemovedEvent.BasketId, reservationRemovedEvent.Quantity);
+                break;
+            
+            case ProductSnapshot snapshot:
+                Name = snapshot.Name;
+                Quantity = snapshot.Quantity;
+                Reservations = snapshot.Reservations;
                 break;
         }
     }
@@ -72,20 +73,6 @@ public record Product : Aggregate
         if(Reservations.Any(x => x.BasketId == basketId))
             Add(new ReservationRemovedEvent(quantity, basketId));
     }
-    protected override void ApplySnapshot(Snapshot s)
-    {
-        if (s is not ProductSnapshot productSnapshot)
-            throw new ArgumentException($"Expected {nameof(ProductSnapshot)}");
-        
-        Name = productSnapshot.Name;
-        Quantity = productSnapshot.Quantity;
-        Reservations = productSnapshot.Reservations;
-    }
-    protected override Snapshot CreateSnapshot()
-    {
-        return new ProductSnapshot(Name, Quantity, Reservations);
-    }
-
 
     // The available quantity is the total stock minus the amount that is being reserved
     private bool CheckAvailability(int quantity) => 

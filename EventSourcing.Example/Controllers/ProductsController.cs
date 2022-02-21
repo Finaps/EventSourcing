@@ -1,7 +1,3 @@
-using System;
-using System.Threading.Tasks;
-using EventSourcing.Core;
-using EventSourcing.Core.Services;
 using EventSourcing.Example.Domain.Products;
 using Microsoft.AspNetCore.Mvc;
 

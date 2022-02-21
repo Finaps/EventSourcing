@@ -1,14 +1,12 @@
 using System.IO;
 using System.Text;
 using System.Text.Json;
-using EventSourcing.Core.Records;
-using EventSourcing.Core.Services;
 
 namespace EventSourcing.Core.Tests;
 
 public class RecordConversionTests
 {
-  private record TestRecord : IndexedRecord
+  private record TestEvent : Event
   {
     public int A { get; init; }
     public string B { get; init; }
@@ -19,13 +17,13 @@ public class RecordConversionTests
   [Fact]
   public Task Converter_Throws_On_Missing_And_Null_Properties_On_Read_And_Write()
   {
-    var converter = new RecordConverter<IndexedRecord>(new RecordConverterOptions
+    var converter = new RecordConverter<Event>(new RecordConverterOptions
     {
-      RecordTypes = new List<Type> { typeof(TestRecord) }
+      RecordTypes = new List<Type> { typeof(TestEvent) }
     });
 
     // Create Record with Missing and Null Values
-    var faultyRecord = new TestRecord
+    var faultyRecord = new TestEvent
     {
       PartitionId = Guid.NewGuid(),
       AggregateId = Guid.NewGuid(),
@@ -46,26 +44,26 @@ public class RecordConversionTests
     var readException = Assert.Throws<RecordValidationException>(() =>
     {
       var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(faultyRecord)), true, default);
-      return converter.Read(ref reader, typeof(IndexedRecord), default);
+      return converter.Read(ref reader, typeof(Event), default);
     });
 
     // Assert for both exceptions the right exception messages are shown
     foreach (var exception in new [] { writeException, readException })
     {
-      Assert.DoesNotContain($"{nameof(TestRecord)}.PartitionId", exception.Message);
-      Assert.DoesNotContain($"{nameof(TestRecord)}.AggregateId", exception.Message);
-      Assert.DoesNotContain($"{nameof(TestRecord)}.AggregateType", exception.Message);
-      Assert.DoesNotContain($"{nameof(TestRecord)}.Type", exception.Message);
-      Assert.DoesNotContain($"{nameof(TestRecord)}.Index", exception.Message);
-      Assert.DoesNotContain($"{nameof(TestRecord)}.Timestamp", exception.Message);
+      Assert.DoesNotContain($"{nameof(TestEvent)}.PartitionId", exception.Message);
+      Assert.DoesNotContain($"{nameof(TestEvent)}.AggregateId", exception.Message);
+      Assert.DoesNotContain($"{nameof(TestEvent)}.AggregateType", exception.Message);
+      Assert.DoesNotContain($"{nameof(TestEvent)}.Type", exception.Message);
+      Assert.DoesNotContain($"{nameof(TestEvent)}.Index", exception.Message);
+      Assert.DoesNotContain($"{nameof(TestEvent)}.Timestamp", exception.Message);
 
       // Validation should fail for:
       //  - TestRecord.B, since it is a non-nullable field, but null in reality
       //  - TestRecord.C, since it is a non-nullable field, but not present in JSON 
-      Assert.DoesNotContain($"{nameof(TestRecord)}.A", exception.Message);
-      Assert.Contains($"{nameof(TestRecord)}.B", exception.Message);
-      Assert.Contains($"{nameof(TestRecord)}.C", exception.Message);
-      Assert.DoesNotContain($"{nameof(TestRecord)}.D", exception.Message);
+      Assert.DoesNotContain($"{nameof(TestEvent)}.A", exception.Message);
+      Assert.Contains($"{nameof(TestEvent)}.B", exception.Message);
+      Assert.Contains($"{nameof(TestEvent)}.C", exception.Message);
+      Assert.DoesNotContain($"{nameof(TestEvent)}.D", exception.Message);
     }
     
     return Task.CompletedTask;

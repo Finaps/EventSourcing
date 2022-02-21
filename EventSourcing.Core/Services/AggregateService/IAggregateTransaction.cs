@@ -1,6 +1,4 @@
-using EventSourcing.Core.Records;
-
-namespace EventSourcing.Core.Services;
+namespace EventSourcing.Core;
 
 public interface IAggregateTransaction
 {

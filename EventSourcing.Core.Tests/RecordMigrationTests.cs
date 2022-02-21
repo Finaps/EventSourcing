@@ -1,7 +1,5 @@
 using System.IO;
 using System.Text.Json;
-using EventSourcing.Core.Records;
-using EventSourcing.Core.Services;
 using EventSourcing.Core.Tests.Mocks;
 
 namespace EventSourcing.Core.Tests;
@@ -11,17 +9,17 @@ public abstract class RecordMigrationTests
   protected abstract IEventStore EventStore { get; }
   protected abstract IAggregateService AggregateService { get; }
 
-  private class InvalidRecordMigrator : RecordMigrator<EmptyEvent, EmptyEvent>
+  private class InvalidEventMigrator : EventMigrator<EmptyEvent, EmptyEvent>
   {
     protected override EmptyEvent Convert(EmptyEvent e) => throw new NotImplementedException();
   }
   
-  private class InvalidPingRecordMigrator : RecordMigrator<EmptyEvent, MockEvent>
+  private class InvalidPingEventMigrator : EventMigrator<EmptyEvent, MockEvent>
   {
     protected override MockEvent Convert(EmptyEvent e) => throw new NotImplementedException();
   }
   
-  private class InvalidPongRecordMigrator : RecordMigrator<MockEvent, EmptyEvent>
+  private class InvalidPongEventMigrator : EventMigrator<MockEvent, EmptyEvent>
   {
     protected override EmptyEvent Convert(MockEvent e) => throw new NotImplementedException();
   }
@@ -29,16 +27,16 @@ public abstract class RecordMigrationTests
   [Fact]
   public Task Cannot_Create_Record_Migrator_With_Source_Equals_Target()
   {
-    Assert.Throws<ArgumentException>(() => new InvalidRecordMigrator());
+    Assert.Throws<ArgumentException>(() => new InvalidEventMigrator());
     return Task.CompletedTask;
   }
 
   [Fact]
   public Task Cannot_Create_Record_Migrator_With_Cyclic_Reference()
   {
-    Assert.Throws<ArgumentException>(() => new RecordConverter<IndexedRecord>(new RecordConverterOptions
+    Assert.Throws<ArgumentException>(() => new RecordConverter<Event>(new RecordConverterOptions
     {
-      MigratorTypes = new List<Type> { typeof(InvalidPingRecordMigrator), typeof(InvalidPongRecordMigrator) }
+      MigratorTypes = new List<Type> { typeof(InvalidPingEventMigrator), typeof(InvalidPongEventMigrator) }
     }));
 
     return Task.CompletedTask;
@@ -52,7 +50,7 @@ public abstract class RecordMigrationTests
     aggregate.Add(new MigrationEventV2(someId));
     await AggregateService.PersistAsync(aggregate);
 
-    var rehydrated = await AggregateService.RehydrateAsync<MigratedAggregate>(aggregate.RecordId);
+    var rehydrated = await AggregateService.RehydrateAsync<MigratedAggregate>(aggregate.Id);
 
     Assert.NotNull(rehydrated);
     Assert.Single(rehydrated.SomeIds);
@@ -66,7 +64,7 @@ public abstract class RecordMigrationTests
     var aggregate = new MigratedAggregate();
     aggregate.Add(new MigrationEvent(someId.ToString()));
     await AggregateService.PersistAsync(aggregate);
-    var rehydrated = await AggregateService.RehydrateAsync<MigratedAggregate>(aggregate.RecordId);
+    var rehydrated = await AggregateService.RehydrateAsync<MigratedAggregate>(aggregate.Id);
 
     Assert.NotNull(rehydrated);
     Assert.Single(rehydrated.SomeIds);

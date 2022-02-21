@@ -1,4 +1,3 @@
-using EventSourcing.Core.Records;
 using EventSourcing.Core.Tests.Mocks;
 
 namespace EventSourcing.Core.Tests;
@@ -16,10 +15,10 @@ public abstract partial class EventStoreTests
 
     await EventStore.AddAsync(events);
 
-    await EventStore.DeleteAsync(aggregate.RecordId);
+    await EventStore.DeleteAsync(aggregate.Id);
 
     var count = await EventStore.Events
-      .Where(x => x.AggregateId == aggregate.RecordId)
+      .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
     

@@ -29,7 +29,7 @@ public class BasketTests : TestsBase
         var basket = await response.AsDto<BasketDto>();
         
         Assert.NotNull(basket);
-        Assert.Equal(basketId, basket!.RecordId);
+        Assert.Equal(basketId, basket!.Id);
         Assert.Empty(basket.Items);
     }
     

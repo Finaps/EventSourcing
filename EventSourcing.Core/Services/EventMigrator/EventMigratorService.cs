@@ -1,28 +1,26 @@
-using EventSourcing.Core.Records;
+namespace EventSourcing.Core;
 
-namespace EventSourcing.Core.Services;
-
-public class RecordMigratorService
+public class EventMigratorService
 {
     private static List<Type> AssemblyMigratorTypes => AppDomain.CurrentDomain
         .GetAssemblies()
         .SelectMany(assembly => assembly.GetTypes())
-        .Where(type => typeof(IRecordMigrator).IsAssignableFrom(type) && type.IsClass && !type.IsAbstract && type.IsPublic)
+        .Where(type => typeof(IEventMigrator).IsAssignableFrom(type) && type.IsClass && !type.IsAbstract && type.IsPublic)
         .ToList();
 
-    private readonly Dictionary<Type, IRecordMigrator?> _migrators;
+    private readonly Dictionary<Type, IEventMigrator?> _migrators;
 
-    public RecordMigratorService(List<Type>? migratorTypes = null)
+    public EventMigratorService(List<Type>? migratorTypes = null)
     {
         // Create dictionary mapping from Record.Type to Migrator Type
         _migrators = (migratorTypes ?? AssemblyMigratorTypes)
-            .Select(type => Activator.CreateInstance(type) as IRecordMigrator)
+            .Select(type => Activator.CreateInstance(type) as IEventMigrator)
             .ToDictionary(migrator => migrator!.Source, migrator => migrator);
 
         ValidateMigrators();
     }
 
-    public IndexedRecord Migrate(IndexedRecord record)
+    public Event Migrate(Event record)
     {
         while (_migrators.TryGetValue(record.GetType(), out var migrator))
             record = migrator!.Convert(record);

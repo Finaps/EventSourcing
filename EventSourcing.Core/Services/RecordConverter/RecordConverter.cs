@@ -1,12 +1,10 @@
-using EventSourcing.Core.Records;
-
-namespace EventSourcing.Core.Services;
+namespace EventSourcing.Core;
 
 /// <summary>
-/// Custom <see cref="IndexedRecord"/><see cref="JsonConverter{T}"/>
+/// Custom <see cref="Record"/><see cref="JsonConverter{T}"/>
 /// </summary>
 /// <remarks>
-/// Enables Polymorphic Serialization and Deserialization using the <see cref="IndexedRecord"/>.<see cref="IndexedRecord.Type"/> property
+/// Enables Polymorphic Serialization and Deserialization using the <see cref="Record"/>.<see cref="Record.Type"/> property
 /// </remarks>
 public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : Record
 {
@@ -16,16 +14,16 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
   }
 
   private readonly RecordTypeCache _recordTypeCache;
-  private readonly RecordMigratorService _recordMigratorService;
+  private readonly EventMigratorService _eventMigratorService;
 
   public RecordConverter(RecordConverterOptions? options = null)
   {
     _recordTypeCache = new RecordTypeCache(options?.RecordTypes);
-    _recordMigratorService = new RecordMigratorService(options?.MigratorTypes);
+    _eventMigratorService = new EventMigratorService(options?.MigratorTypes);
   }
 
   /// <summary>
-  /// Use <see cref="RecordConverter{TRecord}"/> for all Types inheriting from <see cref="IndexedRecord"/>
+  /// Use <see cref="RecordConverter{TRecord}"/> for all Types inheriting from <see cref="Record"/>
   /// </summary>
   /// <param name="typeToConvert">Type to Convert</param>
   public override bool CanConvert(Type typeToConvert) => typeof(TRecord).IsAssignableFrom(typeToConvert);
@@ -43,7 +41,7 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
   /// <summary>
   /// Deserialize Record
   /// </summary>
-  /// <exception cref="JsonException">Thrown when <see cref="IndexedRecord"/> type cannot be found.</exception>
+  /// <exception cref="JsonException">Thrown when <see cref="Record"/> type cannot be found.</exception>
   public override TRecord Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
   {
     var type = DeserializeRecordType(reader);
@@ -51,8 +49,8 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
                  ?? throw new JsonException($"Error Converting Json to {type.Name}.");
 
     return (TRecord)(
-      record is IndexedRecord
-        ? _recordMigratorService.Migrate((IndexedRecord)Validate(record, type))
+      record is Event
+        ? _eventMigratorService.Migrate((Event)Validate(record, type))
         : record
     );
   }
@@ -66,7 +64,7 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
                      throw new RecordValidationException(
                        $"Error converting {typeof(TRecord)}. " +
                        $"Couldn't parse {typeof(TRecord)}.Type string from Json. " +
-                       $"Does the Json contain a {nameof(IndexedRecord.Type)} field?");
+                       $"Does the Json contain a {nameof(Record.Type)} field?");
 
     return _recordTypeCache.GetRecordType(typeString);
   }

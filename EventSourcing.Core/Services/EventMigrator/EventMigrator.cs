@@ -1,28 +1,26 @@
-using EventSourcing.Core.Records;
+namespace EventSourcing.Core;
 
-namespace EventSourcing.Core.Services;
-
-public abstract class RecordMigrator<TSource, TTarget> : IRecordMigrator
-  where TSource : IndexedRecord where TTarget : IndexedRecord
+public abstract class EventMigrator<TSource, TTarget> : IEventMigrator
+  where TSource : Event where TTarget : Event
 {
   public Type Source => typeof(TSource);
   public Type Target => typeof(TTarget);
 
-  protected RecordMigrator()
+  protected EventMigrator()
   {
     if (Source == Target)
       throw new ArgumentException("Record Migrator Source should not be equal to Target");
   }
 
-  public IndexedRecord Convert(IndexedRecord record) =>
-    Convert((TSource)record) with
+  public Event Convert(Event record) =>
+    Convert((TSource) record) with
     {
       Type = RecordTypeCache.GetAssemblyRecordTypeString(Target),
       AggregateType = record.AggregateType,
       
       PartitionId = record.PartitionId,
       AggregateId = record.AggregateId,
-      RecordId = record.RecordId,
+      Id = record.Id,
       
       Index = record.Index,
       Timestamp = record.Timestamp

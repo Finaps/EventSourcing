@@ -1,8 +1,6 @@
-using EventSourcing.Core.Records;
-
 namespace EventSourcing.Core.Tests.Mocks;
 
-public record MigratedAggregate: Aggregate
+public class MigratedAggregate: Aggregate
 {
     public List<Guid> SomeIds { get; set; } = new List<Guid>();
     protected override void Apply(Event e)

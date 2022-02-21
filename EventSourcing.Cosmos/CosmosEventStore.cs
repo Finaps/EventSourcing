@@ -1,6 +1,4 @@
 using EventSourcing.Core;
-using EventSourcing.Core.Records;
-using EventSourcing.Core.Services;
 
 namespace EventSourcing.Cosmos;
 
@@ -49,9 +47,16 @@ public class CosmosEventStore : IEventStore
     .AsCosmosAsyncQueryable<Snapshot>()
     .Where(x => x.Kind == RecordKind.Snapshot);
 
+  public IQueryable<View> Views => _container
+    .AsCosmosAsyncQueryable<View>()
+    .Where(x => x.Kind == RecordKind.View);
+
   public IQueryable<TView> GetView<TView>() where TView : View, new() => _container
     .AsCosmosAsyncQueryable<TView>()
-    .Where(x => x.Kind == RecordKind.Aggregate && x.Type == new TView().Type);
+    .Where(x => x.Kind == RecordKind.View && x.Type == new TView().Type);
+
+  public async Task<TView> GetViewAsync<TView>(Guid partitionId, Guid aggregateId) where TView : View, new() =>
+    await _container.ReadItemAsync<TView>(aggregateId.ToString(), new PartitionKey(partitionId.ToString()));
 
   public async Task AddAsync(IList<Event> events, CancellationToken cancellationToken = default)
   {
@@ -68,9 +73,9 @@ public class CosmosEventStore : IEventStore
       .Add(snapshot)
       .CommitAsync(cancellationToken);
 
-  public async Task AddAsync(Aggregate aggregate, CancellationToken cancellationToken = default) =>
-    await CreateTransaction(aggregate.PartitionId)
-      .Add(aggregate)
+  public async Task AddAsync(View view, CancellationToken cancellationToken = default) =>
+    await CreateTransaction(view.PartitionId)
+      .Add(view)
       .CommitAsync(cancellationToken);
 
   public async Task DeleteAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
