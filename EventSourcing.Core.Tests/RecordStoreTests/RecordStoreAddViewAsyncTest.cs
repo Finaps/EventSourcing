@@ -2,7 +2,7 @@ using EventSourcing.Core.Tests.Mocks;
 
 namespace EventSourcing.Core.Tests;
 
-public abstract partial class EventStoreTests
+public abstract partial class RecordStoreTests
 {
   [Fact]
   public async Task Can_Store_And_View_Aggregate()

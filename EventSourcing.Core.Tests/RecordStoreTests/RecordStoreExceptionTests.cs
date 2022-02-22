@@ -2,7 +2,7 @@ using EventSourcing.Core.Tests.Mocks;
 
 namespace EventSourcing.Core.Tests;
 
-public abstract partial class EventStoreTests
+public abstract partial class RecordStoreTests
 {
   [Fact]
   public async Task Cannot_Add_Event_With_Duplicate_AggregateId_And_Version()
@@ -79,7 +79,7 @@ public abstract partial class EventStoreTests
         .ToList());
     
     // Then delete the first 5 events, simulating concurrency
-    await RecordStore.DeleteEventsAsync(aggregate.Id);
+    await RecordStore.DeleteAllEventsAsync(aggregate.Id);
 
     // Check if committing transaction throws NonConsecutiveException
     await Assert.ThrowsAsync<RecordStoreException>(async () => await transaction.CommitAsync());

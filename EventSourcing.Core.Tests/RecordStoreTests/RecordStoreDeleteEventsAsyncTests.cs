@@ -2,7 +2,7 @@ using EventSourcing.Core.Tests.Mocks;
 
 namespace EventSourcing.Core.Tests;
 
-public abstract partial class EventStoreTests
+public abstract partial class RecordStoreTests
 {
   [Fact]
   public async Task Can_Delete_Events()
@@ -15,7 +15,7 @@ public abstract partial class EventStoreTests
 
     await RecordStore.AddEventsAsync(events);
 
-    await RecordStore.DeleteEventsAsync(aggregate.Id);
+    await RecordStore.DeleteAllEventsAsync(aggregate.Id);
 
     var count = await RecordStore.Events
       .Where(x => x.AggregateId == aggregate.Id)

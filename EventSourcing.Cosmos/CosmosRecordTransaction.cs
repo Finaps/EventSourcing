@@ -9,7 +9,10 @@ public class CosmosRecordTransaction : IRecordTransaction
     ReadEvent,
     CreateEvent,
     CreateSnapshot,
-    CreateView
+    CreateView,
+    DeleteEvent,
+    DeleteSnapshot,
+    DeleteView
   }
   
   private readonly TransactionalBatch _batch;
@@ -72,12 +75,67 @@ public class CosmosRecordTransaction : IRecordTransaction
     return this;
   }
 
+  public IRecordTransaction DeleteAllEvents(Guid aggregateId, long index)
+  {
+    var reservation = new Event
+    {
+      PartitionId = PartitionId,
+      AggregateId = aggregateId,
+      Index = index + 1,
+      Type = CosmosRecordStore.ReservationToken,
+      AggregateType = CosmosRecordStore.ReservationToken
+    };
+    
+    // Create Reservation to ensure Event with Index = index + 1 does not exist
+    _batch.CreateItem(reservation, CosmosRecordStore.BatchItemRequestOptions);
+    _actions.Add((CosmosEventTransactionAction.CreateEvent, reservation));
+    
+    // Delete All Events
+    for (var i = 0; i <= index; i++)
+    {
+      var deletion = new Event { PartitionId = PartitionId, AggregateId = aggregateId, Index = i };
+      _batch.DeleteItem(deletion.id, CosmosRecordStore.BatchItemRequestOptions);
+      _actions.Add((CosmosEventTransactionAction.DeleteEvent, deletion));
+    }
+
+    _batch.DeleteItem(reservation.id, CosmosRecordStore.BatchItemRequestOptions);
+    _actions.Add((CosmosEventTransactionAction.DeleteEvent, reservation));
+    
+    return this;
+  }
+
+  public IRecordTransaction DeleteSnapshot(Guid aggregateId, long index)
+  {
+    var snapshot = new Snapshot { PartitionId = PartitionId, AggregateId = aggregateId, Index = index };
+    _batch.DeleteItem(snapshot.id, CosmosRecordStore.BatchItemRequestOptions);
+    _actions.Add((CosmosEventTransactionAction.DeleteSnapshot, snapshot));
+
+    return this;
+  }
+
+  public IRecordTransaction DeleteView(Guid aggregateId, string type)
+  {
+    var view = new View { PartitionId = PartitionId, Id = aggregateId, Type = type };
+    _batch.DeleteItem(view.id, CosmosRecordStore.BatchItemRequestOptions);
+    _actions.Add((CosmosEventTransactionAction.DeleteView, view));
+
+    return this;
+  }
+
   public async Task CommitAsync(CancellationToken cancellationToken = default)
   {
-    if (_actions.Count == 0) return;
+    switch (_actions.Count)
+    {
+      case 0:
+        return; // Nothing to Commit
+      case > CosmosRecordStore.MaxTransactionSize:
+        throw new RecordStoreException(
+          $"Failed to commit {_actions.Count} items in {nameof(CosmosRecordTransaction)}. " +
+          $"Currently CosmosDB has a limit of {CosmosRecordStore.MaxTransactionSize} items per transaction. " +
+          "See https://docs.microsoft.com/en-us/azure/cosmos-db/sql/transactional-batch for more information. ");
+    }
 
     var response = await _batch.ExecuteAsync(cancellationToken);
-    
     if (!response.IsSuccessStatusCode) ThrowException(response);
   }
 
