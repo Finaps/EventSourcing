@@ -40,9 +40,9 @@ public interface IRecordStore
   /// and use <c>System.Linq.Async</c>'s extension methods to get the results of your query.
   /// </remarks>
   IQueryable<TView> GetViews<TView>() where TView : View, new();
-  Task<TView> GetViewByIdAsync<TView>(Guid partitionId, Guid aggregateId) where TView : View, new();
-  async Task<TView> GetViewByIdAsync<TView>(Guid aggregateId) where TView : View, new() =>
-    await GetViewByIdAsync<TView>(Guid.NewGuid(), aggregateId);
+  Task<TView> GetViewByIdAsync<TView>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TView : View, new();
+  async Task<TView> GetViewByIdAsync<TView>(Guid aggregateId, CancellationToken cancellationToken = default) where TView : View, new() =>
+    await GetViewByIdAsync<TView>(Guid.Empty, aggregateId, cancellationToken);
 
   /// <summary>
   /// Store <see cref="Event"/>s to the <see cref="IRecordStore"/>

@@ -14,7 +14,7 @@ public abstract class ViewFactory<TAggregate, TView> : IViewFactory where TAggre
   {
     AggregateType = aggregate.Type,
     PartitionId = aggregate.PartitionId,
-    Id = aggregate.Id,
+    AggregateId = aggregate.Id,
     Version = aggregate.Version
   };
   

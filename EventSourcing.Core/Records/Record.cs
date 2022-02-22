@@ -37,7 +37,7 @@ public abstract record Record
   /// <summary>
   /// Unique Record identifier.
   /// </summary>
-  public Guid Id { get; init; }
+  public Guid RecordId { get; init; }
   
   /// <summary>
   /// Unique Database identifier.
@@ -49,7 +49,7 @@ public abstract record Record
   /// </summary>
   protected Record()
   {
-    Id = Guid.NewGuid();
+    RecordId = Guid.NewGuid();
     Type = RecordTypeCache.GetAssemblyRecordTypeString(GetType());
   }
 }
