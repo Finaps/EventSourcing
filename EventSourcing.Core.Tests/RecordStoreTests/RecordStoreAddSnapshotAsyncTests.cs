@@ -2,7 +2,7 @@ using EventSourcing.Core.Tests.Mocks;
 
 namespace EventSourcing.Core.Tests;
 
-public abstract partial class EventStoreTests
+public abstract partial class RecordStoreTests
 {
   [Fact]
   public async Task Cannot_Create_Snapshot_For_Aggregate_Without_Events()

@@ -34,6 +34,10 @@ public interface IRecordTransaction
   /// <returns></returns>
   IRecordTransaction AddView(View view);
 
+  IRecordTransaction DeleteAllEvents(Guid aggregateId, long index);
+  IRecordTransaction DeleteSnapshot(Guid aggregateId, long index);
+  IRecordTransaction DeleteView(Guid aggregateId, string type);
+
   /// <summary>
   /// Commit Transaction
   /// </summary>

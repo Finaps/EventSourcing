@@ -78,14 +78,14 @@ public interface IRecordStore
   /// <param name="aggregateId">Aggregate Id</param>
   /// <param name="cancellationToken">Cancellation Token</param>
   /// <exception cref="RecordStoreException">Thrown when conflicts occur when deleting <see cref="Event"/>s</exception>
-  Task DeleteEventsAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default);
+  Task DeleteAllEventsAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default);
 
   /// <summary>
   /// Delete <see cref="Event"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
   /// </summary>
   /// <param name="aggregateId">Aggregate Id</param>
   /// <param name="cancellationToken">Cancellation Token</param>
-  Task DeleteEventsAsync(Guid aggregateId, CancellationToken cancellationToken = default);
+  Task DeleteAllEventsAsync(Guid aggregateId, CancellationToken cancellationToken = default);
   
   /// <summary>
   /// Delete <see cref="Snapshot"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
@@ -94,14 +94,32 @@ public interface IRecordStore
   /// <param name="aggregateId">Aggregate Id</param>
   /// <param name="cancellationToken">Cancellation Token</param>
   /// <exception cref="RecordStoreException">Thrown when conflicts occur when deleting <see cref="Snapshot"/>s</exception>
-  Task DeleteSnapshotsAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default);
+  Task DeleteAllSnapshotsAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default);
 
   /// <summary>
   /// Delete <see cref="Snapshot"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
   /// </summary>
   /// <param name="aggregateId">Aggregate Id</param>
   /// <param name="cancellationToken">Cancellation Token</param>
-  Task DeleteSnapshotsAsync(Guid aggregateId, CancellationToken cancellationToken = default);
+  Task DeleteAllSnapshotsAsync(Guid aggregateId, CancellationToken cancellationToken = default);
+
+  /// <summary>
+  /// Delete <see cref="Snapshot"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
+  /// </summary>
+  /// <param name="partitionId">Aggregate Partition Id</param>
+  /// <param name="aggregateId">Aggregate Id</param>
+  /// <param name="index"><see cref="Snapshot"/> <see cref="Snapshot.Index"/></param>
+  /// <param name="cancellationToken">Cancellation Token</param>
+  /// <exception cref="RecordStoreException">Thrown when conflicts occur when deleting <see cref="Snapshot"/>s</exception>
+  Task DeleteSnapshotAsync(Guid partitionId, Guid aggregateId, long index, CancellationToken cancellationToken = default);
+
+  /// <summary>
+  /// Delete <see cref="Snapshot"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
+  /// </summary>
+  /// <param name="aggregateId">Aggregate Id</param>
+  /// <param name="index"><see cref="Snapshot"/> <see cref="Snapshot.Index"/></param>
+  /// <param name="cancellationToken">Cancellation Token</param>
+  Task DeleteSnapshotAsync(Guid aggregateId, long index, CancellationToken cancellationToken = default);
   
   /// <summary>
   /// Delete <see cref="View"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
@@ -110,14 +128,30 @@ public interface IRecordStore
   /// <param name="aggregateId">Aggregate Id</param>
   /// <param name="cancellationToken">Cancellation Token</param>
   /// <exception cref="RecordStoreException">Thrown when conflicts occur when deleting <see cref="View"/>s</exception>
-  Task DeleteViewsAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default);
+  Task DeleteAllViewsAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default);
 
   /// <summary>
   /// Delete <see cref="View"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
   /// </summary>
   /// <param name="aggregateId">Aggregate Id</param>
   /// <param name="cancellationToken">Cancellation Token</param>
-  Task DeleteViewsAsync(Guid aggregateId, CancellationToken cancellationToken = default);
+  Task DeleteAllViewsAsync(Guid aggregateId, CancellationToken cancellationToken = default);
+  
+  /// <summary>
+  /// Delete <see cref="View"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
+  /// </summary>
+  /// <param name="partitionId">Aggregate Partition Id</param>
+  /// <param name="aggregateId">Aggregate Id</param>
+  /// <param name="cancellationToken">Cancellation Token</param>
+  /// <exception cref="RecordStoreException">Thrown when conflicts occur when deleting <see cref="View"/>s</exception>
+  Task DeleteViewAsync<TView>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TView : View, new();
+
+  /// <summary>
+  /// Delete <see cref="View"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
+  /// </summary>
+  /// <param name="aggregateId">Aggregate Id</param>
+  /// <param name="cancellationToken">Cancellation Token</param>
+  Task DeleteViewAsync<TView>(Guid aggregateId, CancellationToken cancellationToken = default) where TView : View, new();
 
   /// <summary>
   /// Create Event Transaction
