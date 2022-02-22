@@ -48,7 +48,7 @@ public abstract partial class RecordStoreTests
 
     var view = await RecordStore
       .GetViews<MockAggregateView>()
-      .Where(x => x.Id == aggregate.Id)
+      .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .SingleAsync();
     

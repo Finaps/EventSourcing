@@ -115,7 +115,7 @@ public class CosmosRecordTransaction : IRecordTransaction
 
   public IRecordTransaction DeleteView(Guid aggregateId, string type)
   {
-    var view = new View { PartitionId = PartitionId, Id = aggregateId, Type = type };
+    var view = new View { PartitionId = PartitionId, AggregateId = aggregateId, Type = type };
     _batch.DeleteItem(view.id, CosmosRecordStore.BatchItemRequestOptions);
     _actions.Add((CosmosEventTransactionAction.DeleteView, view));
 

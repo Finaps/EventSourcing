@@ -66,9 +66,24 @@ public class CosmosRecordStore : IRecordStore
     .AsCosmosAsyncQueryable<TView>()
     .Where(x => x.Kind == RecordKind.View && x.Type == new TView().Type);
 
-  public async Task<TView> GetViewByIdAsync<TView>(Guid partitionId, Guid aggregateId) where TView : View, new() =>
-    await _container.ReadItemAsync<TView>(aggregateId.ToString(), new PartitionKey(partitionId.ToString()));
-
+  public async Task<TView> GetViewByIdAsync<TView>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TView : View, new()
+  {
+    try
+    {
+      return await _container.ReadItemAsync<TView>(
+        new TView { PartitionId = partitionId, AggregateId = aggregateId }.id,
+        new PartitionKey(partitionId.ToString()),
+        cancellationToken: cancellationToken
+      );
+    }
+    catch (CosmosException e)
+    {
+      throw new RecordStoreException(
+        $"Exception occurred while calling {nameof(GetViewByIdAsync)}<{nameof(TView)}>. " +
+                $"Read failed with Status {e.StatusCode}. See inner exception for details", e);
+    }
+  }
+  
   public async Task AddEventsAsync(IList<Event> events, CancellationToken cancellationToken = default)
   {
     if (events == null) throw new ArgumentNullException(nameof(events));
@@ -141,7 +156,7 @@ public class CosmosRecordStore : IRecordStore
   {
     // Get Existing View Types
     var types = await Views
-      .Where(x => x.PartitionId == partitionId && x.Id == aggregateId)
+      .Where(x => x.PartitionId == partitionId && x.RecordId == aggregateId)
       .Select(x => x.Type)
       .AsAsyncEnumerable()
       .ToListAsync(cancellationToken);

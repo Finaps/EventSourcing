@@ -35,8 +35,8 @@ public static class RecordValidation
     if (events.Select(x => x.AggregateId).Distinct().Count() > 1)
       throw new RecordValidationException(message + $"All Events must share the same AggregateId. Found [ {string.Join(", ", events.Select(x => x.AggregateId))} ]");
 
-    if (events.Select(x => x.Id).Distinct().Count() != events.Count)
-      throw new RecordValidationException(message + $"All Events should have unique RecordIds. Found [ {string.Join(", ", events.Select(x => x.Id))} ]");
+    if (events.Select(x => x.RecordId).Distinct().Count() != events.Count)
+      throw new RecordValidationException(message + $"All Events should have unique RecordIds. Found [ {string.Join(", ", events.Select(x => x.RecordId))} ]");
 
     if (!IsConsecutive(events.Select(e => e.Index).ToList()))
       throw new RecordValidationException(message + $"Event indices must be consecutive. Found [ {string.Join(", ", events.Select(x => x.Index))} ]");
@@ -47,7 +47,7 @@ public static class RecordValidation
     if (r.AggregateId == Guid.Empty)
       Throw(r, $"{r.Type}.AggregateId should not be Guid.Empty");
     
-    if (r.Id == Guid.Empty)
+    if (r.RecordId == Guid.Empty)
       Throw(r, $"{r.Type}.RecordId should not be Guid.Empty");
     
     if (string.IsNullOrEmpty(r.AggregateType))

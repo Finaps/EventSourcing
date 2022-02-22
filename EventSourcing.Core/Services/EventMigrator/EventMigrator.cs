@@ -20,7 +20,7 @@ public abstract class EventMigrator<TSource, TTarget> : IEventMigrator
       
       PartitionId = record.PartitionId,
       AggregateId = record.AggregateId,
-      Id = record.Id,
+      RecordId = record.RecordId,
       
       Index = record.Index,
       Timestamp = record.Timestamp
