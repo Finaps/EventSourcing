@@ -13,9 +13,13 @@ public interface IHashable
     var data = method?.GetMethodBody()?.GetILAsByteArray();
     
     if (data == null) throw new NullReferenceException($"Cannot compute hash for {method}");
-    return Encoding.ASCII.GetString(MD5.HashData(data));
+
+    return ByteArrayToString(MD5.HashData(data));
   }
 
   static string CombineHashes(params string[] hashes) =>
-    Encoding.ASCII.GetString(MD5.HashData(Encoding.ASCII.GetBytes(string.Concat(hashes))));
+    ByteArrayToString(MD5.HashData(Encoding.ASCII.GetBytes(string.Concat(hashes))));
+
+  private static string ByteArrayToString(IEnumerable<byte> source) =>
+    string.Concat(source.Select(x => x.ToString("X2")));
 }

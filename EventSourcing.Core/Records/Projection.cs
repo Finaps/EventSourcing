@@ -13,11 +13,26 @@ public record Projection : Record
   public string AggregateType { get; init; }
   
   /// <summary>
+  /// Factory type string
+  /// </summary>
+  public string? FactoryType { get; init; }
+  
+  /// <summary>
   /// The number of events applied to this aggregate.
   /// </summary>
   public long Version { get; init; }
-
+  
   public string Hash { get; init; }
+
+  public bool IsUpToDate
+  {
+    get
+    {
+      if (FactoryType == null) return true;
+      ProjectionCache.Hashes.TryGetValue(FactoryType, out var hash);
+      return Hash == hash;
+    }
+  }
 
   public override string id => $"{Kind}|{Type}|{AggregateId}";
 }

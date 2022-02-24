@@ -81,6 +81,7 @@ public record MockSnapshot : Snapshot, IMock
 
 public class MockAggregate : Aggregate, IMock
 {
+  public Guid NiceRelation { get; private set; }
   public bool MockBoolean { get; private set; }
   public string MockString { get; private set; }
   public decimal MockDecimal { get; private set; }

@@ -15,10 +15,13 @@ public abstract class ProjectionFactory<TAggregate, TProjection> : IProjectionFa
   public Projection CreateProjection(Aggregate aggregate) => CreateProjection((TAggregate) aggregate) with
   {
     AggregateType = aggregate.Type,
+    FactoryType = GetType().Name,
+    
     PartitionId = aggregate.PartitionId,
     AggregateId = aggregate.Id,
     Version = aggregate.Version,
-    Hash = ProjectionCache.Hashes[(AggregateType, ProjectionType)]
+    
+    Hash = ProjectionCache.Hashes[GetType().Name]
   };
   
   /// <summary>
@@ -29,7 +32,7 @@ public abstract class ProjectionFactory<TAggregate, TProjection> : IProjectionFa
   protected abstract TProjection CreateProjection(TAggregate aggregate);
 
   public string ComputeHash() => IHashable.CombineHashes(
-      AggregateService.AggregateHashCache[AggregateType],
-      IHashable.ComputeMethodHash(GetType().GetMethod(
-        nameof(CreateProjection), BindingFlags.Instance | BindingFlags.NonPublic)));
+    IHashable.ComputeMethodHash(
+      GetType().GetMethod(nameof(CreateProjection), BindingFlags.Instance | BindingFlags.NonPublic)),
+      ProjectionCache.AggregateHashes[AggregateType]);
 }
