@@ -9,9 +9,9 @@ public class RecordConversionTests
   private record TestEvent : Event
   {
     public int A { get; init; }
-    public string B { get; init; }
-    public string C { get; init; }
-    public double? D { get; set; }
+    public int B { get; init; }
+    public int C { get; init; }
+    public int? D { get; set; }
   }
 
   [Fact]
@@ -30,42 +30,35 @@ public class RecordConversionTests
       AggregateType = "Test",
 
       A = 9,
-      B = null
+      B = 10,
+      C = 11
     };
-    
-    // Exception gets thrown when writing Faulty Record Json
-    var writeException = Assert.Throws<RecordValidationException>(() =>
-    {
-      using var writeStream = new MemoryStream();
-      converter.Write(new Utf8JsonWriter(writeStream), faultyRecord, null);
-    });
 
     // Exception gets thrown when reading Faulty Record Json
-    var readException = Assert.Throws<RecordValidationException>(() =>
+    var exception = Assert.Throws<RecordValidationException>(() =>
     {
-      var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(faultyRecord)), true, default);
+      var json = JsonSerializer.Serialize(faultyRecord)
+        .Replace("\"B\":10,", "")  // Remove 'B' from json
+        .Replace("11", "null");  // Set 'C' to null in json
+      var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(json), true, default);
       return converter.Read(ref reader, typeof(Event), default);
     });
 
-    // Assert for both exceptions the right exception messages are shown
-    foreach (var exception in new [] { writeException, readException })
-    {
-      Assert.DoesNotContain($"{nameof(TestEvent)}.PartitionId", exception.Message);
-      Assert.DoesNotContain($"{nameof(TestEvent)}.AggregateId", exception.Message);
-      Assert.DoesNotContain($"{nameof(TestEvent)}.AggregateType", exception.Message);
-      Assert.DoesNotContain($"{nameof(TestEvent)}.Type", exception.Message);
-      Assert.DoesNotContain($"{nameof(TestEvent)}.Index", exception.Message);
-      Assert.DoesNotContain($"{nameof(TestEvent)}.Timestamp", exception.Message);
+    Assert.DoesNotContain($"{nameof(TestEvent)}.PartitionId", exception.Message);
+    Assert.DoesNotContain($"{nameof(TestEvent)}.AggregateId", exception.Message);
+    Assert.DoesNotContain($"{nameof(TestEvent)}.AggregateType", exception.Message);
+    Assert.DoesNotContain($"{nameof(TestEvent)}.Type", exception.Message);
+    Assert.DoesNotContain($"{nameof(TestEvent)}.Index", exception.Message);
+    Assert.DoesNotContain($"{nameof(TestEvent)}.Timestamp", exception.Message);
 
-      // Validation should fail for:
-      //  - TestRecord.B, since it is a non-nullable field, but null in reality
-      //  - TestRecord.C, since it is a non-nullable field, but not present in JSON 
-      Assert.DoesNotContain($"{nameof(TestEvent)}.A", exception.Message);
-      Assert.Contains($"{nameof(TestEvent)}.B", exception.Message);
-      Assert.Contains($"{nameof(TestEvent)}.C", exception.Message);
-      Assert.DoesNotContain($"{nameof(TestEvent)}.D", exception.Message);
-    }
-    
+    // Validation should fail for:
+    //  - TestRecord.B, since it is a non-nullable field, but null in reality
+    //  - TestRecord.C, since it is a non-nullable field, but not present in JSON 
+    Assert.DoesNotContain($"{nameof(TestEvent)}.A", exception.Message);
+    Assert.Contains($"{nameof(TestEvent)}.B", exception.Message);
+    Assert.Contains($"{nameof(TestEvent)}.C", exception.Message);
+    Assert.DoesNotContain($"{nameof(TestEvent)}.D", exception.Message);
+
     return Task.CompletedTask;
   }
 }

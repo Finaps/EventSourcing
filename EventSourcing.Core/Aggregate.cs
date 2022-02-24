@@ -1,9 +1,11 @@
+using System.Reflection;
+
 namespace EventSourcing.Core;
 
 /// <summary>
 /// Abstract Base <see cref="Aggregate"/>
 /// </summary>
-public abstract class Aggregate
+public abstract class Aggregate : IHashable
 {
   /// <summary>
   /// String representation of Record Type
@@ -129,4 +131,7 @@ public abstract class Aggregate
     Apply(s);
     Version = s.Index + 1;
   }
+
+  public virtual string ComputeHash() => IHashable.ComputeMethodHash(
+    GetType().GetMethod(nameof(Apply), BindingFlags.Instance | BindingFlags.NonPublic));
 }
