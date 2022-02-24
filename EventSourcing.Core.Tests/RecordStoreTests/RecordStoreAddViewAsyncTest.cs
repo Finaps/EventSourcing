@@ -44,7 +44,7 @@ public abstract partial class RecordStoreTests
       MockStringSet = new HashSet<string> { "No", "Duplicates", "Duplicates", "Here" }
     });
 
-    await RecordStore.AddProjectionAsync(new MockAggregateProjectionFactory().CreateProjection(aggregate));
+    await RecordStore.AddProjectionAsync(new MockAggregateProjectionFactory().CreateProjection(aggregate) with { Hash = "YOLO" });
 
     var projection = await RecordStore
       .GetProjections<MockAggregateProjection>()
@@ -52,6 +52,7 @@ public abstract partial class RecordStoreTests
       .AsAsyncEnumerable()
       .SingleAsync();
     
+    Assert.True(projection.IsUpToDate);
     Assert.Equal(aggregate.MockBoolean, projection.MockBoolean);
     Assert.Equal(aggregate.MockString, projection.MockString);
     Assert.Equal(aggregate.MockDecimal, projection.MockDecimal);

@@ -2,12 +2,6 @@ namespace EventSourcing.Core;
 
 public class AggregateService : IAggregateService
 {
-  public static Dictionary<Type, string> AggregateHashCache = AppDomain.CurrentDomain
-    .GetAssemblies()
-    .SelectMany(assembly => assembly.GetTypes())
-    .Where(type => typeof(Aggregate).IsAssignableFrom(type) && type.IsClass && !type.IsAbstract && type.IsPublic)
-    .ToDictionary(type => type, type => ((Aggregate)Activator.CreateInstance(type)!).ComputeHash());
-
   private readonly IRecordStore _store;
   public AggregateService(IRecordStore store) => _store = store;
 
