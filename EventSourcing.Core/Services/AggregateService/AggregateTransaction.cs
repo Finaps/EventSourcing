@@ -25,8 +25,8 @@ public class AggregateTransaction : IAggregateTransaction
     foreach (var snapshot in SnapshotService.CreateSnapshots(aggregate))
       _recordTransaction.AddSnapshot(snapshot);
 
-    foreach (var view in ViewService.CreateViews(aggregate))
-      _recordTransaction.AddView(view);
+    foreach (var projection in ProjectionService.CreateProjections(aggregate))
+      _recordTransaction.AddProjection(projection);
 
     return this;
   }

@@ -18,7 +18,7 @@ internal class CosmosRecordSerializer : CosmosSerializer
       {
         new RecordConverter<Snapshot>(options.RecordConverterOptions),
         new RecordConverter<Event>(options.RecordConverterOptions),
-        new RecordConverter<View>(options.RecordConverterOptions)
+        new RecordConverter<Projection>(options.RecordConverterOptions)
       }
     });
   }

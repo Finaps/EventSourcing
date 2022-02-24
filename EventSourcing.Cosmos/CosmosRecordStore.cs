@@ -58,20 +58,20 @@ public class CosmosRecordStore : IRecordStore
     .AsCosmosAsyncQueryable<Snapshot>()
     .Where(x => x.Kind == RecordKind.Snapshot);
 
-  public IQueryable<View> Views => _container
-    .AsCosmosAsyncQueryable<View>()
-    .Where(x => x.Kind == RecordKind.View);
+  public IQueryable<Projection> Projections => _container
+    .AsCosmosAsyncQueryable<Projection>()
+    .Where(x => x.Kind == RecordKind.Projection);
 
-  public IQueryable<TView> GetViews<TView>() where TView : View, new() => _container
-    .AsCosmosAsyncQueryable<TView>()
-    .Where(x => x.Kind == RecordKind.View && x.Type == new TView().Type);
+  public IQueryable<TProjection> GetProjections<TProjection>() where TProjection : Projection, new() => _container
+    .AsCosmosAsyncQueryable<TProjection>()
+    .Where(x => x.Kind == RecordKind.Projection && x.Type == new TProjection().Type);
 
-  public async Task<TView> GetViewByIdAsync<TView>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TView : View, new()
+  public async Task<TProjection> GetProjectionByIdAsync<TProjection>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection, new()
   {
     try
     {
-      return await _container.ReadItemAsync<TView>(
-        new TView { PartitionId = partitionId, AggregateId = aggregateId }.id,
+      return await _container.ReadItemAsync<TProjection>(
+        new TProjection { PartitionId = partitionId, AggregateId = aggregateId }.id,
         new PartitionKey(partitionId.ToString()),
         cancellationToken: cancellationToken
       );
@@ -79,7 +79,7 @@ public class CosmosRecordStore : IRecordStore
     catch (CosmosException e)
     {
       throw new RecordStoreException(
-        $"Exception occurred while calling {nameof(GetViewByIdAsync)}<{nameof(TView)}>. " +
+        $"Exception occurred while calling {nameof(GetProjectionByIdAsync)}<{nameof(TProjection)}>. " +
                 $"Read failed with Status {e.StatusCode}. See inner exception for details", e);
     }
   }
@@ -99,9 +99,9 @@ public class CosmosRecordStore : IRecordStore
       .AddSnapshot(snapshot)
       .CommitAsync(cancellationToken);
 
-  public async Task AddViewAsync(View view, CancellationToken cancellationToken = default) =>
-    await CreateTransaction(view.PartitionId)
-      .AddView(view)
+  public async Task AddProjectionAsync(Projection projection, CancellationToken cancellationToken = default) =>
+    await CreateTransaction(projection.PartitionId)
+      .AddProjection(projection)
       .CommitAsync(cancellationToken);
 
   public async Task DeleteAllEventsAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
@@ -152,10 +152,10 @@ public class CosmosRecordStore : IRecordStore
   public async Task DeleteSnapshotAsync(Guid aggregateId, long index, CancellationToken cancellationToken = default) =>
     await DeleteSnapshotAsync(Guid.Empty, aggregateId, index, cancellationToken);
 
-  public async Task DeleteAllViewsAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
+  public async Task DeleteAllProjectionsAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
   {
-    // Get Existing View Types
-    var types = await Views
+    // Get Existing Projection Types
+    var types = await Projections
       .Where(x => x.PartitionId == partitionId && x.RecordId == aggregateId)
       .Select(x => x.Type)
       .AsAsyncEnumerable()
@@ -165,21 +165,21 @@ public class CosmosRecordStore : IRecordStore
     {
       var transaction = CreateTransaction(partitionId);
       foreach (var t in typeBatch)
-        transaction.DeleteView(aggregateId, t);
+        transaction.DeleteProjection(aggregateId, t);
       await transaction.CommitAsync(cancellationToken);
     }
   }
 
-  public async Task DeleteAllViewsAsync(Guid aggregateId, CancellationToken cancellationToken = default) =>
-    await DeleteAllViewsAsync(Guid.Empty, aggregateId, cancellationToken);
+  public async Task DeleteAllProjectionsAsync(Guid aggregateId, CancellationToken cancellationToken = default) =>
+    await DeleteAllProjectionsAsync(Guid.Empty, aggregateId, cancellationToken);
 
-  public async Task DeleteViewAsync<TView>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TView : View, new() =>
+  public async Task DeleteProjectionAsync<TProjection>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection, new() =>
     await CreateTransaction(partitionId)
-      .DeleteView(aggregateId, new TView().Type)
+      .DeleteProjection(aggregateId, new TProjection().Type)
       .CommitAsync(cancellationToken);
 
-  public async Task DeleteViewAsync<TView>(Guid aggregateId, CancellationToken cancellationToken = default) where TView : View, new() =>
-    await DeleteViewAsync<TView>(Guid.Empty, aggregateId, cancellationToken);
+  public async Task DeleteProjectionAsync<TProjection>(Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection, new() =>
+    await DeleteProjectionAsync<TProjection>(Guid.Empty, aggregateId, cancellationToken);
 
   public IRecordTransaction CreateTransaction() => CreateTransaction(Guid.Empty);
 

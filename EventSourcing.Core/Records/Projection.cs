@@ -1,6 +1,6 @@
 namespace EventSourcing.Core;
 
-public record View : Record
+public record Projection : Record
 {
   /// <summary>
   /// Unique Aggregate identifier

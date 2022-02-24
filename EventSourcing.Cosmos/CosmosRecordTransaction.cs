@@ -9,10 +9,10 @@ public class CosmosRecordTransaction : IRecordTransaction
     ReadEvent,
     CreateEvent,
     CreateSnapshot,
-    CreateView,
+    CreateProjection,
     DeleteEvent,
     DeleteSnapshot,
-    DeleteView
+    DeleteProjection
   }
   
   private readonly TransactionalBatch _batch;
@@ -67,10 +67,10 @@ public class CosmosRecordTransaction : IRecordTransaction
     return this;
   }
 
-  public IRecordTransaction AddView(View view)
+  public IRecordTransaction AddProjection(Projection projection)
   {
-    _batch.UpsertItem(view, CosmosRecordStore.BatchItemRequestOptions);
-    _actions.Add((CosmosEventTransactionAction.CreateView, view));
+    _batch.UpsertItem(projection, CosmosRecordStore.BatchItemRequestOptions);
+    _actions.Add((CosmosEventTransactionAction.CreateProjection, projection));
 
     return this;
   }
@@ -113,11 +113,11 @@ public class CosmosRecordTransaction : IRecordTransaction
     return this;
   }
 
-  public IRecordTransaction DeleteView(Guid aggregateId, string type)
+  public IRecordTransaction DeleteProjection(Guid aggregateId, string type)
   {
-    var view = new View { PartitionId = PartitionId, AggregateId = aggregateId, Type = type };
-    _batch.DeleteItem(view.id, CosmosRecordStore.BatchItemRequestOptions);
-    _actions.Add((CosmosEventTransactionAction.DeleteView, view));
+    var projection = new Projection { PartitionId = PartitionId, AggregateId = aggregateId, Type = type };
+    _batch.DeleteItem(projection.id, CosmosRecordStore.BatchItemRequestOptions);
+    _actions.Add((CosmosEventTransactionAction.DeleteProjection, projection));
 
     return this;
   }

@@ -2,7 +2,7 @@ namespace EventSourcing.Core.Tests.Mocks;
 
 public record EmptyEvent : Event;
 
-public record EmptyView : View;
+public record EmptyProjection : Projection;
 
 public record EmptySnapshot : Snapshot;
 
@@ -11,7 +11,7 @@ public class EmptyAggregate : Aggregate
   protected override void Apply(Event e) {}
 }
 
-public class EmptyViewFactory : ViewFactory<EmptyAggregate, EmptyView>
+public class EmptyProjectionFactory : ProjectionFactory<EmptyAggregate, EmptyProjection>
 {
-  protected override EmptyView CreateView(EmptyAggregate aggregate) => new ();
+  protected override EmptyProjection CreateProjection(EmptyAggregate aggregate) => new ();
 }
