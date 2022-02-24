@@ -1,9 +1,9 @@
 namespace EventSourcing.Core;
 
-public enum RecordKind { None, Event, Snapshot, View }
+public enum RecordKind { None, Event, Snapshot, Projection }
 
 /// <summary>
-/// Base Record for <see cref="Event"/>s, <see cref="Snapshot"/>s and <see cref="View"/>s
+/// Base Record for <see cref="Event"/>s, <see cref="Snapshot"/>s and <see cref="Projection"/>s
 /// </summary>
 public abstract record Record
 {
@@ -12,9 +12,9 @@ public abstract record Record
   /// </summary>
   public RecordKind Kind => this switch
   {
+    Projection => RecordKind.Projection,
     Snapshot => RecordKind.Snapshot,
     Event => RecordKind.Event,
-    View => RecordKind.View,
     _ => RecordKind.None
   };
   

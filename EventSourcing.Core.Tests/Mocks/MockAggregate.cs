@@ -112,7 +112,7 @@ public class MockAggregate : Aggregate, IMock
   }
 }
 
-public record MockAggregateView : View, IMock
+public record MockAggregateProjection : Projection, IMock
 {
   public bool MockBoolean { get; init; }
   public string MockString { get; init; }
@@ -126,9 +126,9 @@ public record MockAggregateView : View, IMock
   public HashSet<string> MockStringSet { get; init; }
 }
 
-public class MockAggregateViewFactory : ViewFactory<MockAggregate, MockAggregateView>
+public class MockAggregateProjectionFactory : ProjectionFactory<MockAggregate, MockAggregateProjection>
 {
-  protected override MockAggregateView CreateView(MockAggregate aggregate) => new()
+  protected override MockAggregateProjection CreateProjection(MockAggregate aggregate) => new()
   {
     MockBoolean = aggregate.MockBoolean,
     MockString = aggregate.MockString,

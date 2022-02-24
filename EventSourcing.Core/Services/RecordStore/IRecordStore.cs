@@ -24,25 +24,25 @@ public interface IRecordStore
   IQueryable<Snapshot> Snapshots { get; }
   
   /// <summary>
-  /// Queryable and AsyncEnumerable Collection of <see cref="View"/>s
+  /// Queryable and AsyncEnumerable Collection of <see cref="Projection"/>s
   /// </summary>
   /// <remarks>
   /// To finalize the query, call <see cref="QueryableExtensions.AsAsyncEnumerable{T}"/>
   /// and use <c>System.Linq.Async</c>'s extension methods to get the results of your query
   /// </remarks>
-  IQueryable<View> Views { get; }
+  IQueryable<Projection> Projections { get; }
 
   /// <summary>
-  /// Queryable and AsyncEnumerable Collection of <see cref="View"/>s
+  /// Queryable and AsyncEnumerable Collection of <see cref="Projection"/>s
   /// </summary>
   /// <remarks>
   /// To finalize the query, call <see cref="QueryableExtensions.AsAsyncEnumerable{T}"/>
   /// and use <c>System.Linq.Async</c>'s extension methods to get the results of your query.
   /// </remarks>
-  IQueryable<TView> GetViews<TView>() where TView : View, new();
-  Task<TView> GetViewByIdAsync<TView>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TView : View, new();
-  async Task<TView> GetViewByIdAsync<TView>(Guid aggregateId, CancellationToken cancellationToken = default) where TView : View, new() =>
-    await GetViewByIdAsync<TView>(Guid.Empty, aggregateId, cancellationToken);
+  IQueryable<TProjection> GetProjections<TProjection>() where TProjection : Projection, new();
+  Task<TProjection> GetProjectionByIdAsync<TProjection>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection, new();
+  async Task<TProjection> GetProjectionByIdAsync<TProjection>(Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection, new() =>
+    await GetProjectionByIdAsync<TProjection>(Guid.Empty, aggregateId, cancellationToken);
 
   /// <summary>
   /// Store <see cref="Event"/>s to the <see cref="IRecordStore"/>
@@ -67,9 +67,9 @@ public interface IRecordStore
   /// <summary>
   /// Store <see cref="Aggregate"/> to the <see cref="IRecordStore"/>
   /// </summary>
-  /// <param name="view"><see cref="View"/> to add</param>
+  /// <param name="projection"><see cref="Projection"/> to add</param>
   /// <param name="cancellationToken">Cancellation Token</param>
-  Task AddViewAsync(View view, CancellationToken cancellationToken = default);
+  Task AddProjectionAsync(Projection projection, CancellationToken cancellationToken = default);
   
   /// <summary>
   /// Delete <see cref="Event"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
@@ -122,36 +122,36 @@ public interface IRecordStore
   Task DeleteSnapshotAsync(Guid aggregateId, long index, CancellationToken cancellationToken = default);
   
   /// <summary>
-  /// Delete <see cref="View"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
+  /// Delete <see cref="Projection"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
   /// </summary>
   /// <param name="partitionId">Aggregate Partition Id</param>
   /// <param name="aggregateId">Aggregate Id</param>
   /// <param name="cancellationToken">Cancellation Token</param>
-  /// <exception cref="RecordStoreException">Thrown when conflicts occur when deleting <see cref="View"/>s</exception>
-  Task DeleteAllViewsAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default);
+  /// <exception cref="RecordStoreException">Thrown when conflicts occur when deleting <see cref="Projection"/>s</exception>
+  Task DeleteAllProjectionsAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default);
 
   /// <summary>
-  /// Delete <see cref="View"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
+  /// Delete <see cref="Projection"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
   /// </summary>
   /// <param name="aggregateId">Aggregate Id</param>
   /// <param name="cancellationToken">Cancellation Token</param>
-  Task DeleteAllViewsAsync(Guid aggregateId, CancellationToken cancellationToken = default);
+  Task DeleteAllProjectionsAsync(Guid aggregateId, CancellationToken cancellationToken = default);
   
   /// <summary>
-  /// Delete <see cref="View"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
+  /// Delete <see cref="Projection"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
   /// </summary>
   /// <param name="partitionId">Aggregate Partition Id</param>
   /// <param name="aggregateId">Aggregate Id</param>
   /// <param name="cancellationToken">Cancellation Token</param>
-  /// <exception cref="RecordStoreException">Thrown when conflicts occur when deleting <see cref="View"/>s</exception>
-  Task DeleteViewAsync<TView>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TView : View, new();
+  /// <exception cref="RecordStoreException">Thrown when conflicts occur when deleting <see cref="Projection"/>s</exception>
+  Task DeleteProjectionAsync<TProjection>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection, new();
 
   /// <summary>
-  /// Delete <see cref="View"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
+  /// Delete <see cref="Projection"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
   /// </summary>
   /// <param name="aggregateId">Aggregate Id</param>
   /// <param name="cancellationToken">Cancellation Token</param>
-  Task DeleteViewAsync<TView>(Guid aggregateId, CancellationToken cancellationToken = default) where TView : View, new();
+  Task DeleteProjectionAsync<TProjection>(Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection, new();
 
   /// <summary>
   /// Create Event Transaction

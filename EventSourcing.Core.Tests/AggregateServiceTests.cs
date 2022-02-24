@@ -457,7 +457,7 @@ public abstract partial class AggregateServiceTests
   }
   
   [Fact]
-  public async Task Can_Query_Aggregate_View_After_Persisting()
+  public async Task Can_Query_Aggregate_Projection_After_Persisting()
   {
     var aggregate = new MockAggregate();
     aggregate.Add(new MockEvent
@@ -498,22 +498,22 @@ public abstract partial class AggregateServiceTests
 
     await AggregateService.PersistAsync(aggregate);
 
-    var view = await RecordStore
-      .GetViews<MockAggregateView>()
+    var projection = await RecordStore
+      .GetProjections<MockAggregateProjection>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .SingleAsync();
     
-    Assert.Equal(aggregate.MockBoolean, view.MockBoolean);
-    Assert.Equal(aggregate.MockString, view.MockString);
-    Assert.Equal(aggregate.MockDecimal, view.MockDecimal);
-    Assert.Equal(aggregate.MockDouble, view.MockDouble);
-    Assert.Equal(aggregate.MockEnum, view.MockEnum);
-    Assert.Equal(aggregate.MockFlagEnum, view.MockFlagEnum);
-    Assert.Equal(aggregate.MockNestedRecord, view.MockNestedRecord);
-    Assert.Equal(aggregate.MockNestedClassList, view.MockNestedClassList);
-    Assert.Equal(aggregate.MockFloatList, view.MockFloatList);
-    Assert.Equal(aggregate.MockStringSet, view.MockStringSet);
+    Assert.Equal(aggregate.MockBoolean, projection.MockBoolean);
+    Assert.Equal(aggregate.MockString, projection.MockString);
+    Assert.Equal(aggregate.MockDecimal, projection.MockDecimal);
+    Assert.Equal(aggregate.MockDouble, projection.MockDouble);
+    Assert.Equal(aggregate.MockEnum, projection.MockEnum);
+    Assert.Equal(aggregate.MockFlagEnum, projection.MockFlagEnum);
+    Assert.Equal(aggregate.MockNestedRecord, projection.MockNestedRecord);
+    Assert.Equal(aggregate.MockNestedClassList, projection.MockNestedClassList);
+    Assert.Equal(aggregate.MockFloatList, projection.MockFloatList);
+    Assert.Equal(aggregate.MockStringSet, projection.MockStringSet);
   }
   
   [Fact]

@@ -28,15 +28,15 @@ public interface IRecordTransaction
   IRecordTransaction AddSnapshot(Snapshot snapshot);
   
   /// <summary>
-  /// Add <see cref="View"/>
+  /// Add <see cref="Projection"/>
   /// </summary>
-  /// <param name="view"><see cref="View"/></param>
+  /// <param name="projection"><see cref="Projection"/></param>
   /// <returns></returns>
-  IRecordTransaction AddView(View view);
+  IRecordTransaction AddProjection(Projection projection);
 
   IRecordTransaction DeleteAllEvents(Guid aggregateId, long index);
   IRecordTransaction DeleteSnapshot(Guid aggregateId, long index);
-  IRecordTransaction DeleteView(Guid aggregateId, string type);
+  IRecordTransaction DeleteProjection(Guid aggregateId, string type);
 
   /// <summary>
   /// Commit Transaction

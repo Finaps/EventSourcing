@@ -5,16 +5,16 @@ namespace EventSourcing.Core.Tests;
 public abstract partial class RecordStoreTests
 {
   [Fact]
-  public async Task Can_Delete_View()
+  public async Task Can_Delete_Projection()
   {
-    var view = new EmptyView { AggregateId = Guid.NewGuid(), AggregateType = nameof(EmptyAggregate) };
-    await RecordStore.AddViewAsync(view);
+    var projection = new EmptyProjection { AggregateId = Guid.NewGuid(), AggregateType = nameof(EmptyAggregate) };
+    await RecordStore.AddProjectionAsync(projection);
 
-    Assert.NotNull(await RecordStore.GetViewByIdAsync<EmptyView>(view.AggregateId));
+    Assert.NotNull(await RecordStore.GetProjectionByIdAsync<EmptyProjection>(projection.AggregateId));
 
-    await RecordStore.DeleteViewAsync<EmptyView>(view.AggregateId);
+    await RecordStore.DeleteProjectionAsync<EmptyProjection>(projection.AggregateId);
 
     await Assert.ThrowsAsync<RecordStoreException>(async () =>
-      await RecordStore.GetViewByIdAsync<EmptyView>(view.AggregateId));
+      await RecordStore.GetProjectionByIdAsync<EmptyProjection>(projection.AggregateId));
   }
 }
