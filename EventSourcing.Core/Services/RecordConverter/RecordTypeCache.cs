@@ -26,7 +26,7 @@ public sealed class RecordTypeCache
         _recordTypes = _recordTypeStrings.ToDictionary(kv => kv.Value, kv => kv.Key);
         // For each Record Type, create set of non-nullable properties for validation
         _nonNullableRecordProperties = _recordTypes.Values.ToDictionary(type => type, type => type.GetProperties()
-            .Where(property => Nullable.GetUnderlyingType(property.PropertyType) == null).ToArray());
+            .Where(property => property.PropertyType.IsValueType && Nullable.GetUnderlyingType(property.PropertyType) == null).ToArray());
     }
     public Type GetRecordType(string typeString)
     {

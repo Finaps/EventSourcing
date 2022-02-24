@@ -1,3 +1,5 @@
+using System.Reflection;
+
 namespace EventSourcing.Core;
 
 /// <summary>
@@ -15,7 +17,8 @@ public abstract class ProjectionFactory<TAggregate, TProjection> : IProjectionFa
     AggregateType = aggregate.Type,
     PartitionId = aggregate.PartitionId,
     AggregateId = aggregate.Id,
-    Version = aggregate.Version
+    Version = aggregate.Version,
+    Hash = ProjectionCache.Hashes[(AggregateType, ProjectionType)]
   };
   
   /// <summary>
@@ -24,4 +27,9 @@ public abstract class ProjectionFactory<TAggregate, TProjection> : IProjectionFa
   /// <param name="aggregate">Source <see cref="TAggregate"/></param>
   /// <returns>Resulting <see cref="TProjection"/> of <see cref="TAggregate"/></returns>
   protected abstract TProjection CreateProjection(TAggregate aggregate);
+
+  public string ComputeHash() => IHashable.CombineHashes(
+      AggregateService.AggregateHashCache[AggregateType],
+      IHashable.ComputeMethodHash(GetType().GetMethod(
+        nameof(CreateProjection), BindingFlags.Instance | BindingFlags.NonPublic)));
 }

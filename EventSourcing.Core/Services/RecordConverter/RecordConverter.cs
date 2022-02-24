@@ -8,11 +8,6 @@ namespace EventSourcing.Core;
 /// </remarks>
 public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : Record
 {
-  private class RecordType
-  {
-    public string? Type { get; set; }
-  }
-
   private readonly RecordTypeCache _recordTypeCache;
   private readonly EventMigratorService _eventMigratorService;
 
@@ -31,12 +26,8 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
   /// <summary>
   /// Serialize Record
   /// </summary>
-  public override void Write(Utf8JsonWriter writer, TRecord value, JsonSerializerOptions options)
-  {
-    var type = value.GetType();
-    var record = Validate(value, type);
-    JsonSerializer.Serialize(writer, record, type);
-  }
+  public override void Write(Utf8JsonWriter writer, TRecord value, JsonSerializerOptions options) =>
+    JsonSerializer.Serialize(writer, value, value.GetType());
 
   /// <summary>
   /// Deserialize Record
@@ -48,17 +39,15 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
     var record = JsonSerializer.Deserialize(ref reader, type) as Record
                  ?? throw new JsonException($"Error Converting Json to {type.Name}.");
 
-    return (TRecord)(
-      record is Event
-        ? _eventMigratorService.Migrate((Event)Validate(record, type))
-        : record
-    );
+    return (TRecord)(record is Event e ? _eventMigratorService.Migrate(e) : record);
   }
 
   private Type DeserializeRecordType(Utf8JsonReader reader)
   {
+    var json = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(ref reader);
+    
     // Get Record.Type String from Json
-    var typeString = JsonSerializer.Deserialize<RecordType>(ref reader)?.Type ??
+    if (json == null || !json.TryGetValue("Type", out var typeString) || typeString.ValueKind != JsonValueKind.String)
 
                      // Throw Exception when json has no "Type" Property
                      throw new RecordValidationException(
@@ -66,22 +55,19 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
                        $"Couldn't parse {typeof(TRecord)}.Type string from Json. " +
                        $"Does the Json contain a {nameof(Record.Type)} field?");
 
-    return _recordTypeCache.GetRecordType(typeString);
-  }
+    var type = _recordTypeCache.GetRecordType(typeString.GetString()!);
 
-  private Record Validate(Record record, Type type)
-  {
     var missing = _recordTypeCache.GetNonNullableRecordProperties(type)
-      .Where(property => property.GetValue(record) == null)
+      .Where(property => !json.TryGetValue(property.Name, out var value) || value.ValueKind == JsonValueKind.Null)
       .Select(property => property.Name)
       .ToList();
-
+    
     if (missing.Count > 0)
       throw new RecordValidationException(
-        $"Error converting Json to {record}'.\n" +
+        $"Error converting Json to {type}'.\n" +
         $"One ore more non-nullable properties are missing or null: {string.Join(", ", missing.Select(property => $"{type.Name}.{property}"))}.\n" +
-        $"Either make properties nullable or use a RecordMigrator to handle {nameof(TRecord)} versioning.");
-
-    return record;
+        $"Either make properties nullable or use a RecordMigrator to handle {typeof(TRecord)} versioning.");
+    
+    return type;
   }
 }

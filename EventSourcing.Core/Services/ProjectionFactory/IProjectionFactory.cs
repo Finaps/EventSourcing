@@ -3,7 +3,7 @@ namespace EventSourcing.Core;
 /// <summary>
 /// Create <see cref="Projection"/> for <see cref="Aggregate"/>
 /// </summary>
-public interface IProjectionFactory
+public interface IProjectionFactory : IHashable
 {
   Type AggregateType { get; }
   Type ProjectionType { get; }

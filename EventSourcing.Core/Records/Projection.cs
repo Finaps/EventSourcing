@@ -17,5 +17,7 @@ public record Projection : Record
   /// </summary>
   public long Version { get; init; }
 
+  public string Hash { get; init; }
+
   public override string id => $"{Kind}|{Type}|{AggregateId}";
 }
