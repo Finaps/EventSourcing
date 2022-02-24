@@ -44,7 +44,7 @@ public abstract partial class RecordStoreTests
       MockStringSet = new HashSet<string> { "No", "Duplicates", "Duplicates", "Here" }
     });
 
-    await RecordStore.AddProjectionAsync(new MockAggregateProjectionFactory().CreateProjection(aggregate) with { Hash = "YOLO" });
+    await RecordStore.AddProjectionAsync(new MockAggregateProjectionFactory().CreateProjection(aggregate));
 
     var projection = await RecordStore
       .GetProjections<MockAggregateProjection>()

@@ -24,15 +24,8 @@ public record Projection : Record
   
   public string Hash { get; init; }
 
-  public bool IsUpToDate
-  {
-    get
-    {
-      if (FactoryType == null) return true;
-      ProjectionCache.Hashes.TryGetValue(FactoryType, out var hash);
-      return Hash == hash;
-    }
-  }
+  public bool IsUpToDate =>
+    ProjectionCache.Hashes.TryGetValue(FactoryType ?? "", out var hash) && Hash == hash;
 
   public override string id => $"{Kind}|{Type}|{AggregateId}";
 }
