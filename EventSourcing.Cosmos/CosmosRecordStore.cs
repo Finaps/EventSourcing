@@ -48,6 +48,8 @@ public class CosmosRecordStore : IRecordStore
     _container = new CosmosClient(options.Value.ConnectionString, clientOptions)
       .GetDatabase(options.Value!.Database)
       .GetContainer(options.Value.Container);
+
+    CosmosStoredProcedures.CreateBulkDeleteProcedure(_container).Wait();
   }
 
   public IQueryable<Event> Events =>_container
@@ -185,4 +187,7 @@ public class CosmosRecordStore : IRecordStore
 
   public IRecordTransaction? CreateTransaction(Guid partitionId) =>
     new CosmosRecordTransaction(_container, partitionId);
+
+  public async Task<int> DeleteEvents(Guid partitionId, Guid aggregateId) =>
+    await CosmosStoredProcedures.ExecuteBulkDeleteProcedure(_container, partitionId, aggregateId);
 }
