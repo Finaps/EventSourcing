@@ -1,4 +1,5 @@
-﻿using EventSourcing.Core;
+﻿using System.Diagnostics;
+using EventSourcing.Core;
 using EventSourcing.Cosmos;
 using EventSourcing.Example.Domain.Products;
 using EventSourcing.Example.Tests.DTOs;
@@ -74,19 +75,5 @@ public class ProductTests : TestsBase
         Assert.Equal(ProductName, snapshot!.Name);
         Assert.Equal(ProductQuantity + snapshotInterval - 1, snapshot.Quantity);
         Assert.Empty(snapshot.Reservations);
-    }
-    
-    [Fact]
-    public async Task Can_Execute_Stored_Procedure()
-    {
-        var create = new CreateProduct(ProductName, ProductQuantity);
-        var response = await _client.PostAsync("products", create.AsHttpContent());
-        var product = await response.AsDto<ProductDto>();
-        await _client.PostAsync($"products/{product!.Id}/addStock", new AddStock(1).AsHttpContent());
-        
-        var eventStore = GetService<IRecordStore>();
-        var cosmosStore = eventStore as CosmosRecordStore;
-        var result = await cosmosStore!.DeleteEvents(Guid.Empty, product.Id);
-        Assert.Equal(1, result);
     }
 }

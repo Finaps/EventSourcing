@@ -48,8 +48,9 @@ public class CosmosRecordStore : IRecordStore
     _container = new CosmosClient(options.Value.ConnectionString, clientOptions)
       .GetDatabase(options.Value!.Database)
       .GetContainer(options.Value.Container);
-
-    CosmosStoredProcedures.CreateBulkDeleteProcedure(_container).Wait();
+  
+    // Create and store 'StoredProcedure' for deleting many by filter
+    _container.CreateBulkDeleteProcedure().Wait();
   }
 
   public IQueryable<Event> Events =>_container
@@ -189,5 +190,5 @@ public class CosmosRecordStore : IRecordStore
     new CosmosRecordTransaction(_container, partitionId);
 
   public async Task<int> DeleteEvents(Guid partitionId, Guid aggregateId) =>
-    await CosmosStoredProcedures.ExecuteBulkDeleteProcedure(_container, partitionId, aggregateId);
+    await _container.ExecuteBulkDeleteProcedure(partitionId, aggregateId);
 }
