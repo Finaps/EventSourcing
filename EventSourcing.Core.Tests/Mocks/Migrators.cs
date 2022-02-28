@@ -4,7 +4,7 @@ public class MigratorV1 : EventMigrator<MigrationEvent, MigrationEventV2>
 {
   protected override MigrationEventV2 Convert(MigrationEvent e)
   {
-    return Guid.TryParse(e.someId, out var guid)
+    return Guid.TryParse(e.SomeId, out var guid)
       ? new MigrationEventV2(guid)
       : new MigrationEventV2(null);
   }
@@ -14,8 +14,8 @@ public class MigratorV2 : EventMigrator<MigrationEventV2, MigrationEventV3>
 {
   protected override MigrationEventV3 Convert(MigrationEventV2 e)
   {
-    return e.someId == null
+    return e.SomeId == null
       ? new MigrationEventV3(new List<Guid>())
-      : new MigrationEventV3(new List<Guid> { e.someId.Value });
+      : new MigrationEventV3(new List<Guid> { e.SomeId.Value });
   }
 }

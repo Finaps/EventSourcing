@@ -92,9 +92,9 @@ public abstract class RecordMigrationTests
     var converted = converter.Read(ref reader, typeof(TrivialMigrationEvent), options) as TrivialMigrationEvent;
 
     Assert.NotNull(converted);
-    Assert.Equal(e.someId, converted.someId);
-    Assert.Equal(e.someString, converted.someString);
-    Assert.Equal(e.someInt, converted.someInt);
-    Assert.Null(converted.addedField);
+    Assert.Equal(e.SomeId, converted.SomeId);
+    Assert.Equal(e.SomeString, converted.SomeString);
+    Assert.Equal(e.SomeInt, converted.SomeInt);
+    Assert.Null(converted.AddedField);
   }
 }

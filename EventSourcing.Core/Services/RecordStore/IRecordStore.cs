@@ -158,11 +158,11 @@ public interface IRecordStore
   /// </summary>
   /// <param name="partitionId">Transaction Partition identifier</param>
   /// <returns></returns>
-  IRecordTransaction CreateTransaction(Guid partitionId);
+  IRecordTransaction? CreateTransaction(Guid partitionId);
 
   /// <summary>
   /// Create Event Transaction for <see cref="Guid.Empty"/> partition
   /// </summary>
   /// <returns></returns>
-  IRecordTransaction CreateTransaction();
+  IRecordTransaction? CreateTransaction();
 }

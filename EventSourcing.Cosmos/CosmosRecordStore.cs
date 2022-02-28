@@ -181,8 +181,8 @@ public class CosmosRecordStore : IRecordStore
   public async Task DeleteProjectionAsync<TProjection>(Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection, new() =>
     await DeleteProjectionAsync<TProjection>(Guid.Empty, aggregateId, cancellationToken);
 
-  public IRecordTransaction CreateTransaction() => CreateTransaction(Guid.Empty);
+  public IRecordTransaction? CreateTransaction() => CreateTransaction(Guid.Empty);
 
-  public IRecordTransaction CreateTransaction(Guid partitionId) =>
+  public IRecordTransaction? CreateTransaction(Guid partitionId) =>
     new CosmosRecordTransaction(_container, partitionId);
 }
