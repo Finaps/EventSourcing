@@ -31,7 +31,7 @@ public abstract class ProjectionFactory<TAggregate, TProjection> : IProjectionFa
   /// <returns>Resulting <see cref="TProjection"/> of <see cref="TAggregate"/></returns>
   protected abstract TProjection CreateProjection(TAggregate aggregate);
 
-  public string ComputeHash() => IHashable.CombineHashes(
+  public virtual string ComputeHash() => IHashable.CombineHashes(
     IHashable.ComputeMethodHash(
       GetType().GetMethod(nameof(CreateProjection), BindingFlags.Instance | BindingFlags.NonPublic)),
       ProjectionCache.AggregateHashes[AggregateType]);

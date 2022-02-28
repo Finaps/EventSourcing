@@ -8,7 +8,7 @@ public class MigratedAggregate: Aggregate
         switch (e)
         {
             case MigrationEventV3 v3:
-                SomeIds.AddRange(v3.someIds);
+                SomeIds.AddRange(v3.SomeIds);
                 break;
         }
     }
