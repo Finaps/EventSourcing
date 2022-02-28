@@ -113,7 +113,7 @@ public abstract partial class AggregateServiceTests
     
     AssertDefaultMock(before);
 
-    await ProjectionUpdateService.UpdateProjectionsAsync<MockAggregate, MockAggregateProjection>();
+    await ProjectionUpdateService.UpdateAllProjectionsAsync<MockAggregate, MockAggregateProjection>();
 
     var after = await RecordStore
     .GetProjections<MockAggregateProjection>()
@@ -147,47 +147,13 @@ public abstract partial class AggregateServiceTests
     
     AssertDefaultMock(before);
 
-    await ProjectionUpdateService.UpdateProjectionsAsync<MockAggregate>();
+    await ProjectionUpdateService.UpdateAllProjectionsAsync<MockAggregate>();
 
     var after = await RecordStore
     .GetProjections<MockAggregateProjection>()
     .Where(x => x.AggregateId == aggregate.Id)
     .AsAsyncEnumerable()
     .SingleAsync();
-  
-    AssertEqualMock(aggregate, after);
-  }
-  
-  [Fact]
-  public async Task Can_Update_Projection_For_All_Aggregates()
-  {
-    var aggregate = CreateMockAggregate();
-
-    await AggregateService.PersistAsync(aggregate);
-
-    await RecordStore.AddProjectionAsync(new MockAggregateProjection
-    {
-      AggregateType = aggregate.Type,
-      AggregateId = aggregate.Id,
-      FactoryType = nameof(MockAggregateProjectionFactory),
-      Hash = "OUTDATED"
-    });
-    
-    var before = await RecordStore
-      .GetProjections<MockAggregateProjection>()
-      .Where(x => x.AggregateId == aggregate.Id)
-      .AsAsyncEnumerable()
-      .SingleAsync();
-    
-    AssertDefaultMock(before);
-
-    await ProjectionUpdateService.UpdateProjectionsAsync();
-
-    var after = await RecordStore
-      .GetProjections<MockAggregateProjection>()
-      .Where(x => x.AggregateId == aggregate.Id)
-      .AsAsyncEnumerable()
-      .SingleAsync();
   
     AssertEqualMock(aggregate, after);
   }
