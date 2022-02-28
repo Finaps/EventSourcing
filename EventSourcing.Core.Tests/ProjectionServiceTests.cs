@@ -74,7 +74,6 @@ public abstract partial class AggregateServiceTests
     Assert.Equal(expected.MockStringSet, actual.MockStringSet);
   }
   
-  
   [Fact]
   public async Task Can_Query_Aggregate_Projection_After_Persisting()
   {

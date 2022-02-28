@@ -6,8 +6,23 @@ namespace EventSourcing.Core;
 
 public interface IHashable
 {
+  /// <summary>
+  /// Compute Hash
+  /// </summary>
+  /// <returns>Hash string</returns>
   string ComputeHash();
 
+  /// <summary>
+  /// Compute hash for Method IL bytecode. Whenever the '<see cref="method"/>' source code changes, this hash changes.
+  /// </summary>
+  /// <remarks>Be aware this method does not recursively capture IL bytecode.
+  /// i.e. if the contents of a method used inside of '<see cref="method"/>' changes,
+  /// the bytecode and thus hash will stay the same.
+  /// Use <see cref="CombineHashes"/> to combine the hashes of multiple methods if desired.
+  /// </remarks>
+  /// <param name="method">Method to compute hash for</param>
+  /// <returns></returns>
+  /// <exception cref="NullReferenceException"></exception>
   static string ComputeMethodHash(MethodInfo? method)
   {
     var data = method?.GetMethodBody()?.GetILAsByteArray();
@@ -17,6 +32,11 @@ public interface IHashable
     return ByteArrayToString(MD5.HashData(data));
   }
 
+  /// <summary>
+  /// Combine two or more hashes into a single new hash
+  /// </summary>
+  /// <param name="hashes"></param>
+  /// <returns></returns>
   static string CombineHashes(params string[] hashes) =>
     ByteArrayToString(MD5.HashData(Encoding.ASCII.GetBytes(string.Concat(hashes))));
 

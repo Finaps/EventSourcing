@@ -35,9 +35,24 @@ public abstract record Record
   public Guid PartitionId { get; init; }
   
   /// <summary>
+  /// Aggregate type string
+  /// </summary>
+  public string? AggregateType { get; init; }
+  
+  /// <summary>
+  /// Unique Aggregate identifier
+  /// </summary>
+  public Guid AggregateId { get; init; }
+  
+  /// <summary>
   /// Unique Record identifier.
   /// </summary>
   public Guid RecordId { get; init; }
+  
+  /// <summary>
+  /// Record creation/update time
+  /// </summary>
+  public DateTimeOffset Timestamp { get; init; }
   
   /// <summary>
   /// Unique Database identifier.
@@ -51,5 +66,6 @@ public abstract record Record
   {
     RecordId = Guid.NewGuid();
     Type = RecordTypeCache.GetAssemblyRecordTypeString(GetType());
+    Timestamp = DateTimeOffset.Now;
   }
 }

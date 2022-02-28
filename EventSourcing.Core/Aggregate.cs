@@ -117,6 +117,22 @@ public abstract class Aggregate : IHashable
     // Otherwise, return Aggregate
     return aggregate.Version == 0 ? null : aggregate;
   }
+  
+  /// <summary>
+  /// Compute Hash representing the logic of this <see cref="Aggregate"/>.<see cref="Aggregate.Apply"/> method.
+  /// The hash is used to determine if projections created from this <see cref="Aggregate"/> are up to date.
+  /// </summary>
+  /// <remarks>
+  /// If the <see cref="Aggregate"/>.<see cref="Aggregate.Apply"/> method relies on domain logic not directly present in
+  /// the <see cref="Aggregate"/>.<see cref="Aggregate.Apply"/> body, consider overwriting <see cref="ComputeHash"/> to
+  /// include the dependent methods in the hash calculation.
+  /// </remarks>
+  /// <seealso cref="Projection"/>
+  /// <seealso cref="ProjectionFactory{TAggregate,TProjection}"/>
+  /// <seealso cref="IHashable"/>
+  /// <returns></returns>
+  public virtual string ComputeHash() => IHashable.ComputeMethodHash(
+    GetType().GetMethod(nameof(Apply), BindingFlags.Instance | BindingFlags.NonPublic));
 
   private void ValidateAndApplyEvent(Event e)
   {
@@ -131,7 +147,4 @@ public abstract class Aggregate : IHashable
     Apply(s);
     Version = s.Index + 1;
   }
-
-  public virtual string ComputeHash() => IHashable.ComputeMethodHash(
-    GetType().GetMethod(nameof(Apply), BindingFlags.Instance | BindingFlags.NonPublic));
 }
