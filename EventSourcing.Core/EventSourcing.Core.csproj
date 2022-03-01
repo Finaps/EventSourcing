@@ -18,5 +18,9 @@
       <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
       <PackageReference Include="System.Linq.Async" Version="5.1.0" />
     </ItemGroup>
+    
+    <PropertyGroup>
+        <DocumentationFile>./obj/documentation.xml</DocumentationFile>
+    </PropertyGroup>
 
 </Project>

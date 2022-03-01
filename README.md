@@ -12,25 +12,34 @@ Currently an Azure Cosmos DB backend has been implemented, but more implementati
 
 This repository is WIP, breaking API changes are likely to occur before version 1.0.0.
 
-Example
--------
+Basic Usage
+-----------
 
-This example shows how a (very simplified) bank account could be modelled using Finaps.EventSourcing
+These examples show how a (very simplified) bank account could be modelled using Finaps.EventSourcing.
+It show how to use three types of ```Records``` this package is concerned with: ```Events```, ```Snapshots``` and ```Projections```.
 
 ### 1. Define Some Domain Events
 
-Events are immutable data structures that describe something that has happened to an Aggregate.
+```Events``` are immutable ```Records``` that describe something that has happened to a particular ```Aggregate```.
 
 ```c#
-public record FundsEvent : Event
+public record BankAccountCreatedEvent : Event
+{
+    public string Name { get; init; }
+    public string Iban { get; init; }
+}
+
+public record FundsDepositedEvent : Event
 {
     public decimal Amount { get; init; }
 }
 
-public record FundsDepositedEvent : FundsEvent;
-public record FundsWithdrawnEvent : FundsEvent;
+public record FundsWithdrawnEvent : Event
+{
+    public decimal Amount { get; init; }
+}
 
-public record FundsTransferredEvent : FundsEvent
+public record FundsTransferredEvent : Event
 {
     public Guid DebtorAccount { get; init; }
     public Guid CreditorAccount { get; init; }
@@ -39,33 +48,36 @@ public record FundsTransferredEvent : FundsEvent
 
 ### 2. Define an Aggregate for these Events
 
-An Aggregate is an aggregation of an Event stream
+An ```Aggregate``` is an aggregation of one or more ```Events```.
+The ```Aggregate.Apply(Event e)``` method contains the aggregation logic.
 
 ```c#
 public class BankAccount : Aggregate
 {
-    // These fields are are 'aggregations' of events applied to this bank account
-    public List<FundsEvent> History { get; } = new();
+    // Properties are only updated by applying events
+    public string Name { get; private set; }
+    public string Iban { get; private set; }
     public decimal Balance { get; private set; }
     
-    public void Deposit(decimal amount) =>
-        Add(new FundsDepositedEvent { Amount = amount });
-        
-    public void Withdraw(decimal amount) =>
-        Add(new FundsWithdrawnEvent { Amount = amount });
-    
-    // This method gets called for every event applied to this backaccount
-    protected override void Apply<TEvent>(TEvent e)
+    // This method gets called for every added Event
+    protected override void Apply(Event e)
     {
-        // The Bank Account Aggregate is updated according to the Applied Event
+        // Depending on the type of Event, we update the Aggregate
         switch (e)
         {
+            case BankAccountCreatedEvent created:
+                Name = created.Name;
+                Iban = created.Iban;
+                break;
+                
             case FundsDepositedEvent deposit:
                 Balance += deposit.Amount;
                 break;
+                
             case FundsWithdrawnEvent withdraw:
                 Balance -= withdraw.Amount;
                 break;
+                
             case FundsTransferredEvent transfer:
                 if (Id == transfer.DebtorAccount)
                     Balance -= transfer.Amount;
@@ -77,42 +89,73 @@ public class BankAccount : Aggregate
         }
         
         // An error is thrown if any event would cause the bank account balance to drop below 0
-        if (Balance < 0)
-            throw new InvalidOperationException("Not enough funds");
-        
-        // Update the transaction history
-        if (e is FundsEvent transaction)
-            History.Add(transaction);
+        if (Balance < 0) throw new InvalidOperationException("Not enough funds");
     }
+    
+    // Convenience method for creating this account
+    public void Create(string name, string iban) =>
+        Add(new BankAccountCreatedEvent { Name = name, Iban = iban });
+    
+    // Convenience method for depositing funds to this account
+    public void Deposit(decimal amount) =>
+        Add(new FundsDepositedEvent { Amount = amount });
+        
+    // Convenience method for withdrawing events from this account
+    public void Withdraw(decimal amount) =>
+        Add(new FundsWithdrawnEvent { Amount = amount });
 }
 ```
 
-### 3. Create and Persist an Aggregate
+### 3. Create & Persist an Aggregate
 
 ```c#
-// Create new Bank Account
+// Create new Bank Account Aggregate
 var account = new BankAccount();
+
+// This will create a new Id
+Assert.NotEqual(Guid.Empty, account.Id);
+
+// But leave all other values default
+Assert.Equal(default, account.Name);
+Assert.Equal(default, account.Iban);
+Assert.Equal(default, account.Balance);
+
+// Create the Bank Account
+account.Add(new BankAccountCreatedEvent { Name = "E. Vent", Iban = "SOME IBAN" });
+// or alternatively, using the convenience method:
+// account.Create("E. Vent", "SOME IBAN");
 
 // Add some funds to this account
 account.Deposit(100);
+// which is equivalent to:
+// account.Add(new FundsDepositedEvent { Amount = 100 });
 
-// Persist Aggregate by storing all Events added to this Aggregate
+// Adding Events will call the Apply method, which updates the Aggregate
+Assert.Equal("E. Vent"  , account.Name);
+Assert.Equal("SOME IBAN", account.Iban);
+Assert.Equal(100        , account.Balance);
+
+// Persist Aggregate, i.e. store the two newly added Events for this BankAccount
 await AggregateService.PersistAsync(account);
 ```
 
-### 4. Update an Aggregate
+### 4. Rehydrate & Update an Aggregate
+
+When you want to update an ```Aggregate``` whose ```Events``` are already stored in the ```RecordStore```,
+you'll first need to rehydrate the ```Aggregate``` from these ```Events```.
+
 ```c#
-// Rehydrate Existing Bank Account
+// Rehydrate existing BankAccount, i.e. reapply all stored Events to this BankAccount
 var account = await AggregateService.RehydrateAsync<BankAccount>(bankAccountId);
 
-// Add funds to the account
+// Then add more funds to the account
 account.Deposit(50);
 
-// Persist Aggregate
+// Finally, Persist Aggregate. i.e. store the newly added Event(s)
 await AggregateService.PersistAsync(account);
 ```
 
-or alternatively:
+or alternatively, the three lines of code above can be replaced with the shorthand notation:
 
 ```c#
 await AggregateService.RehydrateAndPersistAsync<BankAccount>(bankAccountId, account => account.Deposit(50));
@@ -120,9 +163,18 @@ await AggregateService.RehydrateAndPersistAsync<BankAccount>(bankAccountId, acco
 
 ### 5. Update Multiple Aggregates in a single Transaction
 
-```c#
-var anotherAccount = new BankAccount();
+Let's spice things up and transfer money from one bank account to another.
+In such a transaction we want to ensure the transaction either entirely succeeds or entirely fails.
 
+Here's where transactions come into play:
+
+
+```c#
+// Create another BankAccount
+var anotherAccount = new BankAccount();
+anotherAccount.Create("S. Ourcing", "ANOTHER IBAN");
+
+// Define a transfer of funds
 var transfer = new FundsTransferredEvent
 {
       DebtorAccount = account.Id,
@@ -130,10 +182,158 @@ var transfer = new FundsTransferredEvent
       Amount = 20
 };
 
+// Add this Event to both Aggregates
 account.Add(transfer);
 anotherAccount.Add(transfer);
 
-// This attempts to save both aggregates in a single transaction
-// If something fails (e.g. concurrency) nothing will be persisted
+// Persist both aggregates in a single ACID transaction.
 await AggregateService.PersistAsync(new[] { account, anotherAccount });
+```
+
+### 6. Create and Apply Snapshots
+
+When many Events are stored for a given Aggregate, rehydrating that Aggregate will get less performant.
+The meaning of 'many Events' depends on backend and database hardware, but also your performance requirements.
+When performance impacts are expected (or even better, measured!), ```Snapshots``` can be used to mitigate them.
+
+To use ```Snapshots```, first define a ```Snapshot``` and a ```SnapshotFactory```.
+
+```c#
+// A Snapshot represents the full state of an Aggregate at a given point in time
+public record BankAccountSnapshot : Snapshot
+{
+  public string Name { get; init; }
+  public string Iban { get; init; }
+  public decimal Balance { get; init; }
+}
+
+// The Snapshot Factory is resposible for creating a Snapshot at a given interval
+public class BankAccountSnapshotFactory : SnapshotFactory<BankAccount, BankAccountSnapshot>
+{
+    // Create a snapshot every 100 Events
+    public override long SnapshotInterval => 100;
+    
+    // Create a Snapshot from the Aggregate
+    protected override BankAccountSnapshot CreateSnapshot(BankAccount aggregate) => new BankAccountSnapshot()
+    {
+        Name = aggregate.Name,
+        Iban = aggregate.Iban,
+        Balance = aggregate.Balance
+    };
+}
+```
+
+Finally, we have to apply the ````Snapshot```` in the ```Aggregate.Apply``` method:
+
+```c#
+public class BankAccount : Aggregate
+{
+    public string Name { get; private set; }
+    public string Iban { get; private set; }
+    public decimal Balance { get; private set; }
+   
+    protected override void Apply(Event e)
+    {
+        switch (e)
+        {
+          ...
+        
+          case BankAccountSnapshot snapshot:
+            Name = snapshot.Name;
+            Iban = snapshot.Iban;
+            Balance = snapshot.Balance;
+            break;
+        }
+        
+        ...
+    }
+    
+    ...
+}
+```
+
+The ```SnapshotFactory``` will create a ```Snapshot``` every 100 ```Events```.
+When rehydrating the ```Aggregate```, the latest ```Snapshot``` will be used to rehydrate the BankAccount faster.
+
+### 7. Rehydrate Aggregate for a particular point in time
+
+Sometimes we want to get the state of a particular ```Aggregate``` at a given point in time.
+This is where Event Sourcing really shines, since it is as easy as applying all events up to a certain date.
+When using ```Snapshots```, the latest ```Snapshot``` before the given date 
+will be used to speed up these point in time rehydrations as well.
+
+```c#
+// Query the Bank Account for the January 1th, 2022
+var account = await AggregateService.RehydrateAsync<BankAccount>(bankAccountId, new DateTime(2022, 01, 01));
+```
+
+### 8. Working with Records directly
+
+All previous examples with with the ```AggregateService``` class,
+which provides a high level API for rehydrating and persisting ```Aggregates```.
+To directly work with all ```Record``` types (```Events```, ```Snapshots``` & ```Projections```) one uses the ```RecordStore```.
+
+Some examples of what can be done using the record store:
+
+```c#
+// Get all Events for a particular Aggregate type
+var events = await RecordStore.Events                       // The RecordStore exposes Events/Snapshots/Projections Queryables
+    .Where(x => x.AggregateType == nameof(BankAccount))     // Linq can be used to query all Record types
+    .OrderBy(x => new { x.AggregateId, x.Index })           // Sort by Aggregate Id and Index
+    .AsAsyncEnumerable()                                    // Call the AsAsyncEnumerable extension method to finalize the query
+    .ToListAsync();                                         // Use any System.Linq.Async method to get the results
+    
+// Get latest Snapshot for a particular Aggregate
+var result = await RecordStore.Snapshots
+    .Where(x => x.AggregateId == myAggregateId)
+    .OrderByDescending(x => x.Index)
+    .AsAsyncEnumerable()
+    .FirstAsync();
+```
+
+For an overview of the supported linq queries, please refer to the
+[CosmosDB Linq to SQL Translation documentation](https://docs.microsoft.com/en-us/azure/cosmos-db/sql/sql-query-linq-to-sql).
+
+### 9. Storing and Querying Projections
+
+While working with ```Aggregates```, ```Events``` and ```Snapshots``` is really powerful,
+it is not well suited for querying many Aggregates at one time. This is where ```Projections``` come in.
+
+Creating ```Projections``` works the same as creating ```Snapshots```:
+
+```c#
+// A Projection represents a 'view' for the current state of the Aggregate
+public record BankAccountProjection : Projection
+{
+    public string Name { get; init; }
+    public string Iban { get; init; }
+}
+
+// The Projection factory is responsible for creating a Projection every time the Aggregate is persisted 
+public class BankAccountProjectionFactory : ProjectionFactory<BankAccount, BankAccountProjection>
+{
+    // This particular projection could be used for an overview page
+    // We left out the balance (privacy) and made the name uppercase
+    // Any transformation could be done here, e.g. to make frontend consumption easier/faster
+    protected override BankAccountProjection CreateProjection(BankAccount aggregate) => new BankAccountProjection()
+    {
+        Name = aggregate.Name.ToUpper(),
+        Iban = aggregate.Iban
+    };
+}
+```
+
+Projections are updated whenever the ```Aggregate``` of a particular type are persisted.
+You can make as many projections for a given ```Aggregate``` type as you like.
+
+To query ```Projections```, use the ```RecordStore``` API:
+
+```c#
+// Get first 10 BankAccount Projections, ordered by the Bank Account name
+var projections = await RecordStore.GetProjections<BankAccountProjection>()
+    .OrderBy(x => x.Name)
+    .Skip(0)
+    .Take(10)
+    .AsAsyncEnumerable()
+    .ToListAsync();
 ```

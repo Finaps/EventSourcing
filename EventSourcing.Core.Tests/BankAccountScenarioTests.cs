@@ -1,6 +1,12 @@
 namespace EventSourcing.Core.Tests;
 
-public record FundsEvent : Event
+public record BankAccountCreatedEvent : Event
+{
+  public string Name { get; init; }
+  public string Iban { get; init; }
+}
+
+public abstract record FundsEvent : Event
 {
   public decimal Amount { get; init; }
 }
@@ -15,21 +21,34 @@ public record FundsTransferredEvent : FundsEvent
   public Guid CreditorAccount { get; init; }
 }
 
+public record BankAccountSnapshot : Snapshot
+{
+  public string Name { get; init; }
+  public string Iban { get; init; }
+  public decimal Balance { get; init; }
+}
+
+public record BankAccountProjection : Projection
+{
+  public string Name { get; init; }
+  public string Iban { get; init; }
+}
+
 public class BankAccount : Aggregate
 {
-  public List<FundsEvent> History { get; } = new();
+  public string Name { get; private set; }
+  public string Iban { get; private set; }
   public decimal Balance { get; private set; }
-
-  public void Deposit(decimal amount) =>
-    Add(new FundsDepositedEvent { Amount = amount });
-
-  public void Withdraw(decimal amount) =>
-    Add(new FundsWithdrawnEvent { Amount = amount });
 
   protected override void Apply(Event e)
   {
     switch (e)
     {
+      case BankAccountCreatedEvent created:
+        Name = created.Name;
+        Iban = created.Iban;
+        break;
+      
       case FundsDepositedEvent deposit:
         Balance += deposit.Amount;
         break;
@@ -44,14 +63,47 @@ public class BankAccount : Aggregate
         else
           throw new InvalidOperationException("Not debtor nor creditor of this transaction");
         break;
+
+      case BankAccountSnapshot snapshot:
+        Name = snapshot.Name;
+        Iban = snapshot.Iban;
+        Balance = snapshot.Balance;
+        break;
     }
 
     if (Balance < 0)
       throw new InvalidOperationException("Not enough funds");
-
-    if (e is FundsEvent transaction)
-      History.Add(transaction);
   }
+
+  public void Create(string name, string iban) =>
+    Add(new BankAccountCreatedEvent { Name = name, Iban = iban });
+
+  public void Deposit(decimal amount) =>
+    Add(new FundsDepositedEvent { Amount = amount });
+
+  public void Withdraw(decimal amount) =>
+    Add(new FundsWithdrawnEvent { Amount = amount });
+}
+
+public class BankAccountSnapshotFactory : SnapshotFactory<BankAccount, BankAccountSnapshot>
+{
+  public override long SnapshotInterval => 10;
+
+  protected override BankAccountSnapshot CreateSnapshot(BankAccount aggregate) => new BankAccountSnapshot()
+  {
+    Name = aggregate.Name,
+    Iban = aggregate.Iban,
+    Balance = aggregate.Balance
+  };
+}
+
+public class BankAccountProjectionFactory : ProjectionFactory<BankAccount, BankAccountProjection>
+{
+  protected override BankAccountProjection CreateProjection(BankAccount aggregate) => new BankAccountProjection()
+  {
+    Name = aggregate.Name.ToUpper(),
+    Iban = aggregate.Iban
+  };
 }
 
 public abstract partial class AggregateServiceTests
@@ -60,7 +112,19 @@ public abstract partial class AggregateServiceTests
   public async Task Can_Create_And_Persist_BankAccount()
   {
     var account = new BankAccount();
+    
+    Assert.NotEqual(Guid.Empty, account.Id);
+    Assert.Equal(default, account.Name);
+    Assert.Equal(default, account.Iban);
+    Assert.Equal(default, account.Balance);
+    
+    account.Add(new BankAccountCreatedEvent { Name = "E. Vent", Iban = "SOME IBAN" });
     account.Deposit(100);
+    
+    Assert.Equal("E. Vent", account.Name);
+    Assert.Equal("SOME IBAN", account.Iban);
+    Assert.Equal(100, account.Balance);
+    
     await AggregateService.PersistAsync(account);
   }
 
@@ -68,6 +132,7 @@ public abstract partial class AggregateServiceTests
   public async Task Can_Update_BankAccount()
   {
     var account = new BankAccount();
+    account.Create("E. Sourcing", "SOME IBAN");
     account.Deposit(100);
     await AggregateService.PersistAsync(account);
 
@@ -80,6 +145,7 @@ public abstract partial class AggregateServiceTests
   public async Task Can_Update_BankAccount_The_Fancy_Way()
   {
     var account = new BankAccount();
+    account.Create("E. Sourcing", "SOME IBAN");
     account.Deposit(100);
     await AggregateService.PersistAsync(account);
 
@@ -90,10 +156,12 @@ public abstract partial class AggregateServiceTests
   public async Task Can_Make_BankAccount_Transfer()
   {
     var account = new BankAccount();
+    account.Create("E. Sourcing", "SOME IBAN");
     account.Deposit(100);
     await AggregateService.PersistAsync(account);
 
     var anotherAccount = new BankAccount();
+    anotherAccount.Create("E. Vent", "SOME OTHER IBAN");
 
     var transfer = new FundsTransferredEvent
     {
@@ -112,5 +180,17 @@ public abstract partial class AggregateServiceTests
 
     Assert.Equal(80, result1?.Balance);
     Assert.Equal(20, result2?.Balance);
+  }
+
+  [Fact]
+  public async Task Can_Get_BankAccount_Projections()
+  {
+    var projections = await RecordStore.GetProjections<BankAccountProjection>()
+      .OrderBy(x => x.Name)
+      .Take(10)
+      .AsAsyncEnumerable()
+      .ToListAsync();
+    
+    Assert.Equal(10, projections.Count);
   }
 }
