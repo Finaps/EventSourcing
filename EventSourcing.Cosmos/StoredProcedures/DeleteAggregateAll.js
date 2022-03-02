@@ -26,6 +26,7 @@ function deleteAggregateAll(containerId, partitionId, aggregateId) {
     
     var query = `SELECT * FROM ${containerId} e WHERE e.PartitionId = '${partitionId}' AND e.AggregateId = '${aggregateId}'`;
     
+    // Get the current aggregate version
     getIndex();
     
     // Recursively runs the query w/ support for continuation tokens.
@@ -33,7 +34,7 @@ function deleteAggregateAll(containerId, partitionId, aggregateId) {
     function tryQueryAndDelete(continuation) {
         var requestOptions = {continuation: continuation};
 
-        var isAccepted = collection.queryDocuments(collectionLink, query, requestOptions, function (err, retrievedDocs, responseOptions) {
+        var isAccepted = collection.queryDocuments(collectionLink, query, requestOptions,  (err, retrievedDocs, responseOptions) => {
             if (err) throw err;
 
             if (retrievedDocs.length > 0) {
@@ -62,7 +63,7 @@ function deleteAggregateAll(containerId, partitionId, aggregateId) {
     function tryDelete(documents) {
         if (documents.length > 0) {
             // Delete the first document in the array.
-            var isAccepted = collection.deleteDocument(documents[0]._self, {}, function (err, responseOptions) {
+            var isAccepted = collection.deleteDocument(documents[0]._self, {},(err, responseOptions) => {
                 if (err) throw err;
 
                 responseBody.deleted++;
@@ -80,31 +81,36 @@ function deleteAggregateAll(containerId, partitionId, aggregateId) {
             tryQueryAndDelete();
         }
     }
-
+    
+    // Find the current version of the aggregate by getting the maximal Index of the events
     function getIndex() {
         var versionQuery = `SELECT Max(e.Index) AS Index FROM ${containerId} e WHERE e.PartitionId = '${partitionId}' AND e.AggregateId = '${aggregateId}'`;
         var isAccepted = collection.queryDocuments(collectionLink, versionQuery, {}, (err, retrievedDocs, responseOptions) => {
             if (err) throw err;
             var index = retrievedDocs[0].Index >= 0 ? retrievedDocs[0].Index : -1;
+            // Create a reservation event with 
             createReservation(index + 1);
         });
     }
     
+    // Create reservation event to prevent concurrency issues when deleting
     function createReservation(index) {
         var isAccepted = collection.createDocument(collectionLink, {
             id: `Event|${aggregateId}[${index}]`,
             PartitionId: partitionId,
             AggregateId: aggregateId,
-            Index: index}, {}, function (err, resource, responseOptions) {
-            
+            Index: index}, {}, (err, resource, responseOptions) => {
             if (err) throw err;
+            // Delete the reservation that is just created
             deleteReservation(resource._self);
         });
     }
-
+    
+    // Delete reservation
     function deleteReservation(documentLink) {
-        var isAccepted = collection.deleteDocument(documentLink, {}, function (err, resource, responseOptions) {
+        var isAccepted = collection.deleteDocument(documentLink, {}, (err, resource, responseOptions) => {
             if (err) throw err;
+            // Continue with querying and deleting
             tryQueryAndDelete();
         });
     }
