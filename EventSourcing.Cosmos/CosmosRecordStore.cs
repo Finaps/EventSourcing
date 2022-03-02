@@ -21,6 +21,7 @@ public class CosmosRecordStore : IRecordStore
   internal const string ReservationToken = "<RESERVED>";
   
   private readonly Container _container;
+  private bool _deleteAggregateAllsprocInitialized;
 
   /// <summary>
   /// Initialize Cosmos Event Store
@@ -48,9 +49,6 @@ public class CosmosRecordStore : IRecordStore
     _container = new CosmosClient(options.Value.ConnectionString, clientOptions)
       .GetDatabase(options.Value!.Database)
       .GetContainer(options.Value.Container);
-  
-    // Create and store 'StoredProcedure' for deleting many by filter
-    _container.CreateBulkDeleteProcedure().Wait();
   }
 
   public IQueryable<Event> Events =>_container
@@ -189,6 +187,18 @@ public class CosmosRecordStore : IRecordStore
   public IRecordTransaction? CreateTransaction(Guid partitionId) =>
     new CosmosRecordTransaction(_container, partitionId);
 
-  public async Task<int> DeleteAggregateAll(Guid partitionId, Guid aggregateId) =>
-    await _container.ExecuteBulkDeleteProcedure(partitionId, aggregateId);
+  public async Task<int> DeleteAggregateAll(Guid partitionId, Guid aggregateId)
+  {
+    if (!_deleteAggregateAllsprocInitialized)
+      await InitializeDeleteAggregateAllSproc();
+    
+    return await _container.ExecuteDeleteAggregateAllProcedure(partitionId, aggregateId);
+  }
+
+  private async Task InitializeDeleteAggregateAllSproc()
+  {
+    await _container.CreateDeleteAggregateAllProcedure();
+    _deleteAggregateAllsprocInitialized = true;
+  }
+
 }

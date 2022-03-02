@@ -1,6 +1,4 @@
-using System.IO;
 using EventSourcing.Core.Tests.Mocks;
-using EventSourcing.Cosmos;
 
 namespace EventSourcing.Core.Tests;
 
@@ -17,13 +15,14 @@ public abstract partial class RecordStoreTests
 
         await RecordStore.AddEventsAsync(events);
         
-        await RecordStore.DeleteAggregateAll(Guid.Empty, aggregate.Id);
+        var deleted = await RecordStore.DeleteAggregateAll(Guid.Empty, aggregate.Id);
         
         var count = await RecordStore.Events
             .Where(x => x.AggregateId == aggregate.Id)
             .AsAsyncEnumerable()
             .CountAsync();
-    
+        
+        Assert.Equal(3, deleted);
         Assert.Equal(0, count);
     }
     
@@ -43,21 +42,14 @@ public abstract partial class RecordStoreTests
             events.Add(aggregate.Add(new EmptyEvent()));
 
         await RecordStore.AddEventsAsync(events);
-        await RecordStore.DeleteAggregateAll(Guid.Empty, aggregate.Id);
+        var deleted = await RecordStore.DeleteAggregateAll(Guid.Empty, aggregate.Id);
         
         var count = await RecordStore.Events
             .Where(x => x.AggregateId == aggregate.Id)
             .AsAsyncEnumerable()
             .CountAsync();
-    
-        Assert.Equal(0, count);
-    }
-
-    [Fact]
-    public async Task Correct_String_Is_Stored_As_DeleteAggregateAll_Procedure()
-    {
-        var body = await File.ReadAllTextAsync(@"../../../../EventSourcing.Cosmos/StoredProcedures/DeleteAggregateAll.js");
         
-        Assert.Equal(body, StoredProcedures.DeleteAggregateAll);
+        Assert.Equal(110, deleted);
+        Assert.Equal(0, count);
     }
 }

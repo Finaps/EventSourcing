@@ -7,7 +7,6 @@
 
     <ItemGroup>
       <ProjectReference Include="..\EventSourcing.Core\EventSourcing.Core.csproj" />
-      <ProjectReference Include="..\EventSourcing.Cosmos\EventSourcing.Cosmos.csproj" />
     </ItemGroup>
 
     <ItemGroup>
