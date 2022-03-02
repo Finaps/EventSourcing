@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using EventSourcing.Core;
@@ -169,5 +170,13 @@ public class CosmosRecordStoreTests : RecordStoreTests
         .ToListAsync()
       );
     Assert.Contains("404", exception.Message);
+  }
+  
+  [Fact]
+  public async Task Correct_String_Is_Stored_As_DeleteAggregateAll_Procedure()
+  {
+    var body = await File.ReadAllTextAsync(@"../../../../EventSourcing.Cosmos/StoredProcedures/DeleteAggregateAll.js");
+        
+    Assert.Equal(body, StoredProcedures.DeleteAggregateAll);
   }
 }
