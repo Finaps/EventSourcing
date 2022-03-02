@@ -170,5 +170,5 @@ public interface IRecordStore
   /// Delete all Events, Snapshots and Projections for an <see cref="Aggregate"/>
   /// </summary>
   /// <returns>Number of items deleted from EventStore</returns>
-  Task<int> DeleteAggregateAll(Guid partitionId, Guid aggregateId);
+  Task<int> DeleteAggregateAllAsync(Guid partitionId, Guid aggregateId);
 }
