@@ -165,4 +165,6 @@ public interface IRecordStore
   /// </summary>
   /// <returns></returns>
   IRecordTransaction? CreateTransaction();
+
+  Task<int> DeleteAggregateAll(Guid partitionId, Guid aggregateId);
 }

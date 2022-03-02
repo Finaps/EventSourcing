@@ -1,14 +1,21 @@
-/**
- * A Cosmos DB stored procedure that bulk deletes documents for a given query.<br/>
+namespace EventSourcing.Cosmos;
+
+public static class StoredProcedures
+{
+    // String of the JS function deleteAggregateAll that is uploaded as a stored procedure
+    public static string DeleteAggregateAll = @"/**
+ * A Cosmos DB stored procedure that bulk deletes documents for a given partitionId and aggregateId.<br/>
  * Note: You may need to execute this sproc multiple times (depending whether the sproc is able to delete every document within the execution timeout limit).
  *
  * @function
- * @param {string} query - A query that provides the documents to be deleted (e.g. "SELECT c._self FROM c WHERE c.founded_year = 2008"). Note: For best performance, reduce the # of properties returned per document in the query to only what's required (e.g. prefer SELECT c._self over SELECT * )
+ * @param {string} containerId - The id of the container where the aggregate exists
+ * @param {string} partitionId - The partition id of the aggregate that is to be deleted
+ * @param {string} aggregateId - The aggregate id of the aggregate that is to be deleted
  * @returns {Object.<number, boolean>} Returns an object with the two properties:<br/>
  *   deleted - contains a count of documents deleted<br/>
  *   continuation - a boolean whether you should execute the sproc again (true if there are more documents to delete; false otherwise).
  */
-function bulkDeleteSproc(query) {
+function deleteAggregateAll(containerId, partitionId, aggregateId) {
     var collection = getContext().getCollection();
     var collectionLink = collection.getSelfLink();
     var response = getContext().getResponse();
@@ -18,10 +25,14 @@ function bulkDeleteSproc(query) {
     };
 
     // Validate input.
-    if (!query) throw new Error("The query is undefined or null.");
-
-    tryQueryAndDelete();
-
+    if(!containerId) throw new Error('Invalid container id');
+    if(!partitionId) throw new Error('Invalid partition id');
+    if(!aggregateId) throw new Error('Invalid aggregate id');
+    
+    var query = `SELECT * FROM ${containerId} e WHERE e.PartitionId = '${partitionId}' AND e.AggregateId = '${aggregateId}'`;
+    
+    getIndex();
+    
     // Recursively runs the query w/ support for continuation tokens.
     // Calls tryDelete(documents) as soon as the query returns documents.
     function tryQueryAndDelete(continuation) {
@@ -74,5 +85,35 @@ function bulkDeleteSproc(query) {
             tryQueryAndDelete();
         }
     }
-}
 
+    function getIndex() {
+        var versionQuery = `SELECT Max(e.Index) AS Index FROM ${containerId} e WHERE e.PartitionId = '${partitionId}' AND e.AggregateId = '${aggregateId}'`;
+        var isAccepted = collection.queryDocuments(collectionLink, versionQuery, {}, (err, retrievedDocs, responseOptions) => {
+            if (err) throw err;
+            var index = retrievedDocs[0].Index || -1;
+            createReservation(index + 1);
+        });
+    }
+    
+    function createReservation(index) {
+        var isAccepted = collection.createDocument(collectionLink, {
+            id: `Event|${aggregateId}[${index}]`,
+            PartitionId: partitionId,
+            AggregateId: aggregateId,
+            Index: index}, {}, function (err, resource, responseOptions) {
+            
+            if (err) throw err;
+            deleteReservation(resource._self);
+        });
+    }
+
+    function deleteReservation(documentLink) {
+        var isAccepted = collection.deleteDocument(documentLink, {}, function (err, resource, responseOptions) {
+            if (err) throw err;
+            tryQueryAndDelete();
+        });
+    }
+}
+    
+    ";
+}

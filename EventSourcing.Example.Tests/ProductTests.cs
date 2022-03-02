@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-using EventSourcing.Core;
-using EventSourcing.Cosmos;
+﻿using EventSourcing.Core;
 using EventSourcing.Example.Domain.Products;
 using EventSourcing.Example.Tests.DTOs;
 using Xunit;

@@ -189,6 +189,6 @@ public class CosmosRecordStore : IRecordStore
   public IRecordTransaction? CreateTransaction(Guid partitionId) =>
     new CosmosRecordTransaction(_container, partitionId);
 
-  public async Task<int> DeleteEvents(Guid partitionId, Guid aggregateId) =>
+  public async Task<int> DeleteAggregateAll(Guid partitionId, Guid aggregateId) =>
     await _container.ExecuteBulkDeleteProcedure(partitionId, aggregateId);
 }
