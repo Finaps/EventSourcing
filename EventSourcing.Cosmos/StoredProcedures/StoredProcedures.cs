@@ -43,14 +43,14 @@ function deleteAggregateAll(containerId, partitionId, aggregateId) {
     // Create reservation event to prevent concurrency issues when deleting
     function createReservation(err, retrievedDocs, responseOptions) {
         if (err) throw err;
-        var index = retrievedDocs[0].Index >= 0 ? retrievedDocs[0].Index : -1;
+        var index = retrievedDocs[0].Index >= 0 ? retrievedDocs[0].Index + 1 : 0;
         var isAccepted = collection.createDocument(
             collectionLink,
             {
                 id: `Event|${aggregateId}[${index}]`,
                 PartitionId: partitionId,
                 AggregateId: aggregateId,
-                Index: index + 1},
+                Index: index},
             {},
             deleteReservation);
     }
