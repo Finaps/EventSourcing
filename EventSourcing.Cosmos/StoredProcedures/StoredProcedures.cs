@@ -90,7 +90,7 @@ function deleteAggregateAll(containerId, partitionId, aggregateId) {
         var versionQuery = `SELECT Max(e.Index) AS Index FROM ${containerId} e WHERE e.PartitionId = '${partitionId}' AND e.AggregateId = '${aggregateId}'`;
         var isAccepted = collection.queryDocuments(collectionLink, versionQuery, {}, (err, retrievedDocs, responseOptions) => {
             if (err) throw err;
-            var index = retrievedDocs[0].Index || -1;
+            var index = retrievedDocs[0].Index >= 0 ? retrievedDocs[0].Index : -1;
             createReservation(index + 1);
         });
     }
