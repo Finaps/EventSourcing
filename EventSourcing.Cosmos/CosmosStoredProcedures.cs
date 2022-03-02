@@ -2,6 +2,9 @@ using Microsoft.Azure.Cosmos.Scripts;
 
 namespace EventSourcing.Cosmos;
 
+/// <summary>
+/// Cosmos Stored Procedures: Extension methods for the Cosmos Container to store and execute stored procedures
+/// </summary>
 public static class CosmosStoredProcedures
 {
     private const string BulkDeleteId = "DeleteAggregateAll";
@@ -12,8 +15,8 @@ public static class CosmosStoredProcedures
         if (await container.VerifyStoredProcedure(BulkDeleteId, StoredProcedures.DeleteAggregateAll))
             return;
         
-        await TryDeleteStoredProcedure(container, BulkDeleteId);
-        await CreateStoredProcedure(container, BulkDeleteId, StoredProcedures.DeleteAggregateAll);
+        await container.TryDeleteStoredProcedure(BulkDeleteId);
+        await container.CreateStoredProcedure(BulkDeleteId, StoredProcedures.DeleteAggregateAll);
     }
     
     public static async Task<int> ExecuteDeleteAggregateAllProcedure(this Container container, Guid partitionId, Guid aggregateId)
