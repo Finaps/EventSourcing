@@ -15,6 +15,6 @@ public class Order : Aggregate
         
     public void Create(Guid basketId)
     {
-        Add(new OrderCreatedEvent(basketId));
+        Apply(new OrderCreatedEvent(basketId));
     }
 }

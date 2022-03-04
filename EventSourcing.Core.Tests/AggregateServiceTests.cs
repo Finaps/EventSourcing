@@ -13,7 +13,7 @@ public abstract partial class AggregateServiceTests
   public async Task Can_Persist_Event()
   {
     var aggregate = new SimpleAggregate();
-    aggregate.Add(new EmptyEvent());
+    aggregate.Apply(new EmptyEvent());
 
     await AggregateService.PersistAsync(aggregate);
 
@@ -29,7 +29,7 @@ public abstract partial class AggregateServiceTests
   public Task Cannot_Add_Event_With_Empty_Aggregate_Id()
   {
     var aggregate = new SimpleAggregate { Id = Guid.Empty };
-    Assert.Throws<RecordValidationException>(() => aggregate.Add(new EmptyEvent()));
+    Assert.Throws<RecordValidationException>(() => aggregate.Apply(new EmptyEvent()));
     
     return Task.CompletedTask;
   }
@@ -40,9 +40,9 @@ public abstract partial class AggregateServiceTests
     var aggregate = new SimpleAggregate();
     var events = new List<Event>
     {
-      aggregate.Add(new EmptyEvent()),
-      aggregate.Add(new EmptyEvent()),
-      aggregate.Add(new EmptyEvent())
+      aggregate.Apply(new EmptyEvent()),
+      aggregate.Apply(new EmptyEvent()),
+      aggregate.Apply(new EmptyEvent())
     };
 
     await AggregateService.PersistAsync(aggregate);
@@ -61,9 +61,9 @@ public abstract partial class AggregateServiceTests
     var aggregate = new SimpleAggregate();
     var events = new List<Event>
     {
-      aggregate.Add(new EmptyEvent()),
-      aggregate.Add(new EmptyEvent()),
-      aggregate.Add(new EmptyEvent())
+      aggregate.Apply(new EmptyEvent()),
+      aggregate.Apply(new EmptyEvent()),
+      aggregate.Apply(new EmptyEvent())
     };
 
     await AggregateService.PersistAsync(aggregate);
@@ -77,9 +77,9 @@ public abstract partial class AggregateServiceTests
   public async Task Can_Rehydrate_Aggregate_Up_To_Date()
   {
     var aggregate = new SimpleAggregate();
-    aggregate.Add(new EmptyEvent());
-    aggregate.Add(new EmptyEvent());
-    aggregate.Add(new EmptyEvent { Timestamp = DateTimeOffset.Now.AddYears(1) });
+    aggregate.Apply(new EmptyEvent());
+    aggregate.Apply(new EmptyEvent());
+    aggregate.Apply(new EmptyEvent { Timestamp = DateTimeOffset.Now.AddYears(1) });
 
     await AggregateService.PersistAsync(aggregate);
 
@@ -99,8 +99,8 @@ public abstract partial class AggregateServiceTests
   {
     var aggregate = new SimpleAggregate();
 
-    aggregate.Add(new EmptyEvent());
-    aggregate.Add(new EmptyEvent());
+    aggregate.Apply(new EmptyEvent());
+    aggregate.Apply(new EmptyEvent());
 
     await AggregateService.PersistAsync(aggregate);
 
@@ -111,8 +111,8 @@ public abstract partial class AggregateServiceTests
   public async Task Empty_Uncommitted_Events_After_Rehydrate()
   {
     var aggregate = new SimpleAggregate();
-    aggregate.Add(new EmptyEvent());
-    aggregate.Add(new EmptyEvent());
+    aggregate.Apply(new EmptyEvent());
+    aggregate.Apply(new EmptyEvent());
 
     await AggregateService.PersistAsync(aggregate);
 
@@ -128,13 +128,13 @@ public abstract partial class AggregateServiceTests
     var aggregate = new SimpleAggregate();
     var events = new List<Event>
     {
-      aggregate.Add(new EmptyEvent()),
-      aggregate.Add(new EmptyEvent()),
+      aggregate.Apply(new EmptyEvent()),
+      aggregate.Apply(new EmptyEvent()),
     };
 
     await AggregateService.PersistAsync(aggregate);
     await AggregateService.RehydrateAndPersistAsync<SimpleAggregate>(aggregate.Id,
-      a => a.Add(new EmptyEvent()));
+      a => a.Apply(new EmptyEvent()));
 
     var count = await RecordStore.Events
       .Where(x => x.AggregateId == aggregate.Id)
@@ -150,13 +150,13 @@ public abstract partial class AggregateServiceTests
     var aggregate = new SimpleAggregate { PartitionId = Guid.NewGuid() };
     var events = new List<Event>
     {
-      aggregate.Add(new EmptyEvent()),
-      aggregate.Add(new EmptyEvent()),
+      aggregate.Apply(new EmptyEvent()),
+      aggregate.Apply(new EmptyEvent()),
     };
 
     await AggregateService.PersistAsync(aggregate);
     await AggregateService.RehydrateAndPersistAsync<SimpleAggregate>(aggregate.PartitionId, aggregate.Id,
-      a => a.Add(new EmptyEvent()));
+      a => a.Apply(new EmptyEvent()));
 
     var count = await RecordStore.Events
       .Where(x => x.AggregateId == aggregate.Id)
@@ -174,7 +174,7 @@ public abstract partial class AggregateServiceTests
     
     var eventsCount = factory.SnapshotInterval;
     foreach (var _ in new int[eventsCount])
-      aggregate.Add(new EmptyEvent());
+      aggregate.Apply(new EmptyEvent());
 
     await AggregateService.PersistAsync(aggregate);
 
@@ -200,7 +200,7 @@ public abstract partial class AggregateServiceTests
     
     var eventsCount = factory.SnapshotInterval - 1;
     foreach (var _ in new int[eventsCount])
-      aggregate.Add(new EmptyEvent());
+      aggregate.Apply(new EmptyEvent());
 
     await AggregateService.PersistAsync(aggregate);
 
@@ -226,7 +226,7 @@ public abstract partial class AggregateServiceTests
     
     var eventsCount = 2 * factory.SnapshotInterval;
     foreach (var _ in new int[eventsCount])
-      aggregate.Add(new EmptyEvent());
+      aggregate.Apply(new EmptyEvent());
 
     await AggregateService.PersistAsync(aggregate);
     
@@ -252,7 +252,7 @@ public abstract partial class AggregateServiceTests
     
     var eventsCount = factory.SnapshotInterval;
     foreach (var _ in new int[eventsCount])
-      aggregate.Add(new EmptyEvent());
+      aggregate.Apply(new EmptyEvent());
 
     await AggregateService.PersistAsync(aggregate);
     var result = await AggregateService.RehydrateAsync<SnapshotAggregate>(aggregate.Id);
@@ -270,11 +270,11 @@ public abstract partial class AggregateServiceTests
     var factory = new SimpleSnapshotFactory();
 
     foreach (var _ in new int[factory.SnapshotInterval])
-      aggregate.Add(new EmptyEvent());
+      aggregate.Apply(new EmptyEvent());
     await AggregateService.PersistAsync(aggregate);
     
     foreach (var _ in new int[3])
-      aggregate.Add(new EmptyEvent());
+      aggregate.Apply(new EmptyEvent());
     await AggregateService.PersistAsync(aggregate);
     
     await Task.Delay(100);
@@ -282,7 +282,7 @@ public abstract partial class AggregateServiceTests
     await Task.Delay(100);
 
     foreach (var _ in new int[factory.SnapshotInterval])
-      aggregate.Add(new EmptyEvent());
+      aggregate.Apply(new EmptyEvent());
     await AggregateService.PersistAsync(aggregate);
 
     var result = await AggregateService.RehydrateAsync<SnapshotAggregate>(aggregate.Id, date);
@@ -314,15 +314,15 @@ public abstract partial class AggregateServiceTests
     var eventsCount = factory.SnapshotInterval;
       
     foreach (var _ in new int[eventsCount])
-      aggregate.Add(new EmptyEvent());
+      aggregate.Apply(new EmptyEvent());
     await AggregateService.PersistAsync(aggregate);
       
     foreach (var _ in new int[eventsCount])
-      aggregate.Add(new EmptyEvent());
+      aggregate.Apply(new EmptyEvent());
     await AggregateService.PersistAsync(aggregate);
     
     foreach (var _ in new int[eventsCount - 1])
-      aggregate.Add(new EmptyEvent());
+      aggregate.Apply(new EmptyEvent());
     await AggregateService.PersistAsync(aggregate);
       
     var result = await AggregateService.RehydrateAsync<SnapshotAggregate>(aggregate.Id);
@@ -348,11 +348,11 @@ public abstract partial class AggregateServiceTests
     var eventsCount = factory.SnapshotInterval;
       
     foreach (var _ in new int[eventsCount])
-      aggregate.Add(new EmptyEvent());
+      aggregate.Apply(new EmptyEvent());
     await AggregateService.PersistAsync(aggregate);
       
     foreach (var _ in new int[eventsCount - 1])
-      aggregate.Add(new EmptyEvent());
+      aggregate.Apply(new EmptyEvent());
     await AggregateService.PersistAsync(aggregate);
       
     var result = await AggregateService.RehydrateAsync<SnapshotAggregate>(aggregate.Id);
@@ -376,13 +376,13 @@ public abstract partial class AggregateServiceTests
     
     var aggregate1 = new SimpleAggregate();
     foreach (var _ in new int[3])
-      aggregate1.Add(new EmptyEvent());
+      aggregate1.Apply(new EmptyEvent());
 
     transaction.Add(aggregate1);
 
     var aggregate2 = new SimpleAggregate();
     foreach (var _ in new int[4])
-      aggregate2.Add(new EmptyEvent());
+      aggregate2.Apply(new EmptyEvent());
     
     transaction.Add(aggregate2);
 
@@ -402,13 +402,13 @@ public abstract partial class AggregateServiceTests
     
     var aggregate1 = new SimpleAggregate();
     foreach (var _ in new int[3])
-      aggregate1.Add(new EmptyEvent());
+      aggregate1.Apply(new EmptyEvent());
 
     transaction.Add(aggregate1);
 
     var aggregate2 = new SimpleAggregate();
     foreach (var _ in new int[4])
-      aggregate2.Add(new EmptyEvent());
+      aggregate2.Apply(new EmptyEvent());
     
     transaction.Add(aggregate2);
 
@@ -432,7 +432,7 @@ public abstract partial class AggregateServiceTests
     
     var aggregate = new SimpleAggregate { PartitionId = Guid.NewGuid() };
     foreach (var _ in new int[3])
-      aggregate.Add(new EmptyEvent());
+      aggregate.Apply(new EmptyEvent());
 
     Assert.Throws<RecordValidationException>(() => transaction.Add(aggregate));
 
@@ -449,7 +449,7 @@ public abstract partial class AggregateServiceTests
     
     var aggregate = new SimpleAggregate();
     foreach (var _ in new int[3])
-      aggregate.Add(new EmptyEvent());
+      aggregate.Apply(new EmptyEvent());
 
     transaction.Add(aggregate);
 
@@ -468,7 +468,7 @@ public abstract partial class AggregateServiceTests
     var eventsCount = factory.SnapshotInterval;
     foreach (var _ in new int[eventsCount])
     {
-      aggregate.Add(new EmptyEvent());
+      aggregate.Apply(new EmptyEvent());
       await AggregateService.PersistAsync(aggregate);
     }
 

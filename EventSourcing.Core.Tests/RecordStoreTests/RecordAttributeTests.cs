@@ -8,7 +8,7 @@ public abstract partial class RecordStoreTests
     [Fact]
     public async Task Can_Store_Attribute_Event_With_Correct_Type()
     {
-        var e = new EmptyAggregate().Add(new AttributeEvent("something"));
+        var e = new EmptyAggregate().Apply(new AttributeEvent("something"));
         var recordType = e.GetType().GetCustomAttribute<RecordTypeAttribute>()!.Value;
 
         await RecordStore.AddEventsAsync(new List<Event>{e});
@@ -23,7 +23,7 @@ public abstract partial class RecordStoreTests
     [Fact]
     public async Task Can_Deserialize_Attribute_Event_With_Custom_Type_Name()
     {
-        var e = new EmptyAggregate().Add(new AttributeEvent("something"));
+        var e = new EmptyAggregate().Apply(new AttributeEvent("something"));
 
         await RecordStore.AddEventsAsync(new List<Event>{e});
 

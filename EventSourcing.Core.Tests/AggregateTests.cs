@@ -8,7 +8,7 @@ public class AggregateTests
   public void Can_Add_Event()
   {
     var aggregate = new SimpleAggregate();
-    aggregate.Add(new EmptyEvent());
+    aggregate.Apply(new EmptyEvent());
 
     Assert.Single(aggregate.UncommittedEvents);
   }
@@ -19,32 +19,19 @@ public class AggregateTests
     var aggregate = new SimpleAggregate();
     var events = new List<Event>
     {
-      aggregate.Add(new EmptyEvent()),
-      aggregate.Add(new EmptyEvent()),
-      aggregate.Add(new EmptyEvent())
+      aggregate.Apply(new EmptyEvent()),
+      aggregate.Apply(new EmptyEvent()),
+      aggregate.Apply(new EmptyEvent())
     };
 
     Assert.Equal(events.Count, aggregate.UncommittedEvents.Length);
   }
 
   [Fact]
-  public void Can_Clear_Uncommitted_Events()
-  {
-    var aggregate = new SimpleAggregate();
-    aggregate.Add(new EmptyEvent());
-    aggregate.Add(new EmptyEvent());
-    aggregate.Add(new EmptyEvent());
-
-    aggregate.ClearUncommittedEvents();
-
-    Assert.Empty(aggregate.UncommittedEvents);
-  }
-
-  [Fact]
   public void Can_Apply_Event()
   {
     var aggregate = new SimpleAggregate();
-    aggregate.Add(new EmptyEvent());
+    aggregate.Apply(new EmptyEvent());
 
     Assert.Equal(1, aggregate.Counter);
   }
@@ -55,9 +42,9 @@ public class AggregateTests
     var aggregate = new SimpleAggregate();
     var events = new List<Event>
     {
-      aggregate.Add(new EmptyEvent()),
-      aggregate.Add(new EmptyEvent()),
-      aggregate.Add(new EmptyEvent())
+      aggregate.Apply(new EmptyEvent()),
+      aggregate.Apply(new EmptyEvent()),
+      aggregate.Apply(new EmptyEvent())
     };
 
     Assert.Equal(events.Count, aggregate.Counter);

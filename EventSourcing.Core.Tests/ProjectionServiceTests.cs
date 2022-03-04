@@ -7,7 +7,7 @@ public abstract partial class AggregateServiceTests
   private static MockAggregate CreateMockAggregate()
   {
     var aggregate = new MockAggregate();
-    aggregate.Add(new MockEvent
+    aggregate.Apply(new MockEvent
     {
       MockBoolean = true,
       MockString = "Hello World",

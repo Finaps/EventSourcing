@@ -62,25 +62,25 @@ public class Basket : Aggregate
 
     public void Create()
     {
-        Add(new BasketCreatedEvent(Constants.BasketExpires));
+        Apply(new BasketCreatedEvent(Constants.BasketExpires));
     }
     public void AddProduct(int quantity, Guid productId)
     {
         ValidateQuantity(quantity);
-        Add(new ProductAddedToBasketEvent(quantity, productId));
+        Apply(new ProductAddedToBasketEvent(quantity, productId));
     }
     public void RemoveProduct(int quantity, Guid productId)
     {   
         ValidateQuantity(quantity);
         if(Items.SingleOrDefault(x => x.ProductId == productId) != null)
-            Add(new ProductRemovedFromBasketEvent(quantity, productId));
+            Apply(new ProductRemovedFromBasketEvent(quantity, productId));
     }
     public void CheckoutBasket()
     {
         if (Items.Count == 0 || Items.Sum(x => x.Quantity) == 0)
             throw new InvalidOperationException(
                 $"Cannot check out basket with id {Id}: Basket does not contain any items");
-        Add(new BasketCheckedOutEvent());
+        Apply(new BasketCheckedOutEvent());
     }
     
     

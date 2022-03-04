@@ -17,7 +17,7 @@ public abstract partial class RecordStoreTests
   public async Task Can_Add_Snapshot()
   {
     var aggregate = new SnapshotAggregate();
-    aggregate.Add(new EmptyEvent());
+    aggregate.Apply(new EmptyEvent());
     
     var factory = new SimpleSnapshotFactory();
     await RecordStore.AddSnapshotAsync(factory.CreateSnapshot(aggregate));
@@ -27,7 +27,7 @@ public abstract partial class RecordStoreTests
   public async Task Can_Add_Snapshot_With_Duplicate_AggregateId_And_Version()
   {
     var aggregate = new SnapshotAggregate();
-    aggregate.Add(new EmptyEvent());
+    aggregate.Apply(new EmptyEvent());
 
     var factory = new SimpleSnapshotFactory();
 
@@ -43,7 +43,7 @@ public abstract partial class RecordStoreTests
   public async Task Can_Get_Snapshot_By_PartitionId()
   {
     var aggregate = new SnapshotAggregate { PartitionId = Guid.NewGuid() };
-    aggregate.Add(new EmptyEvent());
+    aggregate.Apply(new EmptyEvent());
     
     var factory = new SimpleSnapshotFactory();
     await RecordStore.AddSnapshotAsync(factory.CreateSnapshot(aggregate));
@@ -60,7 +60,7 @@ public abstract partial class RecordStoreTests
   public async Task Can_Get_Snapshot_By_AggregateId()
   {
     var aggregate = new SnapshotAggregate();
-    aggregate.Add(new EmptyEvent());
+    aggregate.Apply(new EmptyEvent());
 
     var factory = new SimpleSnapshotFactory();
     await RecordStore.AddSnapshotAsync(factory.CreateSnapshot(aggregate));
@@ -77,12 +77,12 @@ public abstract partial class RecordStoreTests
   public async Task Can_Get_Latest_Snapshot_By_AggregateId()
   {
     var aggregate = new SnapshotAggregate();
-    aggregate.Add(new EmptyEvent());
+    aggregate.Apply(new EmptyEvent());
     
     var factory = new SimpleSnapshotFactory();
     
     var snapshot = factory.CreateSnapshot(aggregate);
-    aggregate.Add(new EmptyEvent());
+    aggregate.Apply(new EmptyEvent());
     var snapshot2 = factory.CreateSnapshot(aggregate);
 
     Assert.NotEqual(snapshot.Index, snapshot2.Index);

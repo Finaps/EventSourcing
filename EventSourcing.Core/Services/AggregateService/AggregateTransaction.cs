@@ -2,10 +2,10 @@ namespace EventSourcing.Core;
 
 public class AggregateTransaction : IAggregateTransaction
 {
-  private readonly IRecordTransaction? _recordTransaction;
+  private readonly IRecordTransaction _recordTransaction;
   private readonly HashSet<Aggregate> _aggregates = new();
 
-  public AggregateTransaction(IRecordTransaction? recordTransaction)
+  public AggregateTransaction(IRecordTransaction recordTransaction)
   {
     _recordTransaction = recordTransaction;
   }
