@@ -164,15 +164,15 @@ public class BankAccount : Aggregate
     
     // Convenience Command for creating this account
     public void Create(string name, string iban) =>
-        Add(new BankAccountCreatedEvent { Name = name, Iban = iban });
+        Apply(new BankAccountCreatedEvent { Name = name, Iban = iban });
     
     // Convenience Command for depositing funds to this account
     public void Deposit(decimal amount) =>
-        Add(new FundsDepositedEvent { Amount = amount });
+        Apply(new FundsDepositedEvent { Amount = amount });
         
     // Convenience Command for withdrawing funds from this account
     public void Withdraw(decimal amount) =>
-        Add(new FundsWithdrawnEvent { Amount = amount });
+        Apply(new FundsWithdrawnEvent { Amount = amount });
 }
 ```
 
@@ -191,14 +191,14 @@ Assert.Equal(default, account.Iban);
 Assert.Equal(default, account.Balance);
 
 // Create the Bank Account
-account.Add(new BankAccountCreatedEvent { Name = "E. Vent", Iban = "SOME IBAN" });
+account.Apply(new BankAccountCreatedEvent { Name = "E. Vent", Iban = "SOME IBAN" });
 // or alternatively, using the convenience method:
 // account.Create("E. Vent", "SOME IBAN");
 
 // Add some funds to this account
 account.Deposit(100);
 // which is equivalent to:
-// account.Add(new FundsDepositedEvent { Amount = 100 });
+// account.Apply(new FundsDepositedEvent { Amount = 100 });
 
 // Adding Events will call the Apply method, which updates the Aggregate
 Assert.Equal("E. Vent"  , account.Name);
@@ -238,7 +238,6 @@ In such a transaction we want to ensure the transaction either entirely succeeds
 
 Here's where transactions come into play:
 
-
 ```c#
 // Create another BankAccount
 var anotherAccount = new BankAccount();
@@ -253,8 +252,8 @@ var transfer = new FundsTransferredEvent
 };
 
 // Add this Event to both Aggregates
-account.Add(transfer);
-anotherAccount.Add(transfer);
+account.Apply(transfer);
+anotherAccount.Apply(transfer);
 
 // Persist both aggregates in a single ACID transaction.
 await AggregateService.PersistAsync(new[] { account, anotherAccount });
