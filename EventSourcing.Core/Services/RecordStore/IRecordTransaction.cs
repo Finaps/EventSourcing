@@ -28,11 +28,11 @@ public interface IRecordTransaction
   IRecordTransaction AddSnapshot(Snapshot snapshot);
   
   /// <summary>
-  /// Add <see cref="Projection"/>
+  /// Upsert <see cref="Projection"/>
   /// </summary>
   /// <param name="projection"><see cref="Projection"/></param>
   /// <returns></returns>
-  IRecordTransaction AddProjection(Projection projection);
+  IRecordTransaction UpsertProjection(Projection projection);
 
   IRecordTransaction DeleteAllEvents(Guid aggregateId, long index);
   IRecordTransaction DeleteSnapshot(Guid aggregateId, long index);

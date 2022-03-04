@@ -17,7 +17,7 @@ public interface IAggregateService
     CancellationToken cancellationToken = default) where TAggregate : Aggregate, new();
   
   /// <summary>
-  /// Rehydrate <see cref="Aggregate"/> up to a certain date
+  /// Rehydrate <see cref="Aggregate"/> up to a certain date.
   /// </summary>
   /// <param name="partitionId">Unique partition identifier of <see cref="Aggregate"/> to rehydrate</param>
   /// <param name="aggregateId">Unique identifier of <see cref="Aggregate"/> to rehydrate</param>
@@ -31,6 +31,9 @@ public interface IAggregateService
   /// <summary>
   /// Persist <see cref="Aggregate"/>
   /// </summary>
+  /// <remarks>
+  /// This will store all uncommitted <see cref="Event"/>s of an <see cref="Aggregate"/>.
+  /// </remarks>
   /// <param name="aggregate"><see cref="Aggregate"/> to persist</param>
   /// <param name="cancellationToken">Cancellation Token</param>
   /// <typeparam name="TAggregate">Type of <see cref="Aggregate"/></typeparam>
@@ -41,21 +44,24 @@ public interface IAggregateService
   /// <summary>
   /// Persist multiple <see cref="Aggregate"/>s in a transaction
   /// </summary>
+  /// <remarks>
+  /// This will store all uncommitted <see cref="Event"/>s of all <see cref="Aggregate"/>s in an ACID <see cref="IAggregateTransaction"/>.
+  /// </remarks>
   /// <param name="aggregates"><see cref="Aggregate"/> to persist</param>
   /// <param name="cancellationToken">Cancellation Token</param>
   Task PersistAsync(IEnumerable<Aggregate> aggregates, CancellationToken cancellationToken = default);
 
   /// <summary>
-  /// Create Aggregate Transaction
+  /// Create ACID Aggregate Transaction
   /// </summary>
   /// <param name="partitionId">Transaction Partition identifier</param>
-  /// <returns></returns>
+  /// <returns><see cref="IAggregateTransaction"/></returns>
   IAggregateTransaction CreateTransaction(Guid partitionId);
   
   /// <summary>
-  /// Create Aggregate Transaction for <see cref="Guid.Empty"/> partition
+  /// Create ACID Aggregate Transaction for default (<see cref="Guid"/>.<see cref="Guid.Empty"/>) PartitionId
   /// </summary>
-  /// <returns></returns>
+  /// <returns><see cref="IAggregateTransaction"/></returns>
   IAggregateTransaction CreateTransaction();
 
   /// <summary>

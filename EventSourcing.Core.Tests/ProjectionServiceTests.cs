@@ -97,7 +97,7 @@ public abstract partial class AggregateServiceTests
 
     await AggregateService.PersistAsync(aggregate);
 
-    await RecordStore.AddProjectionAsync(new MockAggregateProjection
+    await RecordStore.UpsertProjectionAsync(new MockAggregateProjection
     {
       AggregateType = aggregate.Type,
       AggregateId = aggregate.Id,
@@ -131,7 +131,7 @@ public abstract partial class AggregateServiceTests
 
     await AggregateService.PersistAsync(aggregate);
 
-    await RecordStore.AddProjectionAsync(new MockAggregateProjection
+    await RecordStore.UpsertProjectionAsync(new MockAggregateProjection
     {
       AggregateType = aggregate.Type,
       AggregateId = aggregate.Id,

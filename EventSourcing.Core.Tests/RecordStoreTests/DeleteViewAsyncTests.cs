@@ -8,7 +8,7 @@ public abstract partial class RecordStoreTests
   public async Task Can_Delete_Projection()
   {
     var projection = new EmptyProjection { AggregateId = Guid.NewGuid(), AggregateType = nameof(EmptyAggregate) };
-    await RecordStore.AddProjectionAsync(projection);
+    await RecordStore.UpsertProjectionAsync(projection);
 
     Assert.NotNull(await RecordStore.GetProjectionByIdAsync<EmptyProjection>(projection.AggregateId));
 
