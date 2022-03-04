@@ -37,23 +37,22 @@ public abstract class Aggregate : IHashable
   /// </summary>
   /// <remarks>
   /// <para>
-  /// Call <c>new MyAggregate { PartitionId = myPid };</c> to
-  /// construct an Aggregate with a specific <see cref="PartitionId"/>. All <see cref="Event"/>s that are added to this
-  /// Aggregate will have set <c>Event.PartitionId = Aggregate.PartitionId</c>.
+  /// Call <c>new MyAggregate { PartitionId = myPid };</c> to construct an Aggregate with a specific <see cref="PartitionId"/>.
+  /// All <see cref="Event"/>s that are added to this Aggregate will have set <c>Event.PartitionId = Aggregate.PartitionId</c>.
   /// </para>
   /// <para>
   /// <see cref="PartitionId"/> is mapped directly to CosmosDB's <c>PartitionKey</c>.
-  /// See <see href="https://docs.microsoft.com/en-us/azure/cosmos-db/partitioning-overview">Cosmos DB Documentation</see> for more information.
+  /// See https://docs.microsoft.com/en-us/azure/cosmos-db/partitioning-overview for more information.
   /// </para>
   /// <para>
-  /// <see cref="IRecordTransaction"/> and <see cref="IAggregateTransaction"/> are scoped to <see cref="PartitionId"/>,
+  /// <see cref="IAggregateTransaction"/> is scoped to <see cref="PartitionId"/>,
   /// i.e. no transactions involving multiple <see cref="PartitionId"/>'s can be committed.
   /// </para>
   /// </remarks>
   public Guid PartitionId { get; init; }
   
   /// <summary>
-  /// Unique Aggregate identifier. Defaults to <see cref="Guid"/>.<see cref="Guid.NewGuid"/>
+  /// Unique Aggregate identifier. Defaults to <see cref="Guid"/>.<see cref="Guid.NewGuid"/>.
   /// </summary>
   /// <remarks>
   /// All <see cref="Event"/>s added to this Aggregate will have set <c>Event.AggregateId = Aggregate.Id</c>

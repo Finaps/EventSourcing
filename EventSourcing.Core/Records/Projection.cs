@@ -1,5 +1,21 @@
 namespace EventSourcing.Core;
 
+/// <summary>
+/// Represents a <see cref="Projection"/> of an <see cref="Aggregate"/>.
+/// </summary>
+/// <remarks>
+/// <para>
+/// Projections can be used to query the current state of multiple <see cref="Aggregate"/>s.
+/// </para>
+/// <para>
+/// To create <see cref="Projection"/>s, refer to <see cref="ProjectionFactory{TAggregate,TProjection}"/>.
+/// </para>
+/// <para>
+/// To query <see cref="Projection"/>s, refer to <see cref="IRecordStore"/>.
+/// </para>
+/// </remarks>
+/// <seealso cref="ProjectionFactory{TAggregate,TProjection}"/>
+/// <seealso cref="IRecordStore"/>
 public record Projection : Record
 {
   /// <summary>
@@ -8,7 +24,7 @@ public record Projection : Record
   public string? FactoryType { get; init; }
   
   /// <summary>
-  /// The number of events applied to this aggregate.
+  /// The number of <see cref="Event"/>s applied to the source <see cref="Aggregate"/>.
   /// </summary>
   public long Version { get; init; }
   
