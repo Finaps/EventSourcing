@@ -34,8 +34,7 @@ public class Startup
     // Configure Cosmos connections
     services.Configure<CosmosEventStoreOptions>(Configuration.GetSection("Cosmos"));
     services.AddSingleton<IRecordStore, CosmosRecordStore>();
-    // Configure AggregateService
-    services.AddScoped<IAggregateService, AggregateService>();
+    services.AddSingleton<IAggregateService, AggregateService>();
   }
 
   // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

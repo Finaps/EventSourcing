@@ -20,7 +20,7 @@
     </ItemGroup>
     
     <PropertyGroup>
-        <DocumentationFile>./obj/documentation.xml</DocumentationFile>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
 
 </Project>
