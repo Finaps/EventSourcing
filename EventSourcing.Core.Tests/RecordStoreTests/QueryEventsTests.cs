@@ -10,10 +10,10 @@ public abstract partial class RecordStoreTests
     var aggregate1 = new EmptyAggregate { PartitionId = Guid.NewGuid() };
     var events1 = new List<Event>
     {
-      aggregate1.Add(new EmptyEvent()),
-      aggregate1.Add(new EmptyEvent()),
-      aggregate1.Add(new EmptyEvent()),
-      aggregate1.Add(new EmptyEvent())
+      aggregate1.Apply(new EmptyEvent()),
+      aggregate1.Apply(new EmptyEvent()),
+      aggregate1.Apply(new EmptyEvent()),
+      aggregate1.Apply(new EmptyEvent())
     };
 
     await RecordStore.AddEventsAsync(events1);
@@ -32,10 +32,10 @@ public abstract partial class RecordStoreTests
     var aggregate = new EmptyAggregate();
     var events = new List<Event>
     {
-      aggregate.Add(new EmptyEvent()),
-      aggregate.Add(new EmptyEvent()),
-      aggregate.Add(new EmptyEvent()),
-      aggregate.Add(new EmptyEvent())
+      aggregate.Apply(new EmptyEvent()),
+      aggregate.Apply(new EmptyEvent()),
+      aggregate.Apply(new EmptyEvent()),
+      aggregate.Apply(new EmptyEvent())
     };
 
     await RecordStore.AddEventsAsync(events);
@@ -54,15 +54,15 @@ public abstract partial class RecordStoreTests
     var aggregate = new EmptyAggregate();
     var events = new List<Event>
     {
-      aggregate.Add(new EmptyEvent()),
-      aggregate.Add(new EmptyEvent())
+      aggregate.Apply(new EmptyEvent()),
+      aggregate.Apply(new EmptyEvent())
     };
 
     var aggregate2 = new EmptyAggregate();
     var events2 = new List<Event>
     {
-      aggregate2.Add(new EmptyEvent()),
-      aggregate2.Add(new EmptyEvent())
+      aggregate2.Apply(new EmptyEvent()),
+      aggregate2.Apply(new EmptyEvent())
     };
 
     await RecordStore.AddEventsAsync(events);
@@ -83,15 +83,15 @@ public abstract partial class RecordStoreTests
     var aggregate = new EmptyAggregate();
     var events = new List<Event>
     {
-      aggregate.Add(new EmptyEvent()),
-      aggregate.Add(new EmptyEvent())
+      aggregate.Apply(new EmptyEvent()),
+      aggregate.Apply(new EmptyEvent())
     };
 
     var aggregate2 = new SimpleAggregate();
     var events2 = new List<Event>
     {
-      aggregate2.Add(new EmptyEvent()),
-      aggregate2.Add(new EmptyEvent())
+      aggregate2.Apply(new EmptyEvent()),
+      aggregate2.Apply(new EmptyEvent())
     };
 
     await RecordStore.AddEventsAsync(events);
@@ -121,7 +121,7 @@ public abstract partial class RecordStoreTests
   public async Task Can_Query_Mock_Event()
   {
     var aggregate = new EmptyAggregate();
-    var e = aggregate.Add(new MockEvent
+    var e = aggregate.Apply(new MockEvent
     {
       MockBoolean = true,
       MockString = "Hello World",

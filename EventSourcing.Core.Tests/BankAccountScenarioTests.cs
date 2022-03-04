@@ -76,13 +76,13 @@ public class BankAccount : Aggregate
   }
 
   public void Create(string name, string iban) =>
-    Add(new BankAccountCreatedEvent { Name = name, Iban = iban });
+    Apply(new BankAccountCreatedEvent { Name = name, Iban = iban });
 
   public void Deposit(decimal amount) =>
-    Add(new FundsDepositedEvent { Amount = amount });
+    Apply(new FundsDepositedEvent { Amount = amount });
 
   public void Withdraw(decimal amount) =>
-    Add(new FundsWithdrawnEvent { Amount = amount });
+    Apply(new FundsWithdrawnEvent { Amount = amount });
 }
 
 public class BankAccountSnapshotFactory : SnapshotFactory<BankAccount, BankAccountSnapshot>
@@ -118,7 +118,7 @@ public abstract partial class AggregateServiceTests
     Assert.Equal(default, account.Iban);
     Assert.Equal(default, account.Balance);
     
-    account.Add(new BankAccountCreatedEvent { Name = "E. Vent", Iban = "SOME IBAN" });
+    account.Apply(new BankAccountCreatedEvent { Name = "E. Vent", Iban = "SOME IBAN" });
     account.Deposit(100);
     
     Assert.Equal("E. Vent", account.Name);
@@ -170,8 +170,8 @@ public abstract partial class AggregateServiceTests
       Amount = 20
     };
 
-    account.Add(transfer);
-    anotherAccount.Add(transfer);
+    account.Apply(transfer);
+    anotherAccount.Apply(transfer);
 
     await AggregateService.PersistAsync(new[] { account, anotherAccount });
 

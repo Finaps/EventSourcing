@@ -11,7 +11,7 @@ public abstract partial class RecordStoreTests
         var events = new List<Event>();
 
         for (var i = 0; i < 3; i++)
-            events.Add(aggregate.Add(new EmptyEvent()));
+            events.Add(aggregate.Apply(new EmptyEvent()));
 
         await RecordStore.AddEventsAsync(events);
         
@@ -32,7 +32,7 @@ public abstract partial class RecordStoreTests
         var aggregate = new EmptyAggregate();
         
         // Store event
-        var e = aggregate.Add(new EmptyEvent());
+        var e = aggregate.Apply(new EmptyEvent());
         await RecordStore.AddEventsAsync(new List<Event>{e});
         Assert.NotNull(await RecordStore.Events
             .Where(x => x.AggregateId == e.AggregateId)
@@ -83,13 +83,13 @@ public abstract partial class RecordStoreTests
         var events = new List<Event>();
 
         for (var i = 0; i < 100; i++)
-            events.Add(aggregate.Add(new EmptyEvent()));
+            events.Add(aggregate.Apply(new EmptyEvent()));
 
         await RecordStore.AddEventsAsync(events);
         events.Clear();
         
         for (var i = 0; i < 10; i++)
-            events.Add(aggregate.Add(new EmptyEvent()));
+            events.Add(aggregate.Apply(new EmptyEvent()));
 
         await RecordStore.AddEventsAsync(events);
         var deleted = await RecordStore.DeleteAggregateAllAsync(Guid.Empty, aggregate.Id);

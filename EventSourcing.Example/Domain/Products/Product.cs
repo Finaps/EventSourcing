@@ -46,32 +46,32 @@ public class Product : Aggregate
     public void Create(string name, int initialQuantity)
     {
         if (initialQuantity < 0) throw new ArgumentException("Quantity should not be negative", nameof(initialQuantity));
-        Add(new ProductCreatedEvent(name, initialQuantity));
+        Apply(new ProductCreatedEvent(name, initialQuantity));
     }
     public void AddStock(int quantity)
     {
         ValidateQuantity(quantity);
-        Add(new ProductStockAddedEvent(quantity));
+        Apply(new ProductStockAddedEvent(quantity));
     }
     public bool PurchaseProduct(Guid basketId, int quantity)
     {
         ValidateQuantity(quantity);
         if (!CheckAvailabilityForBasket(basketId, quantity)) return false;
         
-        Add(new ProductSoldEvent(quantity, basketId));
+        Apply(new ProductSoldEvent(quantity, basketId));
         return true;
     }
     public void ReserveProduct(Guid basketId, int quantity)
     {
         ValidateQuantity(quantity);
         if (CheckAvailability(quantity))
-            Add(new ProductReservedEvent(quantity, basketId, Constants.ProductReservationExpires));
+            Apply(new ProductReservedEvent(quantity, basketId, Constants.ProductReservationExpires));
     }
     public void RemoveProductReservation(Guid basketId, int quantity)
     {
         ValidateQuantity(quantity);
         if(Reservations.Any(x => x.BasketId == basketId))
-            Add(new ReservationRemovedEvent(quantity, basketId));
+            Apply(new ReservationRemovedEvent(quantity, basketId));
     }
 
     // The available quantity is the total stock minus the amount that is being reserved

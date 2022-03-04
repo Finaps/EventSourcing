@@ -8,8 +8,8 @@ public abstract partial class RecordStoreTests
   public async Task Cannot_Add_Event_With_Duplicate_AggregateId_And_Version()
   {
     var aggregate = new EmptyAggregate();
-    var e1 = aggregate.Add(new EmptyEvent());
-    var e2 = aggregate.Add(new EmptyEvent());
+    var e1 = aggregate.Apply(new EmptyEvent());
+    var e2 = aggregate.Apply(new EmptyEvent());
 
     e2 = e2 with { Index = 0 };
 
@@ -23,10 +23,10 @@ public abstract partial class RecordStoreTests
   public async Task Cannot_Add_NonConsecutive_Events()
   {
     var aggregate = new EmptyAggregate();
-    var e1 = aggregate.Add(new EmptyEvent());
+    var e1 = aggregate.Apply(new EmptyEvent());
     await RecordStore.AddEventsAsync(new List<Event> { e1 });
 
-    var e2 = aggregate.Add(new EmptyEvent()) with { Index = 2 };
+    var e2 = aggregate.Apply(new EmptyEvent()) with { Index = 2 };
 
     await Assert.ThrowsAnyAsync<RecordStoreException>(
       async () => await RecordStore.AddEventsAsync(new Event[] { e2 }));
@@ -66,7 +66,7 @@ public abstract partial class RecordStoreTests
     // Add 5 Events
     await RecordStore.AddEventsAsync(Enumerable
       .Range(0, 5)
-      .Select(_ => aggregate.Add(new EmptyEvent()))
+      .Select(_ => aggregate.Apply(new EmptyEvent()))
       .Cast<Event>()
       .ToList());
 
@@ -74,7 +74,7 @@ public abstract partial class RecordStoreTests
     var transaction = RecordStore.CreateTransaction()
       .AddEvents(Enumerable
         .Range(0, 5)
-        .Select(_ => aggregate.Add(new EmptyEvent()))
+        .Select(_ => aggregate.Apply(new EmptyEvent()))
         .Cast<Event>()
         .ToList());
     

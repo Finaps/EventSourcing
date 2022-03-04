@@ -8,7 +8,7 @@ public abstract partial class RecordStoreTests
   public async Task Can_Store_And_Project_Aggregate()
   {
     var aggregate = new MockAggregate();
-    aggregate.Add(new MockEvent
+    aggregate.Apply(new MockEvent
     {
       MockBoolean = true,
       MockString = "Hello World",

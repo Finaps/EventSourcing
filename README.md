@@ -11,7 +11,7 @@ with a focus on Validity, Clarity & Performance. The Finaps.EventSourcing packag
 
 Currently only Azure Cosmos DB is supported. More implementations will follow in the future.
 
-This repository is WIP, breaking API changes are likely to occur before version 1.0.0.
+**This repository is WIP**. Breaking API changes are likely to occur before version 1.0.0.
 
 Table of Contents
 -----------------
@@ -30,9 +30,8 @@ Table of Contents
    7. [Point in time Rehydration](#7-point-in-time-rehydration)
    8. [Querying Records](#8-querying-records)
    9. [Creating & Querying Projections](#9-creating--querying-projections)
-3. [Example Project](#example-project)
-   1. [Project](https://github.com/Finaps/EventSourcing/tree/main/EventSourcing.Example)
-   2. [Tests](https://github.com/Finaps/EventSourcing/tree/main/EventSourcing.Example.Tests)
+3. [Example Project](https://github.com/Finaps/EventSourcing/tree/main/EventSourcing.Example)
+   1. [Tests](https://github.com/Finaps/EventSourcing/tree/main/EventSourcing.Example.Tests)
 
 Installation
 ------------
@@ -163,15 +162,15 @@ public class BankAccount : Aggregate
         if (Balance < 0) throw new InvalidOperationException("Not enough funds");
     }
     
-    // Convenience method for creating this account
+    // Convenience Command for creating this account
     public void Create(string name, string iban) =>
         Add(new BankAccountCreatedEvent { Name = name, Iban = iban });
     
-    // Convenience method for depositing funds to this account
+    // Convenience Command for depositing funds to this account
     public void Deposit(decimal amount) =>
         Add(new FundsDepositedEvent { Amount = amount });
         
-    // Convenience method for withdrawing events from this account
+    // Convenience Command for withdrawing funds from this account
     public void Withdraw(decimal amount) =>
         Add(new FundsWithdrawnEvent { Amount = amount });
 }
@@ -383,8 +382,8 @@ public record BankAccountProjection : Projection
 // The Projection factory is responsible for creating a Projection every time the Aggregate is persisted 
 public class BankAccountProjectionFactory : ProjectionFactory<BankAccount, BankAccountProjection>
 {
-    // This particular projection could be used for an overview page
-    // We left out the balance (privacy) and made the name uppercase
+    // This particular projection could be used for e.g. an overview page
+    // We left out 'Balance' (privacy reasons) and made 'Name' uppercase
     // Any transformation could be done here, e.g. to make frontend consumption easier/faster
     protected override BankAccountProjection CreateProjection(BankAccount aggregate) => new BankAccountProjection()
     {

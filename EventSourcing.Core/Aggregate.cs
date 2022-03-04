@@ -3,50 +3,98 @@ using System.Reflection;
 namespace EventSourcing.Core;
 
 /// <summary>
-/// Abstract Base <see cref="Aggregate"/>
+/// An <see cref="Aggregate"/> represents an aggregation of one or more <see cref="Event"/>s.
 /// </summary>
+/// <remarks>
+/// <para>
+/// To create a new Aggregate type, subclass <see cref="Aggregate"/> and implement the <see cref="Apply"/> method
+/// for every applicable <see cref="Event"/>.
+/// </para>
+/// <para>
+/// Aggregates should only be updated by adding <see cref="Event"/>s to it using the <see cref="Apply{TEvent}"/> method.
+/// </para>
+/// <para>
+/// To Persist and Rehydrate Aggregates, please refer to the <see cref="IAggregateService"/>.
+/// </para>
+/// </remarks>
+/// <seealso cref="Event"/>
+/// <seealso cref="IAggregateService"/>
 public abstract class Aggregate : IHashable
 {
   /// <summary>
-  /// String representation of Record Type
+  /// String representation of Aggregate Type
   /// </summary>
   /// <remarks>
-  /// Can be overridden using <see cref="RecordTypeAttribute"/>
+  /// Equal to <c>GetType().Name</c>
+  /// </remarks>
+  /// <remarks>
+  /// All <see cref="Event"/>s added to this Aggregate will have set <c>Event.AggregateType = Aggregate.Type</c>
   /// </remarks>
   public string Type { get; init; }
   
   /// <summary>
-  /// Unique Partition identifier.
+  /// Unique Partition identifier. Defaults to <see cref="Guid"/>.<see cref="Guid.Empty"/>.
   /// </summary>
   /// <remarks>
-  /// <see cref="IRecordTransaction"/> and <see cref="IAggregateTransaction"/> are scoped to <see cref="PartitionId"/>
+  /// <para>
+  /// Call <c>new MyAggregate { PartitionId = myPid };</c> to
+  /// construct an Aggregate with a specific <see cref="PartitionId"/>. All <see cref="Event"/>s that are added to this
+  /// Aggregate will have set <c>Event.PartitionId = Aggregate.PartitionId</c>.
+  /// </para>
+  /// <para>
+  /// <see cref="PartitionId"/> is mapped directly to CosmosDB's <c>PartitionKey</c>.
+  /// See <see href="https://docs.microsoft.com/en-us/azure/cosmos-db/partitioning-overview">Cosmos DB Documentation</see> for more information.
+  /// </para>
+  /// <para>
+  /// <see cref="IRecordTransaction"/> and <see cref="IAggregateTransaction"/> are scoped to <see cref="PartitionId"/>,
+  /// i.e. no transactions involving multiple <see cref="PartitionId"/>'s can be committed.
+  /// </para>
   /// </remarks>
   public Guid PartitionId { get; init; }
   
   /// <summary>
-  /// Unique Record identifier.
+  /// Unique Aggregate identifier. Defaults to <see cref="Guid"/>.<see cref="Guid.NewGuid"/>
   /// </summary>
+  /// <remarks>
+  /// All <see cref="Event"/>s added to this Aggregate will have set <c>Event.AggregateId = Aggregate.Id</c>
+  /// </remarks>
   public Guid Id { get; init; }
   
   /// <summary>
-  /// The number of events applied to this aggregate.
+  /// The number of <see cref="Event"/>s applied to this Aggregate.
   /// </summary>
   public long Version { get; private set; }
 
   /// <summary>
-  /// Uncommitted Events
+  /// <see cref="Event"/>s that are not yet committed to the <see cref="IRecordStore"/>.
   /// </summary>
+  /// <remarks>
+  /// To commit these <see cref="Event"/>s, call <see cref="IAggregateService"/>.<see cref="IAggregateService.PersistAsync{TAggregate}"/>
+  /// </remarks>
   [JsonIgnore] public ImmutableArray<Event> UncommittedEvents => _uncommittedEvents.ToImmutableArray();
   [JsonIgnore] private readonly List<Event> _uncommittedEvents = new();
   
   /// <summary>
   /// Clear Uncommitted Events
   /// </summary>
-  public void ClearUncommittedEvents() => _uncommittedEvents.Clear();
+  /// <remarks>
+  /// Note that this does not clear the state of this <see cref="Aggregate"/>
+  /// </remarks>
+  internal void ClearUncommittedEvents() => _uncommittedEvents.Clear();
   
   /// <summary>
-  /// Create new Record
+  /// Create new Aggregate with <c>Id = </c><see cref="Guid"/>.<see cref="Guid.NewGuid"/>
   /// </summary>
+  /// <remarks>
+  /// <para>
+  /// The <see cref="IAggregateService"/> expects Aggregates to always have a default constructor.
+  /// </para>
+  /// <para>
+  /// To create/update this Aggregate, rather than defining a custom constructor,
+  /// Add <see cref="Event"/>s to it using the <see cref="Apply{TEvent}"/> method
+  /// and resolve them using the <see cref="Apply"/> method.
+  /// </para>
+  /// </remarks>
   protected Aggregate()
   {
     Id = Guid.NewGuid();
@@ -54,26 +102,49 @@ public abstract class Aggregate : IHashable
   }
 
   /// <summary>
-  /// Apply Event
+  /// Apply <see cref="Event"/> to <see cref="Aggregate"/>
   /// </summary>
+  /// <remarks>
+  /// Use this method to add aggregation logic to your aggregate.
+  /// </remarks>
+  /// <example>
+  /// <code>
+  /// protected override void Apply(Event e)
+  /// {
+  ///  switch (e)
+  ///  {
+  ///   case EventType1 e1:
+  ///     // Update according to e1
+  ///     break;
+  ///   case EventType2 e2:
+  ///     // Update according to e2
+  ///     break;
+  ///   }
+  /// }
+  /// </code>
+  /// </example>
   /// <param name="e"><see cref="Event"/> to apply</param>
   protected abstract void Apply(Event e);
 
   /// <summary>
-  /// Add Event to Aggregate
+  /// Apply <see cref="Event"/> to <see cref="Aggregate"/>
   /// </summary>
   /// <remarks>
-  /// Will Apply <see cref="Event"/> and add it to UncommittedEvents.
-  /// To Persist the aggregate, call <c>IEventService.PersistAsync()</c>.
+  /// To commit these <see cref="Event"/>s to the <see cref="IRecordStore"/>,
+  /// call <see cref="IAggregateService"/>.<see cref="IAggregateService.PersistAsync{TAggregate}"/>
   /// </remarks>
-  /// <param name="e"><see cref="Event"/> to add</param>
+  /// <param name="e"><see cref="Event"/> to apply</param>
   /// <typeparam name="TEvent"><see cref="Event"/> Type</typeparam>
-  /// <returns>Added <see cref="Event"/></returns>
+  /// <returns>
+  /// Copy of added <see cref="Event"/> with updated
+  /// <see cref="Event.PartitionId"/>, <see cref="Event.AggregateId"/>, <see cref="Event.AggregateType"/> and <see cref="Event.Index"/>
+  /// </returns>
   /// <exception cref="ArgumentException">Thrown when an invalid <see cref="Event"/> is added.</exception>
-  public TEvent Add<TEvent>(TEvent e) where TEvent : Event
+  /// <exception cref="ArgumentException">Thrown when a <see cref="Snapshot"/> is added.</exception>
+  public TEvent Apply<TEvent>(TEvent e) where TEvent : Event
   {
     if (e is Snapshot)
-      throw new ArgumentException("Cannot 'Add' Snapshot to Aggregate");
+      throw new ArgumentException("Cannot directly Apply Snapshot to Aggregate");
     
     e = e with
     {
@@ -99,7 +170,7 @@ public abstract class Aggregate : IHashable
   /// <typeparam name="TAggregate"><see cref="Aggregate"/> Type</typeparam>
   /// <returns><see cref="Aggregate"/> of type <c>TAggregate</c></returns>
   /// <exception cref="ArgumentException">Thrown when <c>id</c> or <c>events</c> are invalid</exception>
-  public static async Task<TAggregate?> RehydrateAsync<TAggregate>(Guid partitionId, Guid aggregateId, Snapshot? snapshot,
+  internal static async Task<TAggregate?> RehydrateAsync<TAggregate>(Guid partitionId, Guid aggregateId, Snapshot? snapshot,
     IAsyncEnumerable<Event> events, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
   {
     if (aggregateId == Guid.Empty)
@@ -144,7 +215,7 @@ public abstract class Aggregate : IHashable
   private void ValidateAndApplySnapshot(Snapshot s)
   {
     RecordValidation.ValidateSnapshotForAggregate(this, s);
-    Apply(s);
+    Apply((Event) s);
     Version = s.Index + 1;
   }
 }

@@ -11,7 +11,7 @@ public abstract partial class RecordStoreTests
     var events = new List<Event>();
 
     for (var i = 0; i < 10; i++)
-      events.Add(aggregate.Add(new EmptyEvent()));
+      events.Add(aggregate.Apply(new EmptyEvent()));
 
     await RecordStore.AddEventsAsync(events);
 

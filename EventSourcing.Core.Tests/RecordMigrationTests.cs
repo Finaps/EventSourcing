@@ -47,7 +47,7 @@ public abstract class RecordMigrationTests
   {
     var someId = Guid.NewGuid();
     var aggregate = new MigratedAggregate();
-    aggregate.Add(new MigrationEventV2(someId));
+    aggregate.Apply(new MigrationEventV2(someId));
     await AggregateService.PersistAsync(aggregate);
 
     var rehydrated = await AggregateService.RehydrateAsync<MigratedAggregate>(aggregate.Id);
@@ -62,7 +62,7 @@ public abstract class RecordMigrationTests
   {
     var someId = Guid.NewGuid();
     var aggregate = new MigratedAggregate();
-    aggregate.Add(new MigrationEvent(someId.ToString()));
+    aggregate.Apply(new MigrationEvent(someId.ToString()));
     await AggregateService.PersistAsync(aggregate);
     var rehydrated = await AggregateService.RehydrateAsync<MigratedAggregate>(aggregate.Id);
 
@@ -76,7 +76,7 @@ public abstract class RecordMigrationTests
   {
     var e = new TrivialMigrationEventOriginal(Guid.NewGuid(), "something", 42, 42.00m);
     var aggregate = new MigratedAggregate();
-    aggregate.Add(e);
+    aggregate.Apply(e);
     var converter = new RecordConverter<Event>();
     var options = new JsonSerializerOptions { WriteIndented = true };
 
