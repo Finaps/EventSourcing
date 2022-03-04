@@ -67,7 +67,7 @@ public class CosmosRecordTransaction : IRecordTransaction
     return this;
   }
 
-  public IRecordTransaction AddProjection(Projection projection)
+  public IRecordTransaction UpsertProjection(Projection projection)
   {
     _batch.UpsertItem(projection, CosmosRecordStore.BatchItemRequestOptions);
     _actions.Add((CosmosEventTransactionAction.CreateProjection, projection));

@@ -1,19 +1,22 @@
 namespace EventSourcing.Core;
 
+/// <summary>
+/// ACID Aggregate Transaction.
+/// </summary>
 public interface IAggregateTransaction
 {
   /// <summary>
-  /// Add <see cref="Aggregate"/> in the <see cref="IAggregateTransaction"/>
+  /// Add <see cref="Aggregate"/> in <see cref="IAggregateTransaction"/>
   /// </summary>
   /// <remarks>
-  /// When all <see cref="Aggregate"/>s have been added/deleted, call <see cref="CommitAsync"/> to commit them
+  /// When all <see cref="Aggregate"/>s have been added, call <see cref="CommitAsync"/> to commit them
   /// </remarks>
   /// <param name="aggregate"><see cref="Aggregate"/> to persist</param>
   /// <returns>Persisted <see cref="Aggregate"/></returns>
   IAggregateTransaction Add(Aggregate aggregate);
 
   /// <summary>
-  /// Commit <see cref="Aggregate"/> operations to the <see cref="IRecordStore"/>
+  /// Commit <see cref="Aggregate"/>s to the <see cref="IRecordStore"/> in an ACID transaction.
   /// </summary>
   /// <exception cref="RecordStoreException">
   /// Thrown when a conflict occurs when commiting transaction,

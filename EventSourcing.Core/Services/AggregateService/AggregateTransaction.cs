@@ -1,15 +1,21 @@
 namespace EventSourcing.Core;
 
+/// <inheritdoc />
 public class AggregateTransaction : IAggregateTransaction
 {
   private readonly IRecordTransaction _recordTransaction;
   private readonly HashSet<Aggregate> _aggregates = new();
 
+  /// <summary>
+  /// Create Aggregate Transaction
+  /// </summary>
+  /// <param name="recordTransaction"><see cref="IRecordTransaction"/></param>
   public AggregateTransaction(IRecordTransaction recordTransaction)
   {
     _recordTransaction = recordTransaction;
   }
 
+  /// <inheritdoc />
   public IAggregateTransaction Add(Aggregate aggregate)
   {
     if (aggregate.Id == Guid.Empty)
@@ -26,11 +32,12 @@ public class AggregateTransaction : IAggregateTransaction
       _recordTransaction.AddSnapshot(snapshot);
 
     foreach (var projection in ProjectionService.CreateProjections(aggregate))
-      _recordTransaction.AddProjection(projection);
+      _recordTransaction.UpsertProjection(projection);
 
     return this;
   }
 
+  /// <inheritdoc />
   public async Task CommitAsync(CancellationToken cancellationToken)
   {
     await _recordTransaction.CommitAsync(cancellationToken);

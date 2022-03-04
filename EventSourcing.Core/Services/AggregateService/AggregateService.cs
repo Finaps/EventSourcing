@@ -1,14 +1,22 @@
 namespace EventSourcing.Core;
 
+/// <inheritdoc />
 public class AggregateService : IAggregateService
 {
   private readonly IRecordStore _store;
+  
+  /// <summary>
+  /// Create Aggregate Service
+  /// </summary>
+  /// <param name="store"><see cref="IRecordStore"/></param>
   public AggregateService(IRecordStore store) => _store = store;
 
+  /// <inheritdoc />
   public async Task<TAggregate?> RehydrateAsync<TAggregate>(Guid partitionId, Guid aggregateId,
     CancellationToken cancellationToken = default) where TAggregate : Aggregate, new() =>
     await RehydrateAsync<TAggregate>(partitionId, aggregateId, DateTimeOffset.MaxValue, cancellationToken);
 
+  /// <inheritdoc />
   public async Task<TAggregate?> RehydrateAsync<TAggregate>(Guid partitionId, Guid aggregateId, DateTimeOffset date,
     CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
   { 
@@ -35,6 +43,7 @@ public class AggregateService : IAggregateService
     return await Aggregate.RehydrateAsync<TAggregate>(partitionId, aggregateId, snapshot, events, cancellationToken);
   }
 
+  /// <inheritdoc />
   public async Task<TAggregate> PersistAsync<TAggregate>(TAggregate aggregate,
     CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
   {
@@ -43,6 +52,7 @@ public class AggregateService : IAggregateService
     return aggregate;
   }
 
+  /// <inheritdoc />
   public async Task PersistAsync(IEnumerable<Aggregate> aggregates, CancellationToken cancellationToken = default)
   {
     IAggregateTransaction? transaction = null;
@@ -57,6 +67,9 @@ public class AggregateService : IAggregateService
       await transaction.CommitAsync(cancellationToken);
   }
 
+  /// <inheritdoc />
   public IAggregateTransaction CreateTransaction(Guid partitionId) => new AggregateTransaction(_store.CreateTransaction(partitionId));
+
+  /// <inheritdoc />
   public IAggregateTransaction CreateTransaction() => CreateTransaction(Guid.Empty);
 }

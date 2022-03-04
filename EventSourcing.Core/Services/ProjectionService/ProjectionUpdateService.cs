@@ -52,7 +52,7 @@ public class ProjectionUpdateService : IProjectionUpdateService
       
       // If Events are deleted, but Projections remain, it could be that RehydrateAsync returns null
       if (aggregate != null && transaction != null)
-        transaction.AddProjection(factories[item.Type].CreateProjection(aggregate));
+        transaction.UpsertProjection(factories[item.Type].CreateProjection(aggregate));
     }
 
     // Commit the last transaction
@@ -80,7 +80,7 @@ public class ProjectionUpdateService : IProjectionUpdateService
       
       if (aggregate == null) continue;
 
-      await _store.AddProjectionAsync(factory.CreateProjection(aggregate), cancellationToken);
+      await _store.UpsertProjectionAsync(factory.CreateProjection(aggregate), cancellationToken);
     }
   }
 }

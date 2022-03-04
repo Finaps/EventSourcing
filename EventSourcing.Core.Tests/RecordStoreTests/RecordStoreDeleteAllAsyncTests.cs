@@ -49,7 +49,7 @@ public abstract partial class RecordStoreTests
         
         // Store projection
         var projection = new EmptyProjection { AggregateId = aggregate.Id, AggregateType = nameof(EmptyAggregate) };
-        await RecordStore.AddProjectionAsync(projection);
+        await RecordStore.UpsertProjectionAsync(projection);
         Assert.NotNull(await RecordStore.GetProjectionByIdAsync<EmptyProjection>(projection.AggregateId));
         
         // Delete all items created

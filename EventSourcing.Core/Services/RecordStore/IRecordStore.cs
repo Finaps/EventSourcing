@@ -40,7 +40,24 @@ public interface IRecordStore
   /// and use <c>System.Linq.Async</c>'s extension methods to get the results of your query.
   /// </remarks>
   IQueryable<TProjection> GetProjections<TProjection>() where TProjection : Projection, new();
+  
+  /// <summary>
+  /// Get <see cref="Projection"/> by <see cref="Projection.PartitionId"/> and <see cref="Projection.AggregateId"/>
+  /// </summary>
+  /// <param name="partitionId"><see cref="Projection"/>.<see cref="Projection.PartitionId"/></param>
+  /// <param name="aggregateId"><see cref="Projection"/>.<see cref="Projection.AggregateId"/></param>
+  /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
+  /// <typeparam name="TProjection"><see cref="Projection"/> type</typeparam>
+  /// <returns><see cref="Projection"/> of type <see cref="TProjection"/></returns>
   Task<TProjection> GetProjectionByIdAsync<TProjection>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection, new();
+  
+  /// <summary>
+  /// Get <see cref="Projection"/> by <see cref="Projection.AggregateId"/> and default <see cref="Projection.PartitionId"/>
+  /// </summary>
+  /// <param name="aggregateId"><see cref="Projection"/>.<see cref="Projection.AggregateId"/></param>
+  /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
+  /// <typeparam name="TProjection"><see cref="Projection"/> type</typeparam>
+  /// <returns><see cref="Projection"/> of type <see cref="TProjection"/></returns>
   async Task<TProjection> GetProjectionByIdAsync<TProjection>(Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection, new() =>
     await GetProjectionByIdAsync<TProjection>(Guid.Empty, aggregateId, cancellationToken);
 
@@ -53,7 +70,7 @@ public interface IRecordStore
   /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with more than one unique <see cref="Event.PartitionId"/></exception>
   /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with more than one unique <see cref="Event.AggregateId"/></exception>
   /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with <see cref="Guid.Empty"/> <see cref="Event.AggregateId"/></exception>
-  /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with nonconsecutive <see cref="IndexedRecord.Index"/>s</exception>
+  /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with nonconsecutive <see cref="Event.Index"/></exception>
   /// <exception cref="RecordStoreException">Thrown when conflicts occur when storing <see cref="Event"/>s</exception>
   Task AddEventsAsync(IList<Event> events, CancellationToken cancellationToken = default);
   
@@ -65,11 +82,11 @@ public interface IRecordStore
   Task AddSnapshotAsync(Snapshot snapshot, CancellationToken cancellationToken = default);
   
   /// <summary>
-  /// Store <see cref="Aggregate"/> to the <see cref="IRecordStore"/>
+  /// Store <see cref="Projection"/> to the <see cref="IRecordStore"/>
   /// </summary>
-  /// <param name="projection"><see cref="Projection"/> to add</param>
+  /// <param name="projection"><see cref="Projection"/> to upsert</param>
   /// <param name="cancellationToken">Cancellation Token</param>
-  Task AddProjectionAsync(Projection projection, CancellationToken cancellationToken = default);
+  Task UpsertProjectionAsync(Projection projection, CancellationToken cancellationToken = default);
   
   /// <summary>
   /// Delete <see cref="Event"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
@@ -154,17 +171,17 @@ public interface IRecordStore
   Task DeleteProjectionAsync<TProjection>(Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection, new();
 
   /// <summary>
-  /// Create Event Transaction
+  /// Create Record Transaction
   /// </summary>
   /// <param name="partitionId">Transaction Partition identifier</param>
   /// <returns></returns>
-  IRecordTransaction? CreateTransaction(Guid partitionId);
+  IRecordTransaction CreateTransaction(Guid partitionId);
 
   /// <summary>
-  /// Create Event Transaction for <see cref="Guid.Empty"/> partition
+  /// Create Record Transaction for <see cref="Guid"/>.<see cref="Guid.Empty"/> partition
   /// </summary>
   /// <returns></returns>
-  IRecordTransaction? CreateTransaction();
+  IRecordTransaction CreateTransaction();
   
   /// <summary>
   /// Delete all Events, Snapshots and Projections for an <see cref="Aggregate"/>

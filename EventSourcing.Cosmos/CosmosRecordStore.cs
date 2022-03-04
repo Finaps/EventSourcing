@@ -100,9 +100,9 @@ public class CosmosRecordStore : IRecordStore
       .AddSnapshot(snapshot)
       .CommitAsync(cancellationToken);
 
-  public async Task AddProjectionAsync(Projection projection, CancellationToken cancellationToken = default) =>
+  public async Task UpsertProjectionAsync(Projection projection, CancellationToken cancellationToken = default) =>
     await CreateTransaction(projection.PartitionId)
-      .AddProjection(projection)
+      .UpsertProjection(projection)
       .CommitAsync(cancellationToken);
 
   public async Task DeleteAllEventsAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
@@ -182,9 +182,9 @@ public class CosmosRecordStore : IRecordStore
   public async Task DeleteProjectionAsync<TProjection>(Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection, new() =>
     await DeleteProjectionAsync<TProjection>(Guid.Empty, aggregateId, cancellationToken);
 
-  public IRecordTransaction? CreateTransaction() => CreateTransaction(Guid.Empty);
+  public IRecordTransaction CreateTransaction() => CreateTransaction(Guid.Empty);
 
-  public IRecordTransaction? CreateTransaction(Guid partitionId) =>
+  public IRecordTransaction CreateTransaction(Guid partitionId) =>
     new CosmosRecordTransaction(_container, partitionId);
 
   public async Task<int> DeleteAggregateAllAsync(Guid partitionId, Guid aggregateId)
