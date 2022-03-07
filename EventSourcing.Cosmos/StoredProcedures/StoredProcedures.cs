@@ -3,7 +3,7 @@ namespace EventSourcing.Cosmos;
 public static class StoredProcedures
 {
     // String of the JS function deleteAggregateAll that is uploaded as a stored procedure
-    public static string DeleteAggregateAll = @"/**
+    public const string DeleteAggregateAll = @"/**
  * A Cosmos DB stored procedure that bulk deletes documents for a given partitionId and aggregateId.<br/>
  * Note: You may need to execute this sproc multiple times (depending whether the sproc is able to delete every document within the execution timeout limit).
  *

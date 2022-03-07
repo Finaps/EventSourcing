@@ -2,6 +2,9 @@ using EventSourcing.Core;
 
 namespace EventSourcing.Cosmos;
 
+/// <summary>
+/// ACID <see cref="CosmosRecordTransaction"/> of <see cref="Event"/>s, <see cref="Snapshot"/>s & <see cref="Projection"/>s
+/// </summary>
 public class CosmosRecordTransaction : IRecordTransaction
 {
   private enum CosmosEventTransactionAction
@@ -18,14 +21,21 @@ public class CosmosRecordTransaction : IRecordTransaction
   private readonly TransactionalBatch _batch;
   private readonly List<(CosmosEventTransactionAction, dynamic)> _actions = new();
 
+  /// <inheritdoc />
   public Guid PartitionId { get; }
   
+  /// <summary>
+  /// Create <see cref="CosmosRecordTransaction"/>
+  /// </summary>
+  /// <param name="container"><see cref="Container"/></param>
+  /// <param name="partitionId">Partition Id</param>
   public CosmosRecordTransaction(Container container, Guid partitionId)
   {
     PartitionId = partitionId;
     _batch = container.CreateTransactionalBatch(new PartitionKey(partitionId.ToString()));
   }
 
+  /// <inheritdoc />
   public IRecordTransaction AddEvents(IList<Event> events)
   {
     RecordValidation.ValidateEventSequence(PartitionId, events);
@@ -58,6 +68,7 @@ public class CosmosRecordTransaction : IRecordTransaction
     return this;
   }
 
+  /// <inheritdoc />
   public IRecordTransaction AddSnapshot(Snapshot snapshot)
   {
     RecordValidation.ValidateSnapshot(PartitionId, snapshot);
@@ -67,6 +78,7 @@ public class CosmosRecordTransaction : IRecordTransaction
     return this;
   }
 
+  /// <inheritdoc />
   public IRecordTransaction UpsertProjection(Projection projection)
   {
     _batch.UpsertItem(projection, CosmosRecordStore.BatchItemRequestOptions);
@@ -75,6 +87,7 @@ public class CosmosRecordTransaction : IRecordTransaction
     return this;
   }
 
+  /// <inheritdoc />
   public IRecordTransaction DeleteAllEvents(Guid aggregateId, long index)
   {
     var reservation = new Event
@@ -104,6 +117,7 @@ public class CosmosRecordTransaction : IRecordTransaction
     return this;
   }
 
+  /// <inheritdoc />
   public IRecordTransaction DeleteSnapshot(Guid aggregateId, long index)
   {
     var snapshot = new Snapshot { PartitionId = PartitionId, AggregateId = aggregateId, Index = index };
@@ -113,6 +127,7 @@ public class CosmosRecordTransaction : IRecordTransaction
     return this;
   }
 
+  /// <inheritdoc />
   public IRecordTransaction DeleteProjection(Guid aggregateId, string type)
   {
     var projection = new Projection { PartitionId = PartitionId, AggregateId = aggregateId, Type = type };
@@ -122,6 +137,7 @@ public class CosmosRecordTransaction : IRecordTransaction
     return this;
   }
 
+  /// <inheritdoc />
   public async Task CommitAsync(CancellationToken cancellationToken = default)
   {
     switch (_actions.Count)
@@ -143,6 +159,7 @@ public class CosmosRecordTransaction : IRecordTransaction
   {
     var inner = CosmosExceptionHelpers.CreateCosmosException(response);
     
+    // TODO: Catch more known cases
     var exceptions = response
       .Zip(_actions)
       .Where(x => x.First.StatusCode != HttpStatusCode.FailedDependency)

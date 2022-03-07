@@ -10,7 +10,7 @@ internal class CosmosRecordSerializer : CosmosSerializer
   private readonly JsonObjectSerializer _serializer = new ();
   private readonly JsonObjectSerializer _recordSerializer;
 
-  public CosmosRecordSerializer(CosmosEventStoreOptions options)
+  public CosmosRecordSerializer(CosmosRecordStoreOptions options)
   {
     _recordSerializer = new JsonObjectSerializer(new JsonSerializerOptions
     {
