@@ -14,7 +14,7 @@ namespace EventSourcing.Cosmos.Tests;
 
 public class CosmosRecordStoreTests : RecordStoreTests
 {
-  private readonly IOptions<CosmosEventStoreOptions> _options;
+  private readonly IOptions<CosmosRecordStoreOptions> _options;
 
   protected override IRecordStore RecordStore { get; }
 
@@ -26,7 +26,7 @@ public class CosmosRecordStoreTests : RecordStoreTests
       .AddEnvironmentVariables()
       .Build();
 
-    _options = Options.Create(new CosmosEventStoreOptions
+    _options = Options.Create(new CosmosRecordStoreOptions
     {
       ConnectionString = configuration["Cosmos:ConnectionString"],
       Database = configuration["Cosmos:Database"],
@@ -39,7 +39,7 @@ public class CosmosRecordStoreTests : RecordStoreTests
   [Fact]
   public Task Throws_ArgumentException_With_Missing_ConnectionString()
   {
-    Assert.Throws<ArgumentException>(() => new CosmosRecordStore(Options.Create(new CosmosEventStoreOptions {
+    Assert.Throws<ArgumentException>(() => new CosmosRecordStore(Options.Create(new CosmosRecordStoreOptions {
       ConnectionString = " ", Database = "A", Container = "B"
     })));
     
@@ -49,7 +49,7 @@ public class CosmosRecordStoreTests : RecordStoreTests
   [Fact]
   public Task Throws_ArgumentException_With_Missing_Database_Name()
   {
-    Assert.Throws<ArgumentException>(() => new CosmosRecordStore(Options.Create(new CosmosEventStoreOptions {
+    Assert.Throws<ArgumentException>(() => new CosmosRecordStore(Options.Create(new CosmosRecordStoreOptions {
       ConnectionString = "A", Database = null, Container = "B"
     })));
     
@@ -60,7 +60,7 @@ public class CosmosRecordStoreTests : RecordStoreTests
   [Fact]
   public Task Throws_ArgumentException_With_Missing_Container_Name()
   {
-    Assert.Throws<ArgumentException>(() => new CosmosRecordStore(Options.Create(new CosmosEventStoreOptions
+    Assert.Throws<ArgumentException>(() => new CosmosRecordStore(Options.Create(new CosmosRecordStoreOptions
     {
       ConnectionString = "A", Database = "B", Container = ""
     })));
@@ -71,7 +71,7 @@ public class CosmosRecordStoreTests : RecordStoreTests
   [Fact]
   public async Task Throws_Unauthorized_When_Adding_Event_With_Invalid_Options()
   {
-    var store = new CosmosRecordStore(Options.Create(new CosmosEventStoreOptions
+    var store = new CosmosRecordStore(Options.Create(new CosmosRecordStoreOptions
     {
       // Invalid Connection String
       ConnectionString = "AccountEndpoint=https://example.documents.azure.com:443/;AccountKey=JKnJg81PiP0kkqhCu0k3mKlEPEEBqlFxwM4eiyd3WX2HKUYAAglbc9vMRJQhDsUomD3VHpwrWO9O5nL4ENwLFw==;",
@@ -87,7 +87,7 @@ public class CosmosRecordStoreTests : RecordStoreTests
   [Fact]
   public async Task Throws_NotFound_When_Adding_Event_With_NonExistent_Database()
   {
-    var store = new CosmosRecordStore(Options.Create(new CosmosEventStoreOptions
+    var store = new CosmosRecordStore(Options.Create(new CosmosRecordStoreOptions
     {
       ConnectionString = _options.Value.ConnectionString,
       Database = "Invalid",
@@ -102,7 +102,7 @@ public class CosmosRecordStoreTests : RecordStoreTests
   [Fact]
   public async Task Throws_NotFound_When_Adding_Event_With_Invalid_Container()
   {
-    var store = new CosmosRecordStore(Options.Create(new CosmosEventStoreOptions
+    var store = new CosmosRecordStore(Options.Create(new CosmosRecordStoreOptions
     {
       ConnectionString = _options.Value.ConnectionString,
       Database = _options.Value.Database,
@@ -117,7 +117,7 @@ public class CosmosRecordStoreTests : RecordStoreTests
   [Fact]
   public async Task Throws_Unauthorized_When_Querying_Events_With_Invalid_Options()
   {
-    var store = new CosmosRecordStore(Options.Create(new CosmosEventStoreOptions
+    var store = new CosmosRecordStore(Options.Create(new CosmosRecordStoreOptions
     {
       // Invalid Connection String
       ConnectionString = "AccountEndpoint=https://example.documents.azure.com:443/;AccountKey=JKnJg81PiP0kkqhCu0k3mKlEPEEBqlFxwM4eiyd3WX2HKUYAAglbc9vMRJQhDsUomD3VHpwrWO9O5nL4ENwLFw==;",
@@ -137,7 +137,7 @@ public class CosmosRecordStoreTests : RecordStoreTests
   [Fact]
   public async Task Throws_NotFound_When_Querying_Events_With_NonExistent_Database()
   {
-    var store = new CosmosRecordStore(Options.Create(new CosmosEventStoreOptions
+    var store = new CosmosRecordStore(Options.Create(new CosmosRecordStoreOptions
     {
       ConnectionString = _options.Value.ConnectionString,
       Database = "Invalid",
@@ -156,7 +156,7 @@ public class CosmosRecordStoreTests : RecordStoreTests
   [Fact]
   public async Task Throws_NotFound_When_Querying_Events_With_NonExistent_Container()
   {
-    var store = new CosmosRecordStore(Options.Create(new CosmosEventStoreOptions
+    var store = new CosmosRecordStore(Options.Create(new CosmosRecordStoreOptions
     {
       ConnectionString = _options.Value.ConnectionString,
       Database = _options.Value.Database,

@@ -32,7 +32,7 @@ public class Startup
     });
       
     // Configure Cosmos connections
-    services.Configure<CosmosEventStoreOptions>(Configuration.GetSection("Cosmos"));
+    services.Configure<CosmosRecordStoreOptions>(Configuration.GetSection("Cosmos"));
     services.AddSingleton<IRecordStore, CosmosRecordStore>();
     services.AddSingleton<IAggregateService, AggregateService>();
   }

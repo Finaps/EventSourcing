@@ -18,7 +18,7 @@ public class CosmosAggregateServiceTests : AggregateServiceTests
       .AddEnvironmentVariables()
       .Build();
 
-    var options = Options.Create(new CosmosEventStoreOptions
+    var options = Options.Create(new CosmosRecordStoreOptions
     {
       ConnectionString = configuration["Cosmos:ConnectionString"],
       Database = configuration["Cosmos:Database"],
