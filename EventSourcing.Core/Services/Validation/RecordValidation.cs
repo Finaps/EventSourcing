@@ -1,7 +1,15 @@
 namespace EventSourcing.Core;
 
+/// <summary>
+/// Record Validation
+/// </summary>
 public static class RecordValidation
 {
+  /// <summary>
+  /// Validate Snapshot
+  /// </summary>
+  /// <param name="partitionId">Partition Id <see cref="Snapshot"/> is expected to have</param>
+  /// <param name="snapshot"><see cref="Snapshot"/> to validate</param>
   public static void ValidateSnapshot(Guid partitionId, Snapshot snapshot)
   {
     if (snapshot.PartitionId != partitionId)
@@ -9,12 +17,12 @@ public static class RecordValidation
       
     ValidateRecord(snapshot);
   }
-  
-  public static void ValidateSnapshot(Snapshot snapshot)
-  {
-    ValidateRecord(snapshot);
-  }
-  
+
+  /// <summary>
+  /// Validate <see cref="Event"/> sequence
+  /// </summary>
+  /// <param name="partitionId">Partition Id this sequence is expected to be in</param>
+  /// <param name="events"><see cref="Event"/>s to validate</param>
   public static void ValidateEventSequence(Guid partitionId, IList<Event> events)
   {
     if (events == null) throw new ArgumentNullException(nameof(events));
@@ -42,7 +50,44 @@ public static class RecordValidation
       throw new RecordValidationException(message + $"Event indices must be consecutive. Found [ {string.Join(", ", events.Select(x => x.Index))} ]");
   }
 
-  public static void ValidateRecord(Event r)
+  /// <summary>
+  /// Validate compatibility of <see cref="Snapshot"/> with <see cref="Aggregate"/>
+  /// </summary>
+  /// <param name="a"><see cref="Aggregate"/></param>
+  /// <param name="s"><see cref="Snapshot"/></param>
+  public static void ValidateSnapshotForAggregate(Aggregate a, Snapshot s)
+  {
+    ValidateRecordForAggregate(a, s);
+  }
+
+  /// <summary>
+  /// Validate compatibility of <see cref="Event"/> with <see cref="Aggregate"/>
+  /// </summary>
+  /// <param name="a"><see cref="Aggregate"/></param>
+  /// <param name="e"><see cref="Event"/></param>
+  public static void ValidateEventForAggregate(Aggregate a, Event e)
+  {
+    ValidateRecordForAggregate(a, e);
+    
+    if (e.Index != a.Version)
+      Throw(e, $"{e.Type}.Index ({e.Index}) does not correspond with {a.Type}.Version ({a.Version})");
+  }
+
+  private static void ValidateRecordForAggregate(Aggregate a, Event r)
+  {
+    ValidateRecord(r);
+
+    if (r.AggregateId != a.Id)
+      Throw(r, $"{r.Type}.AggregateId ({r.AggregateId}) should equal {a.Type}.Id ({a.Id})");
+
+    if (r.AggregateType != a.Type)
+      Throw(r, $"{r.Type}.AggregateType ({r.AggregateType}) should equal ({a.Type}).Type ({a.Type})");
+    
+    if (r.PartitionId != a.PartitionId)
+      Throw(r, $"{r.Type}.PartitionId ({r.PartitionId}) should equal {a.Type}.PartitionId ({a.PartitionId})");
+  }
+  
+  private static void ValidateRecord(Event r)
   {
     if (r.AggregateId == Guid.Empty)
       Throw(r, $"{r.Type}.AggregateId should not be Guid.Empty");
@@ -60,33 +105,6 @@ public static class RecordValidation
 
     if(r.Type != typeString)
       Throw(r, $"{r.GetType().Name}.Type ({r.Type}) should equal to {typeString}");
-  }
-
-  public static void ValidateSnapshotForAggregate(Aggregate a, Snapshot s)
-  {
-    ValidateRecordForAggregate(a, s);
-  }
-
-  public static void ValidateEventForAggregate(Aggregate a, Event e)
-  {
-    ValidateRecordForAggregate(a, e);
-    
-    if (e.Index != a.Version)
-      Throw(e, $"{e.Type}.Index ({e.Index}) does not correspond with {a.Type}.Version ({a.Version})");
-  }
-
-  public static void ValidateRecordForAggregate(Aggregate a, Event r)
-  {
-    ValidateRecord(r);
-
-    if (r.AggregateId != a.Id)
-      Throw(r, $"{r.Type}.AggregateId ({r.AggregateId}) should equal {a.Type}.Id ({a.Id})");
-
-    if (r.AggregateType != a.Type)
-      Throw(r, $"{r.Type}.AggregateType ({r.AggregateType}) should equal ({a.Type}).Type ({a.Type})");
-    
-    if (r.PartitionId != a.PartitionId)
-      Throw(r, $"{r.Type}.PartitionId ({r.PartitionId}) should equal {a.Type}.PartitionId ({a.PartitionId})");
   }
 
   private static void Throw(Event r, string message) =>

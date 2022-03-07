@@ -31,7 +31,13 @@ Table of Contents
    8. [Querying Records](#8-querying-records)
    9. [Creating & Querying Projections](#9-creating--querying-projections)
 3. [Example Project](https://github.com/Finaps/EventSourcing/tree/main/EventSourcing.Example)
-   1. [Tests](https://github.com/Finaps/EventSourcing/tree/main/EventSourcing.Example.Tests)
+   1. [Example Project Tests](https://github.com/Finaps/EventSourcing/tree/main/EventSourcing.Example.Tests)
+4. [Concepts](#concepts)
+   1. [Records](#records)
+      1. [Events](#1-events)
+      2. [Snapshots](#2-snapshots)
+      3. [Projections](#3-projections)
+   2. [Aggregates](#aggregates)
 
 Installation
 ------------
@@ -412,3 +418,114 @@ Example Project
 
 For a more thorough example, check out the [Example Project](https://github.com/Finaps/EventSourcing/tree/main/EventSourcing.Example) 
 and corresponding [Example Tests](https://github.com/Finaps/EventSourcing/tree/main/EventSourcing.Example.Tests).
+
+Concepts
+--------
+
+### Records
+
+This package stores three types of [```Records```]("https://github.com/Finaps/EventSourcing/blob/feature/html-documentation/EventSourcing.Core/Records/Record.cs") using the
+[```IRecordStore```]("https://github.com/Finaps/EventSourcing/blob/feature/html-documentation/EventSourcing.Core/Services/RecordStore/IRecordStore.cs"):
+[```Events```]("https://github.com/Finaps/EventSourcing/blob/feature/html-documentation/EventSourcing.Core/Records/Event.cs"),
+[```Snapshots```]("https://github.com/Finaps/EventSourcing/blob/feature/html-documentation/EventSourcing.Core/Records/Snapshot.cs") and
+[```Projections```]("https://github.com/Finaps/EventSourcing/blob/feature/html-documentation/EventSourcing.Core/Records/Projection.cs").
+
+```Records``` are always defined with respect to an ```Aggregate```.
+
+The abstract base ```Record``` is defined below:
+
+```c#
+public abstract record Record
+{
+  public RecordKind Kind { get; }                   // = Event | Snapshot | Projection
+  public string Type { get; init; }                 // = nameof(<MyRecordType>)
+  public string? AggregateType { get; init; }       // = nameof(<MyAggregateType>)
+    
+  public Guid PartitionId { get; init; }            // = Aggregate.PartitionId
+  public Guid AggregateId { get; init; }            // = Aggregate.Id
+  public Guid RecordId { get; init; }               // = Guid.NewGuid()
+  
+  public DateTimeOffset Timestamp { get; init; }    // Event/Snapshot creation time, Projection update time
+}
+```
+
+#### 1. Events
+
+```Events``` are ```Records``` that describe what happened to an ```Aggregate```.
+They are added to an append only store and form the source of truth for an ```Aggregate```.
+
+The base ```Event``` is defined below:
+
+```c#
+public record Event : Record
+{
+  public long Index { get; init; }  // The index of this Event in the Event Stream
+}
+```
+
+#### 2. Snapshots
+
+```Snapshots``` are ```Events``` that describe the complete state of an ```Aggregate``` at a particular ```Event``` index.
+```Snapshots``` can be used to speed up the rehydration of ```Aggregates```.
+
+The base ```Snapshot``` is defined below:
+
+```c#
+public record Snapshot : Event;
+```
+
+#### 3. Projections
+
+```Projections``` are ```Records``` that describe the current state of an ```Aggregate``` (and hence the ```Event``` stream).
+```Projections``` can be used to speed up queries, especially those involving many ```Aggregates``` at the same time.
+
+The base ```Projection``` is defined below:
+
+```c#
+public record Projection : Record
+{
+  public string? FactoryType { get; init; }     // = nameof(<MyProjectionFactory>)
+  public long Version { get; init; }            // = Aggregate.Version
+  
+  public string Hash { get; init; }             // Projection Hash Code, see "Updating Projections"
+  public bool IsUpToDate { get; }               // True if Projection is up to date
+}
+```
+
+##### Updating Projections
+
+Unlike ```Events```, ```projections``` are not a source of truth, but depend on the following data:
+1. The ```Event``` stream
+2. The ```Aggregate.Apply``` logic
+3. The ```ProjectionFactory.CreateProjection``` logic
+
+In order to accurately reflect the current state, ```Projection```s have to be updated whenever any of these data changes.
+
+The first point, the ```Event``` stream, is trivial to solve: The ```AggregateService``` will simply update the ```Projection``` whenever ```Events``` are persisted.
+
+The last two points are less trivial, since they rely on user code.
+To provide a solution, the ```Projection.Hash``` stores a hash representation of the [IL Bytecode]("https://en.wikipedia.org/wiki/Common_Intermediate_Language") of the methods that define ```Projections```.
+When querying projections, we can compare the stored hash to the current hash to see whether the projection was created using up to date code.
+```Projection.IsUpToDate``` reflects this comparison.
+
+Now we know whether a ```Projection``` is out of date, we can actually update it using the following methods:
+1. Simply ```RehydrateAndPersist``` the aggregate with the corresponding ```AgregateType```, ```PartitionId``` and ```AggregateId```.
+2. Use the ```ProjectionUpdateService``` to bulk update may ```Projections``` at once.
+
+### Aggregates
+
+```Aggregates``` are the result of applying one or more ```Events```.
+
+The base ```Aggregate``` is defined below:
+
+```c#
+public abstract class Aggregate
+{
+  public string Type { get; init; }             // = nameof(<MyAggregateType>)
+  public Guid PartitionId { get; init; }        // = Guid.Empty (Can be used to partition data)
+  public Guid Id { get; init; }                 // Unique Aggregate Identifier
+  public long Version { get; private set; }     // The number of Events applied to this Aggregate
+  
+  protected abstract void Apply(Event e);       // Logic to apply Events
+}
+```

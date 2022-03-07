@@ -1,22 +1,28 @@
 namespace EventSourcing.Core;
 
 /// <summary>
-/// Event Migrator: Converting an <see cref="Record"/> to it's successive version
+/// Migrate <see cref="Event"/>s to newer versions
 /// </summary>
+/// <remarks>
+/// Use the <see cref="IEventMigrator"/> to migrate <see cref="Event"/>s to newer schema versions,
+/// when incompatible schema updates are inevitable.
+/// </remarks>
 public interface IEventMigrator
 {
   /// <summary>
-  /// Source: Type of the source <see cref="Record"/> to migrate
+  /// Type of the source <see cref="Event"/> to migrate
   /// </summary>
   Type Source { get; }
 
   /// <summary>
-  /// Target: Type of the target <see cref="Record"/> to migrate to
+  /// Type of the target <see cref="Event"/> to migrate to
   /// </summary>
   Type Target { get; }
 
   /// <summary>
-  /// Convert: Convert an <see cref="Record"/> to it's successive version
+  /// Migrate an <see cref="Event"/> to a newer schema version
   /// </summary>
-  Event Convert(Event record);
+  /// <param name="e"><see cref="Event"/> to migrate</param>
+  /// <returns>Migrated <see cref="Event"/></returns>
+  Event Migrate(Event e);
 }

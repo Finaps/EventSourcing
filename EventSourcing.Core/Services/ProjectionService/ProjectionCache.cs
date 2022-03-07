@@ -16,18 +16,11 @@ public static class ProjectionCache
     .Select(type => (IProjectionFactory) Activator.CreateInstance(type)!)
     .ToList();
 
-  public static readonly Dictionary<string, Type> AggregateTypes = Aggregates
-    .ToDictionary(x => x.Type, x => x.GetType());
-
   public static readonly Dictionary<Type, string> AggregateHashes = Aggregates
     .ToDictionary(x => x.GetType(), x => x.ComputeHash());
 
   public static readonly Dictionary<Type, List<IProjectionFactory>> FactoriesByAggregate = Factories
     .GroupBy(x => x.AggregateType)
-    .ToDictionary(x => x.Key, x => x.ToList());
-  
-  public static readonly Dictionary<Type, List<IProjectionFactory>> FactoriesByProjection = Factories
-    .GroupBy(x => x.ProjectionType)
     .ToDictionary(x => x.Key, x => x.ToList());
 
   public static readonly Dictionary<(Type, Type), IProjectionFactory> FactoryByAggregateAndProjection = Factories

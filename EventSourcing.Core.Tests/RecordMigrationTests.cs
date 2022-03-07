@@ -11,17 +11,17 @@ public abstract class RecordMigrationTests
 
   private class InvalidEventMigrator : EventMigrator<EmptyEvent, EmptyEvent>
   {
-    protected override EmptyEvent Convert(EmptyEvent e) => throw new NotImplementedException();
+    protected override EmptyEvent Migrate(EmptyEvent e) => throw new NotImplementedException();
   }
   
   private class InvalidPingEventMigrator : EventMigrator<EmptyEvent, MockEvent>
   {
-    protected override MockEvent Convert(EmptyEvent e) => throw new NotImplementedException();
+    protected override MockEvent Migrate(EmptyEvent e) => throw new NotImplementedException();
   }
   
   private class InvalidPongEventMigrator : EventMigrator<MockEvent, EmptyEvent>
   {
-    protected override EmptyEvent Convert(MockEvent e) => throw new NotImplementedException();
+    protected override EmptyEvent Migrate(MockEvent e) => throw new NotImplementedException();
   }
 
   [Fact]

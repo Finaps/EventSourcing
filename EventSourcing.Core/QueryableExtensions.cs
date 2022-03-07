@@ -1,5 +1,8 @@
 namespace EventSourcing.Core;
 
+/// <summary>
+/// Provides Extension Methods to work with IQueryable & IAsyncEnumerable types
+/// </summary>
 public static class QueryableExtensions
 {
   /// <summary>

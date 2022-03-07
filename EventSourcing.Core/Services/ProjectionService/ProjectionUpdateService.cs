@@ -1,16 +1,43 @@
 namespace EventSourcing.Core;
 
+/// <summary>
+/// Update <see cref="Projection"/>s in bulk, by rehydrating and persisting their source <see cref="Aggregate"/>s
+/// </summary>
+/// <remarks>
+/// <para>
+/// To update <see cref="Projection"/>s of a particular <see cref="Aggregate"/>,
+/// rehydrate and persist this aggregate using the <see cref="IAggregateService"/>
+/// </para>
+/// <para>
+/// The <see cref="Projection"/>.<see cref="Projection.Hash"/> property is used to decide whether it is out of date.
+/// This hash is determined at projection creation time based on the
+/// <see cref="Aggregate"/>.<see cref="Aggregate.ComputeHash"/> and <see cref="IProjectionFactory"/>.<see cref="IProjectionFactory"/>.<see cref="IProjectionFactory.ComputeHash"/> methods.
+/// </para>
+/// </remarks>
+/// <seealso cref="IAggregateService"/>
+/// <seealso cref="Aggregate"/>
+/// <seealso cref="IProjectionFactory"/>
 public class ProjectionUpdateService : IProjectionUpdateService
 {
   private readonly IAggregateService _service;
   private readonly IRecordStore _store;
 
+  /// <summary>
+  /// Create new <see cref="ProjectionUpdateService"/>
+  /// </summary>
+  /// <param name="service"><see cref="IAggregateService"/></param>
+  /// <param name="store"><see cref="IRecordStore"/></param>
   public ProjectionUpdateService(IAggregateService service, IRecordStore store)
   {
     _service = service;
     _store = store;
   }
   
+  /// <summary>
+  /// Update all <see cref="Projection"/>s for a particular <see cref="Aggregate"/> type
+  /// </summary>
+  /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
+  /// <typeparam name="TAggregate"><see cref="Aggregate"/> type</typeparam>
   public async Task UpdateAllProjectionsAsync<TAggregate>(CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
   {
     // Get Projection Factories for TAggregate
@@ -59,6 +86,12 @@ public class ProjectionUpdateService : IProjectionUpdateService
     if (transaction != null) await transaction.CommitAsync(cancellationToken);
   }
 
+  /// <summary>
+  /// Update specified <see cref="Projection"/> type for a particular <see cref="Aggregate"/> type
+  /// </summary>
+  /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
+  /// <typeparam name="TAggregate"><see cref="Aggregate"/> type</typeparam>
+  /// <typeparam name="TProjection"><see cref="Projection"/> type</typeparam>
   public async Task UpdateAllProjectionsAsync<TAggregate, TProjection>(CancellationToken cancellationToken = default)
     where TAggregate : Aggregate, new() where TProjection : Projection, new()
   {

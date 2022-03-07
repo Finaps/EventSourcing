@@ -8,17 +8,22 @@ namespace EventSourcing.Core;
 public abstract class SnapshotFactory<TAggregate, TSnapshot> : ISnapshotFactory
   where TAggregate : Aggregate where TSnapshot : Snapshot
 {
+  /// <inheritdoc />
   public Type AggregateType => typeof(TAggregate);
+
+  /// <inheritdoc />
   public Type SnapshotType => typeof(TSnapshot);
 
+  /// <inheritdoc />
   public abstract long SnapshotInterval { get; }
   
-
+  /// <inheritdoc />
   public bool IsSnapshotIntervalExceeded(Aggregate aggregate) =>
     SnapshotInterval != 0 && aggregate.UncommittedEvents.Any() && 
     aggregate.UncommittedEvents.First().Index / SnapshotInterval != 
     (aggregate.UncommittedEvents.Last().Index + 1) / SnapshotInterval;
-  
+
+  /// <inheritdoc />
   public Snapshot CreateSnapshot(Aggregate aggregate)
   {
     if (aggregate.Version == 0)

@@ -55,6 +55,16 @@ public abstract record Record
   public string Type { get; init; }
   
   /// <summary>
+  /// Aggregate Type string.
+  /// </summary>
+  /// <remarks>
+  /// <para>
+  /// Set to <see cref="Aggregate"/>.<see cref="Aggregate.Type"/> when <see cref="Event"/> is added to an Aggregate.
+  /// </para>
+  /// </remarks>
+  public string? AggregateType { get; init; }
+  
+  /// <summary>
   /// Unique Partition identifier.
   /// </summary>
   /// <remarks>
@@ -71,17 +81,7 @@ public abstract record Record
   /// </para>
   /// </remarks>
   public Guid PartitionId { get; init; }
-  
-  /// <summary>
-  /// Aggregate Type string.
-  /// </summary>
-  /// <remarks>
-  /// <para>
-  /// Set to <see cref="Aggregate"/>.<see cref="Aggregate.Type"/> when <see cref="Event"/> is added to an Aggregate.
-  /// </para>
-  /// </remarks>
-  public string? AggregateType { get; init; }
-  
+
   /// <summary>
   /// Unique Aggregate identifier.
   /// </summary>

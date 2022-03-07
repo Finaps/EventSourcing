@@ -187,7 +187,7 @@ public class CosmosRecordStore : IRecordStore
   public IRecordTransaction CreateTransaction(Guid partitionId) =>
     new CosmosRecordTransaction(_container, partitionId);
 
-  public async Task<int> DeleteAggregateAllAsync(Guid partitionId, Guid aggregateId)
+  public async Task<int> DeleteAggregateAsync(Guid partitionId, Guid aggregateId)
   {
     if (!_deleteAggregateAllsprocInitialized)
       await InitializeDeleteAggregateAllSproc();
