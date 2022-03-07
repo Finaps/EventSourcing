@@ -9,9 +9,13 @@ namespace EventSourcing.Core;
 /// <typeparam name="TProjection"><see cref="Projection"/> type</typeparam>
 public abstract class ProjectionFactory<TAggregate, TProjection> : IProjectionFactory where TAggregate : Aggregate where TProjection : Projection
 {
+  /// <inheritdoc />
   public Type AggregateType => typeof(TAggregate);
+
+  /// <inheritdoc />
   public Type ProjectionType => typeof(TProjection);
-  
+
+  /// <inheritdoc />
   public Projection CreateProjection(Aggregate aggregate) => CreateProjection((TAggregate) aggregate) with
   {
     AggregateType = aggregate.Type,

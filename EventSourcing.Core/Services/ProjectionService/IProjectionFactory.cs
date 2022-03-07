@@ -5,7 +5,14 @@ namespace EventSourcing.Core;
 /// </summary>
 public interface IProjectionFactory : IHashable
 {
+  /// <summary>
+  /// Source <see cref="Aggregate"/> type
+  /// </summary>
   Type AggregateType { get; }
+  
+  /// <summary>
+  /// Destination <see cref="Projection"/> type
+  /// </summary>
   Type ProjectionType { get; }
   
   /// <summary>

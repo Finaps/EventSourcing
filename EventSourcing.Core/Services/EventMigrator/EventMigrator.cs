@@ -1,9 +1,13 @@
 namespace EventSourcing.Core;
 
+/// <inheritdoc />
 public abstract class EventMigrator<TSource, TTarget> : IEventMigrator
   where TSource : Event where TTarget : Event
 {
+  /// <inheritdoc />
   public Type Source => typeof(TSource);
+
+  /// <inheritdoc />
   public Type Target => typeof(TTarget);
 
   protected EventMigrator()
@@ -12,19 +16,25 @@ public abstract class EventMigrator<TSource, TTarget> : IEventMigrator
       throw new ArgumentException("Record Migrator Source should not be equal to Target");
   }
 
-  public Event Convert(Event record) =>
-    Convert((TSource) record) with
+  /// <inheritdoc />
+  public Event Migrate(Event e) =>
+    Migrate((TSource) e) with
     {
       Type = RecordTypeCache.GetAssemblyRecordTypeString(Target),
-      AggregateType = record.AggregateType,
+      AggregateType = e.AggregateType,
       
-      PartitionId = record.PartitionId,
-      AggregateId = record.AggregateId,
-      RecordId = record.RecordId,
+      PartitionId = e.PartitionId,
+      AggregateId = e.AggregateId,
+      RecordId = e.RecordId,
       
-      Index = record.Index,
-      Timestamp = record.Timestamp
+      Index = e.Index,
+      Timestamp = e.Timestamp
     };
 
-  protected abstract TTarget Convert(TSource e);
+  /// <summary>
+  /// Migrate an <see cref="Event"/> to a newer schema version
+  /// </summary>
+  /// <param name="e"><see cref="Event"/> to migrate</param>
+  /// <returns>Migrated <see cref="Event"/></returns>
+  protected abstract TTarget Migrate(TSource e);
 }

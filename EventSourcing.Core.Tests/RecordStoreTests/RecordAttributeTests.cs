@@ -9,7 +9,7 @@ public abstract partial class RecordStoreTests
     public async Task Can_Store_Attribute_Event_With_Correct_Type()
     {
         var e = new EmptyAggregate().Apply(new AttributeEvent("something"));
-        var recordType = e.GetType().GetCustomAttribute<RecordTypeAttribute>()!.Value;
+        var recordType = e.GetType().GetCustomAttribute<RecordTypeAttribute>()!.Type;
 
         await RecordStore.AddEventsAsync(new List<Event>{e});
         var result = await RecordStore.Events
@@ -33,7 +33,7 @@ public abstract partial class RecordStoreTests
             .FirstOrDefaultAsync() as AttributeEvent;
 
         Assert.NotNull(result);
-        Assert.Equal(typeof(AttributeEvent).GetCustomAttribute<RecordTypeAttribute>()!.Value, result!.Type);
+        Assert.Equal(typeof(AttributeEvent).GetCustomAttribute<RecordTypeAttribute>()!.Type, result!.Type);
         Assert.Equal(e.SomeString, result.SomeString);
     }
 }

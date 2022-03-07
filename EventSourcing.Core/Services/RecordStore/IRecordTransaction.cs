@@ -1,5 +1,8 @@
 namespace EventSourcing.Core;
 
+/// <summary>
+/// ACID <see cref="IRecordTransaction"/> of <see cref="Event"/>s, <see cref="Snapshot"/>s & <see cref="Projection"/>s
+/// </summary>
 public interface IRecordTransaction
 {
   /// <summary>
@@ -34,12 +37,35 @@ public interface IRecordTransaction
   /// <returns></returns>
   IRecordTransaction UpsertProjection(Projection projection);
 
+  /// <summary>
+  /// Delete all <see cref="Event"/>s of a particular <see cref="Aggregate"/>
+  /// </summary>
+  /// <param name="aggregateId"><see cref="Aggregate"/>.<see cref="Aggregate.Id"/></param>
+  /// <param name="index"><see cref="Event.Index"/> of last <see cref="Event"/> (a.k.a. <see cref="Aggregate"/>.<see cref="Aggregate.Version"/> - 1)</param>
+  /// <remarks>
+  /// For a more convenient method, refer to the async delete methods in <see cref="IRecordStore"/>
+  /// </remarks>
+  /// <returns></returns>
   IRecordTransaction DeleteAllEvents(Guid aggregateId, long index);
+  
+  /// <summary>
+  /// Delete <see cref="Snapshot"/> at a particular <see cref="Snapshot.Index"/> 
+  /// </summary>
+  /// <param name="aggregateId"><see cref="Aggregate"/>.<see cref="Aggregate.Id"/></param>
+  /// <param name="index"><see cref="Snapshot"/>.<see cref="Snapshot.Index"/> to delete</param>
+  /// <returns></returns>
   IRecordTransaction DeleteSnapshot(Guid aggregateId, long index);
+  
+  /// <summary>
+  /// Delete <see cref="Projection"/>
+  /// </summary>
+  /// <param name="aggregateId"><see cref="Projection"/>.<see cref="Projection.AggregateId"/></param>
+  /// <param name="type"><see cref="Projection"/>.<see cref="Projection.Type"/> to delete</param>
+  /// <returns></returns>
   IRecordTransaction DeleteProjection(Guid aggregateId, string type);
 
   /// <summary>
-  /// Commit Transaction
+  /// Commit ACID Record Transaction
   /// </summary>
   /// <exception cref="RecordStoreException">
   /// Thrown when a conflict occurs when commiting transaction,

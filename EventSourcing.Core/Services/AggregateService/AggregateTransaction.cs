@@ -42,7 +42,7 @@ public class AggregateTransaction : IAggregateTransaction
   {
     await _recordTransaction.CommitAsync(cancellationToken);
 
-    foreach (var aggregate in _aggregates)
-      aggregate.ClearUncommittedEvents();
+    // If Transaction succeeded: Clear all uncommitted Events (they have been committed now)
+    foreach (var aggregate in _aggregates) aggregate.ClearUncommittedEvents();
   }
 }

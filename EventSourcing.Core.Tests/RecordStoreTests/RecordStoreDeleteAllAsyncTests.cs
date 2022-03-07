@@ -15,7 +15,7 @@ public abstract partial class RecordStoreTests
 
         await RecordStore.AddEventsAsync(events);
         
-        var deleted = await RecordStore.DeleteAggregateAllAsync(Guid.Empty, aggregate.Id);
+        var deleted = await RecordStore.DeleteAggregateAsync(Guid.Empty, aggregate.Id);
         
         var count = await RecordStore.Events
             .Where(x => x.AggregateId == aggregate.Id)
@@ -53,7 +53,7 @@ public abstract partial class RecordStoreTests
         Assert.NotNull(await RecordStore.GetProjectionByIdAsync<EmptyProjection>(projection.AggregateId));
         
         // Delete all items created
-        var deleted = await RecordStore.DeleteAggregateAllAsync(Guid.Empty, aggregate.Id);
+        var deleted = await RecordStore.DeleteAggregateAsync(Guid.Empty, aggregate.Id);
         
         var eventsCount = await RecordStore.Events
             .Where(x => x.AggregateId == aggregate.Id)
@@ -92,7 +92,7 @@ public abstract partial class RecordStoreTests
             events.Add(aggregate.Apply(new EmptyEvent()));
 
         await RecordStore.AddEventsAsync(events);
-        var deleted = await RecordStore.DeleteAggregateAllAsync(Guid.Empty, aggregate.Id);
+        var deleted = await RecordStore.DeleteAggregateAsync(Guid.Empty, aggregate.Id);
         
         var count = await RecordStore.Events
             .Where(x => x.AggregateId == aggregate.Id)

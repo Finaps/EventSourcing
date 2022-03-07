@@ -11,6 +11,13 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
   private readonly RecordTypeCache _recordTypeCache;
   private readonly EventMigratorService _eventMigratorService;
 
+  /// <summary>
+  /// Create <see cref="RecordConverter{TRecord}"/>
+  /// </summary>
+  /// <param name="options">
+  /// Optional <see cref="RecordConverterOptions"/> to override the <see cref="Record"/> types
+  /// and <see cref="IEventMigrator"/> types that are used for deserialization and migrating.
+  /// </param>
   public RecordConverter(RecordConverterOptions? options = null)
   {
     _recordTypeCache = new RecordTypeCache(options?.RecordTypes);

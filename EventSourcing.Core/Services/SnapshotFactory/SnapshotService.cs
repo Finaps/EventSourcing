@@ -1,6 +1,9 @@
 namespace EventSourcing.Core;
 
-public static class SnapshotService
+/// <summary>
+/// Create all <see cref="Snapshot"/>s for a particular <see cref="Aggregate"/> type
+/// </summary>
+internal static class SnapshotService
 {
   private static readonly List<ISnapshotFactory> SnapshotFactories = AppDomain.CurrentDomain
     .GetAssemblies()
@@ -13,6 +16,11 @@ public static class SnapshotService
     .GroupBy(x => x.AggregateType)
     .ToDictionary(x => x.Key, x => x.ToList());
 
+  /// <summary>
+  /// Create all <see cref="Snapshot"/>s for a particular <see cref="Aggregate"/>
+  /// </summary>
+  /// <param name="aggregate"><see cref="Aggregate"/> to create snapshot for</param>
+  /// <returns></returns>
   public static List<Snapshot> CreateSnapshots(Aggregate aggregate) => 
     AggregateSnapshotFactories.TryGetValue(aggregate.GetType(), out var factories)
       ? factories

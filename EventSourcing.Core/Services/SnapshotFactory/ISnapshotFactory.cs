@@ -5,7 +5,14 @@ namespace EventSourcing.Core;
 /// </summary>
 public interface ISnapshotFactory
 {
+  /// <summary>
+  /// Source <see cref="Aggregate"/> type
+  /// </summary>
   Type AggregateType { get; }
+  
+  /// <summary>
+  /// Destination <see cref="Snapshot"/> type
+  /// </summary>
   Type SnapshotType { get; }
   
   /// <summary>
