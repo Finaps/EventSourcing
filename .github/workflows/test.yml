@@ -8,19 +8,40 @@ on:
 
 jobs:
   test:
-
     runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:14.2-alpine
+        ports:
+          - 6543:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: Pass@word
+          POSTGRES_DB: RecordStore
 
     steps:
     - uses: actions/checkout@v2
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 6.0.x
+
     - name: Restore dependencies
       run: dotnet restore
+
     - name: Build
       run: dotnet build --no-restore
+
+    - name: Update databases
+      run: |
+        dotnet tool install --global dotnet-ef
+        dotnet tool restore
+        dotnet ef database update -p EventSourcing.EF.Tests.Postgres
+      env:
+        ASPNETCORE_ENVIRONMENT: Development
+
     - name: Test
       run: dotnet test --no-build --verbosity normal
       env:
