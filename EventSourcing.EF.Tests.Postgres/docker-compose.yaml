@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   database:
-    image: postgres:11.14-alpine
+    image: postgres:14.2-alpine
     ports:
       - 6543:5432
     environment:
