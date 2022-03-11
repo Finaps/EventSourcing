@@ -12,13 +12,13 @@ using Xunit;
 
 namespace EventSourcing.Cosmos.Tests;
 
-public class CosmosRecordStoreTests : RecordStoreTests
+public class CosmosEventSourcingTests : EventSourcingTests
 {
   private readonly IOptions<CosmosRecordStoreOptions> _options;
 
   protected override IRecordStore RecordStore { get; }
 
-  public CosmosRecordStoreTests()
+  public CosmosEventSourcingTests()
   {
     var configuration = new ConfigurationBuilder()
       .AddJsonFile("appsettings.json", false)

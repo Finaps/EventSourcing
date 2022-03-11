@@ -4,9 +4,8 @@ using EventSourcing.Core.Tests;
 
 namespace EventSourcing.EF.Tests;
 
-public class EntityFrameworkAggregateServiceTests : AggregateServiceTests
+public class PostgresEventSourcingTests : EventSourcingTests
 {
   protected override IRecordStore RecordStore =>
     new EntityFrameworkRecordStore(new TestContextFactory().CreateDbContext(Array.Empty<string>()));
-  protected override IAggregateService AggregateService => new AggregateService(RecordStore);
 }

@@ -4,10 +4,8 @@ using EventSourcing.Core.Tests.Mocks;
 
 namespace EventSourcing.Core.Tests;
 
-public abstract class RecordMigrationTests
+public abstract partial class EventSourcingTests
 {
-  protected abstract IRecordStore RecordStore { get; }
-  protected abstract IAggregateService AggregateService { get; }
 
   private class InvalidEventMigrator : EventMigrator<EmptyEvent, EmptyEvent>
   {

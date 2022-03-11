@@ -2,7 +2,7 @@ using EventSourcing.Core.Tests.Mocks;
 
 namespace EventSourcing.Core.Tests;
 
-public abstract partial class AggregateServiceTests
+public abstract partial class EventSourcingTests
 {
   private static MockAggregate CreateMockAggregate()
   {
