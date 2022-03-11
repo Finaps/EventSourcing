@@ -25,16 +25,6 @@ public interface IRecordStore
   /// </remarks>
   /// <seealso cref="Snapshot"/>
   IQueryable<Snapshot> Snapshots { get; }
-  
-  /// <summary>
-  /// Queryable and AsyncEnumerable Collection of <see cref="Projection"/>s
-  /// </summary>
-  /// <remarks>
-  /// To finalize the query, call <see cref="QueryableExtensions.AsAsyncEnumerable{T}"/>
-  /// and use <c>System.Linq.Async</c>'s extension methods to get the results of your query
-  /// </remarks>
-  IQueryable<Projection> Projections { get; }
-
 
   /// <summary>
   /// Queryable and AsyncEnumerable Collection of <see cref="Projection"/>s
@@ -54,17 +44,7 @@ public interface IRecordStore
   /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
   /// <typeparam name="TProjection"><see cref="Projection"/> type</typeparam>
   /// <returns><see cref="Projection"/> of type <see cref="TProjection"/></returns>
-  Task<TProjection> GetProjectionByIdAsync<TProjection>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection, new();
-  
-  /// <summary>
-  /// Get <see cref="Projection"/> by <see cref="Projection.AggregateId"/> and default <see cref="Projection.PartitionId"/>
-  /// </summary>
-  /// <param name="aggregateId"><see cref="Projection"/>.<see cref="Projection.AggregateId"/></param>
-  /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
-  /// <typeparam name="TProjection"><see cref="Projection"/> type</typeparam>
-  /// <returns><see cref="Projection"/> of type <see cref="TProjection"/></returns>
-  async Task<TProjection> GetProjectionByIdAsync<TProjection>(Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection, new() =>
-    await GetProjectionByIdAsync<TProjection>(Guid.Empty, aggregateId, cancellationToken);
+  Task<TProjection?> GetProjectionByIdAsync<TProjection>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection, new();
 
   /// <summary>
   /// Store <see cref="Event"/>s to the <see cref="IRecordStore"/>
@@ -103,13 +83,6 @@ public interface IRecordStore
   Task DeleteAllEventsAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default);
 
   /// <summary>
-  /// Delete <see cref="Event"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
-  /// </summary>
-  /// <param name="aggregateId">Aggregate Id</param>
-  /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
-  Task DeleteAllEventsAsync(Guid aggregateId, CancellationToken cancellationToken = default);
-  
-  /// <summary>
   /// Delete <see cref="Snapshot"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
   /// </summary>
   /// <param name="partitionId">Aggregate Partition Id</param>
@@ -117,13 +90,6 @@ public interface IRecordStore
   /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
   /// <exception cref="RecordStoreException">Thrown when conflicts occur when deleting <see cref="Snapshot"/>s</exception>
   Task DeleteAllSnapshotsAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default);
-
-  /// <summary>
-  /// Delete <see cref="Snapshot"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
-  /// </summary>
-  /// <param name="aggregateId">Aggregate Id</param>
-  /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
-  Task DeleteAllSnapshotsAsync(Guid aggregateId, CancellationToken cancellationToken = default);
 
   /// <summary>
   /// Delete <see cref="Snapshot"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
@@ -136,14 +102,6 @@ public interface IRecordStore
   Task DeleteSnapshotAsync(Guid partitionId, Guid aggregateId, long index, CancellationToken cancellationToken = default);
 
   /// <summary>
-  /// Delete <see cref="Snapshot"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
-  /// </summary>
-  /// <param name="aggregateId">Aggregate Id</param>
-  /// <param name="index"><see cref="Snapshot"/> <see cref="Snapshot.Index"/></param>
-  /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
-  Task DeleteSnapshotAsync(Guid aggregateId, long index, CancellationToken cancellationToken = default);
-  
-  /// <summary>
   /// Delete <see cref="Projection"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
   /// </summary>
   /// <param name="partitionId">Aggregate Partition Id</param>
@@ -155,13 +113,6 @@ public interface IRecordStore
   /// <summary>
   /// Delete <see cref="Projection"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
   /// </summary>
-  /// <param name="aggregateId">Aggregate Id</param>
-  /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
-  Task DeleteAllProjectionsAsync(Guid aggregateId, CancellationToken cancellationToken = default);
-  
-  /// <summary>
-  /// Delete <see cref="Projection"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
-  /// </summary>
   /// <param name="partitionId">Aggregate Partition Id</param>
   /// <param name="aggregateId">Aggregate Id</param>
   /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
@@ -169,17 +120,10 @@ public interface IRecordStore
   Task DeleteProjectionAsync<TProjection>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection, new();
 
   /// <summary>
-  /// Delete <see cref="Projection"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
-  /// </summary>
-  /// <param name="aggregateId">Aggregate Id</param>
-  /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
-  Task DeleteProjectionAsync<TProjection>(Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection, new();
-  
-  /// <summary>
   /// Delete all <see cref="Event"/>s, <see cref="Snapshot"/>s and <see cref="Projection"/>s for an <see cref="Aggregate"/>
   /// </summary>
   /// <returns>Number of items deleted from <see cref="IRecordStore"/></returns>
-  Task<int> DeleteAggregateAsync(Guid partitionId, Guid aggregateId);
+  Task<int> DeleteAggregateAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default);
 
   /// <summary>
   /// Create Record Transaction
@@ -188,9 +132,65 @@ public interface IRecordStore
   /// <returns></returns>
   IRecordTransaction CreateTransaction(Guid partitionId);
 
+  #region DefaultPartitionIdOverloads
+  
+  /// <summary>
+  /// Get <see cref="Projection"/> by <see cref="Projection.AggregateId"/> and default <see cref="Projection.PartitionId"/>
+  /// </summary>
+  /// <param name="aggregateId"><see cref="Projection"/>.<see cref="Projection.AggregateId"/></param>
+  /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
+  /// <typeparam name="TProjection"><see cref="Projection"/> type</typeparam>
+  /// <returns><see cref="Projection"/> of type <see cref="TProjection"/></returns>
+  async Task<TProjection?> GetProjectionByIdAsync<TProjection>(Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection, new() =>
+    await GetProjectionByIdAsync<TProjection>(Guid.Empty, aggregateId, cancellationToken);
+
+  /// <summary>
+  /// Delete <see cref="Event"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
+  /// </summary>
+  /// <param name="aggregateId">Aggregate Id</param>
+  /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
+  async Task DeleteAllEventsAsync(Guid aggregateId, CancellationToken cancellationToken = default) =>
+    await DeleteAllEventsAsync(Guid.Empty, aggregateId, cancellationToken);
+
+  /// <summary>
+  /// Delete <see cref="Snapshot"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
+  /// </summary>
+  /// <param name="aggregateId">Aggregate Id</param>
+  /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
+  async Task DeleteAllSnapshotsAsync(Guid aggregateId, CancellationToken cancellationToken = default) =>
+    await DeleteAllSnapshotsAsync(Guid.Empty, aggregateId, cancellationToken);
+
+  /// <summary>
+  /// Delete <see cref="Snapshot"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
+  /// </summary>
+  /// <param name="aggregateId">Aggregate Id</param>
+  /// <param name="index"><see cref="Snapshot"/> <see cref="Snapshot.Index"/></param>
+  /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
+  async Task DeleteSnapshotAsync(Guid aggregateId, long index, CancellationToken cancellationToken = default) =>
+    await DeleteSnapshotAsync(Guid.Empty, aggregateId, index, cancellationToken);
+
+  /// <summary>
+  /// Delete <see cref="Projection"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
+  /// </summary>
+  /// <param name="aggregateId">Aggregate Id</param>
+  /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
+  async Task DeleteAllProjectionsAsync(Guid aggregateId, CancellationToken cancellationToken = default) =>
+    await DeleteAllProjectionsAsync(Guid.Empty, aggregateId, cancellationToken);
+
+  /// <summary>
+  /// Delete <see cref="Projection"/>s for an <see cref="Aggregate"/> from the <see cref="IRecordStore"/>
+  /// </summary>
+  /// <param name="aggregateId">Aggregate Id</param>
+  /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
+  async Task DeleteProjectionAsync<TProjection>(Guid aggregateId, CancellationToken cancellationToken = default)
+    where TProjection : Projection, new() =>
+    await DeleteProjectionAsync<TProjection>(Guid.Empty, aggregateId, cancellationToken);
+
   /// <summary>
   /// Create Record Transaction for <see cref="Guid"/>.<see cref="Guid.Empty"/> partition
   /// </summary>
   /// <returns></returns>
-  IRecordTransaction CreateTransaction();
+  IRecordTransaction CreateTransaction() => CreateTransaction(Guid.Empty);
+
+  #endregion
 }

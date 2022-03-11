@@ -13,7 +13,7 @@ public abstract partial class RecordStoreTests
 
         await RecordStore.AddEventsAsync(new List<Event>{e});
         var result = await RecordStore.Events
-            .Where(r => r.RecordId == e.RecordId && r.Type == recordType)
+            .Where(x => x.Type == recordType && x.AggregateId == e.AggregateId)
             .AsAsyncEnumerable()
             .FirstOrDefaultAsync() as AttributeEvent;
 
@@ -28,7 +28,7 @@ public abstract partial class RecordStoreTests
         await RecordStore.AddEventsAsync(new List<Event>{e});
 
         var result = await RecordStore.Events
-            .Where(r => r.RecordId == e.RecordId)
+            .Where(x => x.Type == e.Type && x.AggregateId == e.AggregateId)
             .AsAsyncEnumerable()
             .FirstOrDefaultAsync() as AttributeEvent;
 

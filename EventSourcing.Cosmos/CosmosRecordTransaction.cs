@@ -72,7 +72,7 @@ public class CosmosRecordTransaction : IRecordTransaction
   public IRecordTransaction AddSnapshot(Snapshot snapshot)
   {
     RecordValidation.ValidateSnapshot(PartitionId, snapshot);
-    _batch.UpsertItem(snapshot, CosmosRecordStore.BatchItemRequestOptions);
+    _batch.CreateItem(snapshot, CosmosRecordStore.BatchItemRequestOptions);
     _actions.Add((CosmosEventTransactionAction.CreateSnapshot, snapshot));
 
     return this;

@@ -181,16 +181,4 @@ public abstract partial class AggregateServiceTests
     Assert.Equal(80, result1?.Balance);
     Assert.Equal(20, result2?.Balance);
   }
-
-  [Fact]
-  public async Task Can_Get_BankAccount_Projections()
-  {
-    var projections = await RecordStore.GetProjections<BankAccountProjection>()
-      .OrderBy(x => x.Name)
-      .Take(10)
-      .AsAsyncEnumerable()
-      .ToListAsync();
-    
-    Assert.Equal(10, projections.Count);
-  }
 }
