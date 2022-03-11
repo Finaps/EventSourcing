@@ -2,7 +2,7 @@ using EventSourcing.Core.Tests.Mocks;
 
 namespace EventSourcing.Core.Tests;
 
-public abstract partial class RecordStoreTests
+public abstract partial class EventSourcingTests
 {
   [Fact]
   public async Task Cannot_Add_Event_With_Duplicate_AggregateId_And_Version()

@@ -2,12 +2,8 @@ using EventSourcing.Core.Tests.Mocks;
 
 namespace EventSourcing.Core.Tests;
 
-public abstract partial class AggregateServiceTests
+public abstract partial class EventSourcingTests
 {
-  protected abstract IRecordStore RecordStore { get; }
-  protected abstract IAggregateService AggregateService { get; }
-  protected IProjectionUpdateService ProjectionUpdateService =>
-    new ProjectionUpdateService(AggregateService, RecordStore);
 
   [Fact]
   public async Task Can_Persist_Event()

@@ -106,7 +106,7 @@ public class BankAccountProjectionFactory : ProjectionFactory<BankAccount, BankA
   };
 }
 
-public abstract partial class AggregateServiceTests
+public abstract partial class EventSourcingTests
 {
   [Fact]
   public async Task Can_Create_And_Persist_BankAccount()
