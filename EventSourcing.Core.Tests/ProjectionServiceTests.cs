@@ -22,7 +22,7 @@ public abstract partial class AggregateServiceTests
         MockDecimal = 9.99m,
         MockDouble = 2.71828
       },
-      MockNestedClassList = new List<MockNestedRecord>
+      MockNestedRecordList = new List<MockNestedRecordItem>
       {
         new ()
         {
@@ -40,7 +40,7 @@ public abstract partial class AggregateServiceTests
         }
       },
       MockFloatList = new List<float> { .1f, .2f, .3f },
-      MockStringSet = new HashSet<string> { "No", "Duplicates", "Duplicates", "Here" }
+      MockStringSet = new List<string> { "No", "Duplicates", "Duplicates", "Here" }
     });
 
     return aggregate;
@@ -54,10 +54,10 @@ public abstract partial class AggregateServiceTests
     Assert.Equal(default, projection.MockDouble);
     Assert.Equal(default, projection.MockEnum);
     Assert.Equal(default, projection.MockFlagEnum);
-    Assert.Equal(default, projection.MockNestedRecord);
-    Assert.Equal(default, projection.MockNestedClassList);
-    Assert.Equal(default, projection.MockFloatList);
-    Assert.Equal(default, projection.MockStringSet);
+    Assert.Equal(new MockNestedRecord(), projection.MockNestedRecord);
+    Assert.Equal(new List<MockNestedRecordItem>(), projection.MockNestedRecordList);
+    Assert.Equal(new List<float>(), projection.MockFloatList);
+    Assert.Equal(new List<string>(), projection.MockStringSet);
   }
 
   private static void AssertEqualMock(IMock expected, IMock actual)
@@ -69,7 +69,7 @@ public abstract partial class AggregateServiceTests
     Assert.Equal(expected.MockEnum, actual.MockEnum);
     Assert.Equal(expected.MockFlagEnum, actual.MockFlagEnum);
     Assert.Equal(expected.MockNestedRecord, actual.MockNestedRecord);
-    Assert.Equal(expected.MockNestedClassList, actual.MockNestedClassList);
+    Assert.Equal(expected.MockNestedRecordList, actual.MockNestedRecordList);
     Assert.Equal(expected.MockFloatList, actual.MockFloatList);
     Assert.Equal(expected.MockStringSet, actual.MockStringSet);
   }
@@ -102,7 +102,12 @@ public abstract partial class AggregateServiceTests
       AggregateType = aggregate.Type,
       AggregateId = aggregate.Id,
       FactoryType = nameof(MockAggregateProjectionFactory),
-      Hash = "OUTDATED"
+      Hash = "OUTDATED",
+      
+      MockNestedRecord = new MockNestedRecord(),
+      MockNestedRecordList = new List<MockNestedRecordItem>(),
+      MockFloatList = new List<float>(),
+      MockStringSet = new List<string>()
     });
     
     var before = await RecordStore
@@ -114,40 +119,6 @@ public abstract partial class AggregateServiceTests
     AssertDefaultMock(before);
 
     await ProjectionUpdateService.UpdateAllProjectionsAsync<MockAggregate, MockAggregateProjection>();
-
-    var after = await RecordStore
-    .GetProjections<MockAggregateProjection>()
-    .Where(x => x.AggregateId == aggregate.Id)
-    .AsAsyncEnumerable()
-    .SingleAsync();
-  
-    AssertEqualMock(aggregate, after);
-  }
-  
-  [Fact]
-  public async Task Can_Update_Projection_By_Aggregate()
-  {
-    var aggregate = CreateMockAggregate();
-
-    await AggregateService.PersistAsync(aggregate);
-
-    await RecordStore.UpsertProjectionAsync(new MockAggregateProjection
-    {
-      AggregateType = aggregate.Type,
-      AggregateId = aggregate.Id,
-      FactoryType = nameof(MockAggregateProjectionFactory),
-      Hash = "OUTDATED"
-    });
-    
-    var before = await RecordStore
-      .GetProjections<MockAggregateProjection>()
-      .Where(x => x.AggregateId == aggregate.Id)
-      .AsAsyncEnumerable()
-      .SingleAsync();
-    
-    AssertDefaultMock(before);
-
-    await ProjectionUpdateService.UpdateAllProjectionsAsync<MockAggregate>();
 
     var after = await RecordStore
     .GetProjections<MockAggregateProjection>()

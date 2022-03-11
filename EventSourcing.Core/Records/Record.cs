@@ -5,7 +5,6 @@ namespace EventSourcing.Core;
 /// </summary>
 public enum RecordKind
 {
-  
   /// <summary>
   /// Invalid State: <see cref="Record"/> is not a <see cref="EventSourcing.Core.Event"/>, <see cref="EventSourcing.Core.Snapshot"/> or <see cref="EventSourcing.Core.Projection"/>.
   /// </summary>
@@ -91,12 +90,7 @@ public abstract record Record
   /// </para>
   /// </remarks>
   public Guid AggregateId { get; init; }
-  
-  /// <summary>
-  /// Unique Record identifier. Defaults to <see cref="Guid"/>.<see cref="Guid.NewGuid"/> on creation.
-  /// </summary>
-  public Guid RecordId { get; init; }
-  
+
   /// <summary>
   /// Record creation/update time. Defaults to <see cref="DateTimeOffset"/>.<see cref="DateTimeOffset.Now"/> on creation.
   /// </summary>
@@ -112,7 +106,6 @@ public abstract record Record
   /// </summary>
   protected Record()
   {
-    RecordId = Guid.NewGuid();
     Type = RecordTypeCache.GetAssemblyRecordTypeString(GetType());
     Timestamp = DateTimeOffset.Now;
   }

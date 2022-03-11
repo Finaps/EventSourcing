@@ -24,7 +24,7 @@ public abstract partial class RecordStoreTests
   }
 
   [Fact]
-  public async Task Can_Add_Snapshot_With_Duplicate_AggregateId_And_Version()
+  public async Task Cannot_Add_Snapshot_With_Duplicate_AggregateId_And_Index()
   {
     var aggregate = new SnapshotAggregate();
     aggregate.Apply(new EmptyEvent());
@@ -32,11 +32,10 @@ public abstract partial class RecordStoreTests
     var factory = new SimpleSnapshotFactory();
 
     var snapshot = factory.CreateSnapshot(aggregate);
-    
     await RecordStore.AddSnapshotAsync(snapshot);
-    await RecordStore.AddSnapshotAsync(snapshot);
-    
-    // does not throw exception
+
+    await Assert.ThrowsAsync<RecordStoreException>(async () => 
+      await RecordStore.AddSnapshotAsync(snapshot));
   }
   
   [Fact]

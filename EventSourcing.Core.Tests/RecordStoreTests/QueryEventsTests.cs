@@ -138,7 +138,7 @@ public abstract partial class RecordStoreTests
         MockDouble = 0.999
       },
 
-      MockNestedClassList = new List<MockNestedRecord>
+      MockNestedRecordList = new List<MockNestedRecordItem>
       {
         new()
         {
@@ -150,7 +150,7 @@ public abstract partial class RecordStoreTests
       },
 
       MockFloatList = new List<float> { .1f, .5f, .9f },
-      MockStringSet = new HashSet<string> { "A", "B", "C", "C" }
+      MockStringSet = new List<string> { "A", "B", "C", "C" }
     });
 
     await RecordStore.AddEventsAsync(new List<Event> { e });
@@ -172,10 +172,10 @@ public abstract partial class RecordStoreTests
     Assert.Equal(e.MockNestedRecord.MockString, result.MockNestedRecord.MockString);
     Assert.Equal(e.MockNestedRecord.MockDecimal, result.MockNestedRecord.MockDecimal);
     Assert.Equal(e.MockNestedRecord.MockDouble, result.MockNestedRecord.MockDouble);
-    Assert.Equal(e.MockNestedClassList.Single().MockBoolean, result.MockNestedClassList.Single().MockBoolean);
-    Assert.Equal(e.MockNestedClassList.Single().MockString, result.MockNestedClassList.Single().MockString);
-    Assert.Equal(e.MockNestedClassList.Single().MockDecimal, result.MockNestedClassList.Single().MockDecimal);
-    Assert.Equal(e.MockNestedClassList.Single().MockDouble, result.MockNestedClassList.Single().MockDouble);
+    Assert.Equal(e.MockNestedRecordList.Single().MockBoolean, result.MockNestedRecordList.Single().MockBoolean);
+    Assert.Equal(e.MockNestedRecordList.Single().MockString, result.MockNestedRecordList.Single().MockString);
+    Assert.Equal(e.MockNestedRecordList.Single().MockDecimal, result.MockNestedRecordList.Single().MockDecimal);
+    Assert.Equal(e.MockNestedRecordList.Single().MockDouble, result.MockNestedRecordList.Single().MockDouble);
     Assert.Equal(e.MockFloatList[0], result.MockFloatList[0]);
     Assert.Equal(e.MockFloatList[1], result.MockFloatList[1]);
     Assert.Equal(e.MockFloatList[2], result.MockFloatList[2]);

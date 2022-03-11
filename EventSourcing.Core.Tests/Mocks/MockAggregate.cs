@@ -20,6 +20,14 @@ public enum MockFlagEnum : byte
 public record MockNestedRecord
 {
   public bool MockBoolean { get; init; }
+  public string? MockString { get; init; }
+  public decimal MockDecimal { get; init; }
+  public double MockDouble { get; init; }
+}
+
+public record MockNestedRecordItem
+{
+  public bool MockBoolean { get; init; }
   public string MockString { get; init; }
   public decimal MockDecimal { get; init; }
   public double MockDouble { get; init; }
@@ -37,10 +45,10 @@ public interface IMock
     
   public MockNestedRecord MockNestedRecord { get; }
     
-  public List<MockNestedRecord> MockNestedClassList { get; }
+  public List<MockNestedRecordItem> MockNestedRecordList { get; }
 
   public List<float> MockFloatList { get; }
-  public HashSet<string> MockStringSet { get; }
+  public List<string> MockStringSet { get; }
 }
 
 public record MockEvent : Event, IMock
@@ -55,10 +63,10 @@ public record MockEvent : Event, IMock
     
   public MockNestedRecord MockNestedRecord { get; init; }
     
-  public List<MockNestedRecord> MockNestedClassList { get; init; }
+  public List<MockNestedRecordItem> MockNestedRecordList { get; init; }
 
   public List<float> MockFloatList { get; init; }
-  public HashSet<string> MockStringSet { get; init; }
+  public List<string> MockStringSet { get; init; }
 }
 
 public record MockSnapshot : Snapshot, IMock
@@ -73,10 +81,10 @@ public record MockSnapshot : Snapshot, IMock
     
   public MockNestedRecord MockNestedRecord { get; init; }
     
-  public List<MockNestedRecord> MockNestedClassList { get; init; }
+  public List<MockNestedRecordItem> MockNestedRecordList { get; init; }
 
   public List<float> MockFloatList { get; init; }
-  public HashSet<string> MockStringSet { get; init; }
+  public List<string> MockStringSet { get; init; }
 }
 
 public class MockAggregate : Aggregate, IMock
@@ -89,9 +97,9 @@ public class MockAggregate : Aggregate, IMock
   public MockEnum MockEnum { get; private set; }
   public MockFlagEnum MockFlagEnum { get; private set; }
   public MockNestedRecord MockNestedRecord { get; private set; }
-  public List<MockNestedRecord> MockNestedClassList { get; private set; }
+  public List<MockNestedRecordItem> MockNestedRecordList { get; private set; }
   public List<float> MockFloatList { get; private set; }
-  public HashSet<string> MockStringSet { get; private set; }
+  public List<string> MockStringSet { get; private set; }
   
   protected override void Apply(Event e)
   {
@@ -105,7 +113,7 @@ public class MockAggregate : Aggregate, IMock
         MockEnum = m.MockEnum;
         MockFlagEnum = m.MockFlagEnum;
         MockNestedRecord = m.MockNestedRecord;
-        MockNestedClassList = m.MockNestedClassList;
+        MockNestedRecordList = m.MockNestedRecordList;
         MockFloatList = m.MockFloatList;
         MockStringSet = m.MockStringSet;
         break;
@@ -116,15 +124,15 @@ public class MockAggregate : Aggregate, IMock
 public record MockAggregateProjection : Projection, IMock
 {
   public bool MockBoolean { get; init; }
-  public string MockString { get; init; }
+  public string? MockString { get; init; }
   public decimal MockDecimal { get; init; }
   public double MockDouble { get; init; }
   public MockEnum MockEnum { get; init; }
   public MockFlagEnum MockFlagEnum { get; init; }
   public MockNestedRecord MockNestedRecord { get; init; }
-  public List<MockNestedRecord> MockNestedClassList { get; init; }
+  public List<MockNestedRecordItem> MockNestedRecordList { get; init; }
   public List<float> MockFloatList { get; init; }
-  public HashSet<string> MockStringSet { get; init; }
+  public List<string> MockStringSet { get; init; }
 }
 
 public class MockAggregateProjectionFactory : ProjectionFactory<MockAggregate, MockAggregateProjection>
@@ -138,7 +146,7 @@ public class MockAggregateProjectionFactory : ProjectionFactory<MockAggregate, M
     MockEnum = aggregate.MockEnum,
     MockFlagEnum = aggregate.MockFlagEnum,
     MockNestedRecord = aggregate.MockNestedRecord,
-    MockNestedClassList = aggregate.MockNestedClassList,
+    MockNestedRecordList = aggregate.MockNestedRecordList,
     MockFloatList = aggregate.MockFloatList,
     MockStringSet = aggregate.MockStringSet
   };

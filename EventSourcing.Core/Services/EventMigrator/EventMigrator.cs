@@ -25,8 +25,7 @@ public abstract class EventMigrator<TSource, TTarget> : IEventMigrator
       
       PartitionId = e.PartitionId,
       AggregateId = e.AggregateId,
-      RecordId = e.RecordId,
-      
+
       Index = e.Index,
       Timestamp = e.Timestamp
     };

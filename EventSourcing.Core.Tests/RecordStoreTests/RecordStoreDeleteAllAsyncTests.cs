@@ -48,7 +48,7 @@ public abstract partial class RecordStoreTests
             .SingleAsync());
         
         // Store projection
-        var projection = new EmptyProjection { AggregateId = aggregate.Id, AggregateType = nameof(EmptyAggregate) };
+        var projection = new EmptyProjection { AggregateId = aggregate.Id, AggregateType = nameof(EmptyAggregate), Hash = "RANDOM" };
         await RecordStore.UpsertProjectionAsync(projection);
         Assert.NotNull(await RecordStore.GetProjectionByIdAsync<EmptyProjection>(projection.AggregateId));
         
@@ -65,7 +65,7 @@ public abstract partial class RecordStoreTests
             .AsAsyncEnumerable()
             .CountAsync();
         
-        var projectionsCount = await RecordStore.Projections
+        var projectionsCount = await RecordStore.GetProjections<EmptyProjection>()
             .Where(x => x.AggregateId == aggregate.Id)
             .AsAsyncEnumerable()
             .CountAsync();
