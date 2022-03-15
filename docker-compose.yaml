@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  database:
+  postgres:
     image: postgres:14.2-alpine
     ports:
       - 6543:5432
@@ -9,3 +9,10 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=Pass@word
       - POSTGRES_DB=RecordStore
+  sqlserver:
+    image: mcr.microsoft.com/azure-sql-edge
+    ports:
+      - 2544:1433
+    environment:
+      SA_PASSWORD: Pass@word
+      ACCEPT_EULA: Y

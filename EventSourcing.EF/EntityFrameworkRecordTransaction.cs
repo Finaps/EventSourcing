@@ -74,8 +74,8 @@ public class EntityFrameworkRecordTransaction : IRecordTransaction
           var first = events.First();
 
           // If Previous Event.Index is not present, throw Error
-          if (first.Index != 0 && await _store.Context.Set<EventEntity>().SingleOrDefaultAsync(x =>
-                  x.PartitionId == PartitionId && x.AggregateId == first.AggregateId && x.Index == first.Index - 1, cancellationToken) == null)
+          if (first.Index != 0 && await _store.Context.Set<EventEntity>().CountAsync(x => 
+                x.PartitionId == PartitionId && x.AggregateId == first.AggregateId && x.Index == first.Index - 1, cancellationToken) == 0)
             throw new RecordStoreException("Tried to add nonconsecutive Event");
 
           _store.Context.AddRange(events.Select(e => _store.Serializer.Serialize(e)));
@@ -86,14 +86,17 @@ public class EntityFrameworkRecordTransaction : IRecordTransaction
           break;
         
         case UpsertProjectionAction(var projection):
+          
+          // Since EF Core has no Upsert functionality, we have to first query the original Projection
           var existing = await _store.Context.FindAsync(
             projection.GetType(),
             projection.PartitionId, projection.AggregateId);
 
-          if (existing != null)
-            _store.Context.Remove(existing);
-          
+          // Remove instead of update: this fixes problems with owned entities
+          if (existing != null) _store.Context.Remove(existing);
+
           _store.Context.Add(projection);
+
           break;
         
         case DeleteAllEventsAction(var aggregateId):

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -56,7 +57,7 @@ namespace EventSourcing.EF.Tests.Migrations
                     PartitionId = table.Column<Guid>(type: "uuid", nullable: false),
                     AggregateId = table.Column<Guid>(type: "uuid", nullable: false),
                     Index = table.Column<long>(type: "bigint", nullable: false),
-                    Json = table.Column<string>(type: "jsonb", nullable: false),
+                    Json = table.Column<JsonDocument>(type: "jsonb", nullable: false),
                     Type = table.Column<string>(type: "text", nullable: false),
                     AggregateType = table.Column<string>(type: "text", nullable: true),
                     Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
@@ -103,7 +104,7 @@ namespace EventSourcing.EF.Tests.Migrations
                     PartitionId = table.Column<Guid>(type: "uuid", nullable: false),
                     AggregateId = table.Column<Guid>(type: "uuid", nullable: false),
                     Index = table.Column<long>(type: "bigint", nullable: false),
-                    Json = table.Column<string>(type: "jsonb", nullable: false),
+                    Json = table.Column<JsonDocument>(type: "jsonb", nullable: false),
                     Type = table.Column<string>(type: "text", nullable: false),
                     AggregateType = table.Column<string>(type: "text", nullable: true),
                     Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)

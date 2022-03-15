@@ -53,8 +53,13 @@ public class EntityFrameworkRecordStore : IRecordStore
   public async Task DeleteAllSnapshotsAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) =>
     await Context.DeleteWhereAsync(nameof(SnapshotEntity), partitionId, aggregateId, cancellationToken);
 
-  public async Task DeleteSnapshotAsync(Guid partitionId, Guid aggregateId, long index, CancellationToken cancellationToken = default) =>
-    await Context.DeleteWhereAsync(nameof(SnapshotEntity), partitionId, aggregateId, index, cancellationToken);
+  public async Task DeleteSnapshotAsync(Guid partitionId, Guid aggregateId, long index, CancellationToken cancellationToken = default)
+  {
+    var snapshot = new SnapshotEntity { PartitionId = partitionId, AggregateId = aggregateId, Index = index };
+    Context.Set<SnapshotEntity>().Attach(snapshot);
+    Context.Set<SnapshotEntity>().Remove(snapshot);
+    await Context.SaveChangesAsync(cancellationToken);
+  }
 
   public async Task DeleteAllProjectionsAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
   {

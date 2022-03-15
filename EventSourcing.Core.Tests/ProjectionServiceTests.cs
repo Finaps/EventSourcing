@@ -97,18 +97,22 @@ public abstract partial class EventSourcingTests
 
     await AggregateService.PersistAsync(aggregate);
 
-    await RecordStore.UpsertProjectionAsync(new MockAggregateProjection
+    var defaultProjection = new MockAggregateProjection
     {
       AggregateType = aggregate.Type,
+      PartitionId = Guid.Empty,
       AggregateId = aggregate.Id,
+      
       FactoryType = nameof(MockAggregateProjectionFactory),
       Hash = "OUTDATED",
-      
+
       MockNestedRecord = new MockNestedRecord(),
       MockNestedRecordList = new List<MockNestedRecordItem>(),
       MockFloatList = new List<float>(),
       MockStringSet = new List<string>()
-    });
+    };
+
+    await RecordStore.UpsertProjectionAsync(defaultProjection);
     
     var before = await RecordStore
       .GetProjections<MockAggregateProjection>()
