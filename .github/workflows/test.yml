@@ -41,11 +41,12 @@ jobs:
     - name: Build
       run: dotnet build --no-restore
 
-    - name: Update databases
+    - name: Update EF Core Databases
       run: |
         dotnet tool install --global dotnet-ef
         dotnet tool restore
         dotnet ef database update -p EventSourcing.EF.Tests.Postgres
+        dotnet ef database update -p EventSourcing.EF.Tests.SqlServer
       env:
         ASPNETCORE_ENVIRONMENT: Development
 
