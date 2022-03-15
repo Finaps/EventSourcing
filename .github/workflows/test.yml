@@ -19,6 +19,13 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: Pass@word
           POSTGRES_DB: RecordStore
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2019-CU15-ubuntu-20.04
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: Pass@word # You should set this to a secrete and reference it here
+        ports:
+          - 2544:1433
 
     steps:
     - uses: actions/checkout@v2

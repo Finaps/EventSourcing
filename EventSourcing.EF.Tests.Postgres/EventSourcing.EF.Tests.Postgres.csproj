@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
         <Nullable>enable</Nullable>
-        <RootNamespace>EventSourcing.EF.Tests</RootNamespace>
+        <RootNamespace>EventSourcing.EF.Tests.Postgres</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

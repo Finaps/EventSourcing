@@ -2,7 +2,7 @@ using System;
 using EventSourcing.Core;
 using EventSourcing.Core.Tests;
 
-namespace EventSourcing.EF.Tests;
+namespace EventSourcing.EF.Tests.Postgres;
 
 public class PostgresEventSourcingTests : EventSourcingTests
 {

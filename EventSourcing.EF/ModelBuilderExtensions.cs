@@ -6,13 +6,23 @@ namespace EventSourcing.EF;
 
 public static class ModelBuilderExtensions
 {
+  public static EntityTypeBuilder<TEvent> EventEntity<TEvent>(this ModelBuilder builder) where TEvent : Event
+  {
+    var eventBuilder = builder.Entity<TEvent>();
+    eventBuilder.HasKey(x => new { x.PartitionId, x.AggregateId, x.Index });
+    eventBuilder.HasIndex(x => x.AggregateType);
+    eventBuilder.HasIndex(x => x.Type);
+    eventBuilder.HasIndex(x => x.Timestamp);
+    return eventBuilder;
+  }
+  
   public static EntityTypeBuilder<TProjection> ProjectionEntity<TProjection>(this ModelBuilder builder) where TProjection : Projection
   {
     EntityFrameworkRecordStore.ProjectionTypes.Add(typeof(TProjection));
-    var b = builder.Entity<TProjection>();
-    b.HasKey(x => new { x.PartitionId, x.AggregateId });
-    b.HasIndex(x => x.AggregateType);
-    b.HasIndex(x => x.Hash);
-    return b;
+    var projectionBuilder = builder.Entity<TProjection>();
+    projectionBuilder.HasKey(x => new { x.PartitionId, x.AggregateId });
+    projectionBuilder.HasIndex(x => x.AggregateType);
+    projectionBuilder.HasIndex(x => x.Hash);
+    return projectionBuilder;
   }
 }

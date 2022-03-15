@@ -5,34 +5,6 @@ namespace EventSourcing.Core.Tests;
 public abstract partial class EventSourcingTests
 {
   [Fact]
-  public async Task Cannot_Add_Event_With_Duplicate_AggregateId_And_Version()
-  {
-    var aggregate = new EmptyAggregate();
-    var e1 = aggregate.Apply(new EmptyEvent());
-    var e2 = aggregate.Apply(new EmptyEvent());
-
-    e2 = e2 with { Index = 0 };
-
-    await RecordStore.AddEventsAsync(new Event[] { e1 });
-
-    await Assert.ThrowsAnyAsync<RecordStoreException>(
-      async () => await RecordStore.AddEventsAsync(new Event[] { e2 }));
-  }
-  
-  [Fact]
-  public async Task Cannot_Add_NonConsecutive_Events()
-  {
-    var aggregate = new EmptyAggregate();
-    var e1 = aggregate.Apply(new EmptyEvent());
-    await RecordStore.AddEventsAsync(new List<Event> { e1 });
-
-    var e2 = aggregate.Apply(new EmptyEvent()) with { Index = 2 };
-
-    await Assert.ThrowsAnyAsync<RecordStoreException>(
-      async () => await RecordStore.AddEventsAsync(new Event[] { e2 }));
-  }
-  
-  [Fact]
   public async Task Cannot_Add_Duplicate_Event_In_Transaction()
   {
     var e1 = new EmptyEvent { AggregateId = Guid.NewGuid(), AggregateType = "AggregateType" };

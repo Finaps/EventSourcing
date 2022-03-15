@@ -22,7 +22,7 @@ public class RecordSerializer
 
     Index = e.Index,
     Timestamp = e.Timestamp,
-    Json = JsonSerializer.Serialize(e, _options)
+    Json = JsonDocument.Parse(JsonSerializer.Serialize(e, _options))
   };
   
   public SnapshotEntity Serialize(Snapshot s) => new()
@@ -35,9 +35,9 @@ public class RecordSerializer
 
     Index = s.Index,
     Timestamp = s.Timestamp,
-    Json = JsonSerializer.Serialize(s, _options)
+    Json = JsonDocument.Parse(JsonSerializer.Serialize(s, _options))
   };
 
-  public TResult Deserialize<TResult>(EventEntity? e) => JsonSerializer.Deserialize<TResult>(e.Json, _options)!;
-  public TResult Deserialize<TResult>(SnapshotEntity? s) => JsonSerializer.Deserialize<TResult>(s.Json, _options)!;
+  public TResult Deserialize<TResult>(EventEntity? e) => e.Json.Deserialize<TResult>(_options)!;
+  public TResult Deserialize<TResult>(SnapshotEntity? s) => s.Json.Deserialize<TResult>(_options)!;
 }

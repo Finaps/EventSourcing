@@ -6,6 +6,7 @@ using EventSourcing.EF.Tests;
 using EventSourcing.EF.Tests.Postgres;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -14,9 +15,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EventSourcing.EF.Tests.Migrations
 {
     [DbContext(typeof(PostgresTestContext))]
-    partial class TestContextModelSnapshot : ModelSnapshot
+    [Migration("20220314100700_InitialMigration")]
+    partial class InitialMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -67,7 +69,7 @@ namespace EventSourcing.EF.Tests.Migrations
 
                     b.HasIndex("Hash");
 
-                    b.ToTable("BankAccountProjection", (string)null);
+                    b.ToTable("BankAccountProjection");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.EmptyProjection", b =>
@@ -104,7 +106,7 @@ namespace EventSourcing.EF.Tests.Migrations
 
                     b.HasIndex("Hash");
 
-                    b.ToTable("EmptyProjection", (string)null);
+                    b.ToTable("EmptyProjection");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.MockAggregateProjection", b =>
@@ -167,7 +169,7 @@ namespace EventSourcing.EF.Tests.Migrations
 
                     b.HasIndex("Hash");
 
-                    b.ToTable("MockAggregateProjection", (string)null);
+                    b.ToTable("MockAggregateProjection");
                 });
 
             modelBuilder.Entity("EventSourcing.EF.EventEntity", b =>
@@ -203,7 +205,7 @@ namespace EventSourcing.EF.Tests.Migrations
 
                     b.HasIndex("Type");
 
-                    b.ToTable("EventEntity", (string)null);
+                    b.ToTable("EventEntity");
                 });
 
             modelBuilder.Entity("EventSourcing.EF.SnapshotEntity", b =>
@@ -239,12 +241,12 @@ namespace EventSourcing.EF.Tests.Migrations
 
                     b.HasIndex("Type");
 
-                    b.ToTable("SnapshotEntity", (string)null);
+                    b.ToTable("SnapshotEntity");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.MockAggregateProjection", b =>
                 {
-                    b.OwnsOne("EventSourcing.Core.Tests.Mocks.MockAggregateProjection.MockNestedRecord#EventSourcing.Core.Tests.Mocks.MockNestedRecord", "MockNestedRecord", b1 =>
+                    b.OwnsOne("EventSourcing.Core.Tests.Mocks.MockNestedRecord", "MockNestedRecord", b1 =>
                         {
                             b1.Property<Guid>("MockAggregateProjectionPartitionId")
                                 .HasColumnType("uuid");
@@ -266,13 +268,13 @@ namespace EventSourcing.EF.Tests.Migrations
 
                             b1.HasKey("MockAggregateProjectionPartitionId", "MockAggregateProjectionAggregateId");
 
-                            b1.ToTable("MockAggregateProjection", (string)null);
+                            b1.ToTable("MockAggregateProjection");
 
                             b1.WithOwner()
                                 .HasForeignKey("MockAggregateProjectionPartitionId", "MockAggregateProjectionAggregateId");
                         });
 
-                    b.OwnsMany("EventSourcing.Core.Tests.Mocks.MockAggregateProjection.MockNestedRecordList#EventSourcing.Core.Tests.Mocks.MockNestedRecordItem", "MockNestedRecordList", b1 =>
+                    b.OwnsMany("EventSourcing.Core.Tests.Mocks.MockNestedRecordItem", "MockNestedRecordList", b1 =>
                         {
                             b1.Property<Guid>("MockAggregateProjectionPartitionId")
                                 .HasColumnType("uuid");
@@ -301,7 +303,7 @@ namespace EventSourcing.EF.Tests.Migrations
 
                             b1.HasKey("MockAggregateProjectionPartitionId", "MockAggregateProjectionAggregateId", "Id");
 
-                            b1.ToTable("MockNestedRecordItem", (string)null);
+                            b1.ToTable("MockNestedRecordItem");
 
                             b1.WithOwner()
                                 .HasForeignKey("MockAggregateProjectionPartitionId", "MockAggregateProjectionAggregateId");
