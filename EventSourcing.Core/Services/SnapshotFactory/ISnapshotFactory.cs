@@ -1,12 +1,12 @@
 namespace EventSourcing.Core;
 
 /// <summary>
-/// Create <see cref="Snapshot"/> for <see cref="Aggregate"/>
+/// Create <see cref="Snapshot"/> for <see cref="Aggregate{TAggregate}"/>
 /// </summary>
 public interface ISnapshotFactory
 {
   /// <summary>
-  /// Source <see cref="Aggregate"/> type
+  /// Source <see cref="Aggregate{TAggregate}"/> type
   /// </summary>
   Type AggregateType { get; }
   
@@ -23,14 +23,14 @@ public interface ISnapshotFactory
   /// <summary>
   /// Calculates if the <see cref="SnapshotInterval"/> has been exceeded (and a <see cref="Snapshot"/> thus has to be created)
   /// </summary>
-  /// <param name="aggregate">The <see cref="Aggregate"/> to check</param>
+  /// <param name="aggregate">The <see cref="Aggregate{TAggregate}"/> to check</param>
   /// <returns>True if <see cref="SnapshotInterval"/> has been exceeded</returns>
   bool IsSnapshotIntervalExceeded(Aggregate aggregate);
   
   /// <summary>
-  /// Create <see cref="Snapshot"/> defined for a particular <see cref="Aggregate"/>
+  /// Create <see cref="Snapshot"/> defined for a particular <see cref="Aggregate{TAggregate}"/>
   /// </summary>
-  /// <param name="aggregate">Source <see cref="Aggregate"/></param>
-  /// <returns>Resulting <see cref="Snapshot"/>s of <see cref="Aggregate"/></returns>
+  /// <param name="aggregate">Source <see cref="Aggregate{TAggregate}"/></param>
+  /// <returns>Resulting <see cref="Snapshot"/>s of <see cref="Aggregate{TAggregate}"/></returns>
   Snapshot CreateSnapshot(Aggregate aggregate);
 }

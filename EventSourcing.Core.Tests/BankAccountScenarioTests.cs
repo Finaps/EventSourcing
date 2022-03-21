@@ -1,27 +1,29 @@
 namespace EventSourcing.Core.Tests;
 
-public record BankAccountCreatedEvent : Event
+public abstract record BankAccountEvent : Event<BankAccount>;
+
+public record BankAccountCreatedEvent : BankAccountEvent
 {
   public string Name { get; init; }
   public string Iban { get; init; }
 }
 
-public abstract record FundsEvent : Event
+public abstract record BankAccountFundsEvent : BankAccountEvent
 {
   public decimal Amount { get; init; }
 }
 
-public record FundsDepositedEvent : FundsEvent;
+public record BankAccountFundsDepositedEvent : BankAccountFundsEvent;
 
-public record FundsWithdrawnEvent : FundsEvent;
+public record BankAccountFundsWithdrawnEvent : BankAccountFundsEvent;
 
-public record FundsTransferredEvent : FundsEvent
+public record BankAccountFundsTransferredEvent : BankAccountFundsEvent
 {
   public Guid DebtorAccount { get; init; }
   public Guid CreditorAccount { get; init; }
 }
 
-public record BankAccountSnapshot : Snapshot
+public record BankAccountSnapshot : Snapshot<BankAccount>
 {
   public string Name { get; init; }
   public string Iban { get; init; }
@@ -34,13 +36,13 @@ public record BankAccountProjection : Projection
   public string Iban { get; init; }
 }
 
-public class BankAccount : Aggregate
+public class BankAccount : Aggregate<BankAccount>
 {
   public string Name { get; private set; }
   public string Iban { get; private set; }
   public decimal Balance { get; private set; }
 
-  protected override void Apply(Event e)
+  protected override void Apply(Event<BankAccount> e)
   {
     switch (e)
     {
@@ -49,13 +51,13 @@ public class BankAccount : Aggregate
         Iban = created.Iban;
         break;
       
-      case FundsDepositedEvent deposit:
+      case BankAccountFundsDepositedEvent deposit:
         Balance += deposit.Amount;
         break;
-      case FundsWithdrawnEvent withdraw:
+      case BankAccountFundsWithdrawnEvent withdraw:
         Balance -= withdraw.Amount;
         break;
-      case FundsTransferredEvent transfer:
+      case BankAccountFundsTransferredEvent transfer:
         if (Id == transfer.DebtorAccount)
           Balance -= transfer.Amount;
         else if (Id == transfer.CreditorAccount)
@@ -63,26 +65,32 @@ public class BankAccount : Aggregate
         else
           throw new InvalidOperationException("Not debtor nor creditor of this transaction");
         break;
-
-      case BankAccountSnapshot snapshot:
-        Name = snapshot.Name;
-        Iban = snapshot.Iban;
-        Balance = snapshot.Balance;
-        break;
     }
 
     if (Balance < 0)
       throw new InvalidOperationException("Not enough funds");
   }
 
+  protected override void Apply(Snapshot<BankAccount> s)
+  {
+    switch (s)
+    {
+      case BankAccountSnapshot snapshot:
+        Name = snapshot.Name;
+        Iban = snapshot.Iban;
+        Balance = snapshot.Balance;
+        break;
+    }
+  }
+
   public void Create(string name, string iban) =>
     Apply(new BankAccountCreatedEvent { Name = name, Iban = iban });
 
   public void Deposit(decimal amount) =>
-    Apply(new FundsDepositedEvent { Amount = amount });
+    Apply(new BankAccountFundsDepositedEvent { Amount = amount });
 
   public void Withdraw(decimal amount) =>
-    Apply(new FundsWithdrawnEvent { Amount = amount });
+    Apply(new BankAccountFundsWithdrawnEvent { Amount = amount });
 }
 
 public class BankAccountSnapshotFactory : SnapshotFactory<BankAccount, BankAccountSnapshot>
@@ -163,7 +171,7 @@ public abstract partial class EventSourcingTests
     var anotherAccount = new BankAccount();
     anotherAccount.Create("E. Vent", "SOME OTHER IBAN");
 
-    var transfer = new FundsTransferredEvent
+    var transfer = new BankAccountFundsTransferredEvent
     {
       DebtorAccount = account.Id,
       CreditorAccount = anotherAccount.Id,
@@ -178,7 +186,12 @@ public abstract partial class EventSourcingTests
     var result1 = await AggregateService.RehydrateAsync<BankAccount>(account.Id);
     var result2 = await AggregateService.RehydrateAsync<BankAccount>(anotherAccount.Id);
 
+    Assert.Equal(account.Name, result1?.Name);
+    Assert.Equal(account.Iban, result1?.Iban);
     Assert.Equal(80, result1?.Balance);
+    
+    Assert.Equal(anotherAccount.Name, result2?.Name);
+    Assert.Equal(anotherAccount.Iban, result2?.Iban);
     Assert.Equal(20, result2?.Balance);
   }
 }

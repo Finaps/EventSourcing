@@ -1,9 +1,9 @@
 namespace EventSourcing.Core;
 
 /// <summary>
-/// Represents an <see cref="Event"/> that happened to an <see cref="Aggregate"/>.
+/// Represents an <see cref="Event"/> that happened to an <see cref="Aggregate{TAggregate}"/>.
 /// </summary>
-/// <seealso cref="Aggregate"/>
+/// <seealso cref="Aggregate{TAggregate}"/>
 /// <seealso cref="IRecordStore"/>
 public record Event : Record
 {
@@ -16,9 +16,9 @@ public record Event : Record
   /// Unique Database identifier
   /// </summary>
   public override string id => $"{Kind.ToString()}|{AggregateId}[{Index}]";
+}
 
-  /// <summary>
-  /// Create new <see cref="Event"/>
-  /// </summary>
-  public Event() { }
+public record Event<TAggregate> : Event where TAggregate : Aggregate, new()
+{
+  public Event() => AggregateType = typeof(TAggregate).Name;
 }

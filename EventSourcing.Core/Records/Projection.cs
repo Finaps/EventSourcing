@@ -1,11 +1,11 @@
 namespace EventSourcing.Core;
 
 /// <summary>
-/// Represents a <see cref="Projection"/> of an <see cref="Aggregate"/>.
+/// Represents a <see cref="Projection"/> of an <see cref="Aggregate{TAggregate}"/>.
 /// </summary>
 /// <remarks>
 /// <para>
-/// Projections can be used to query the current state of multiple <see cref="Aggregate"/>s.
+/// Projections can be used to query the current state of multiple <see cref="Aggregate{TAggregate}"/>s.
 /// </para>
 /// <para>
 /// To create <see cref="Projection"/>s, refer to <see cref="ProjectionFactory{TAggregate,TProjection}"/>.
@@ -16,7 +16,7 @@ namespace EventSourcing.Core;
 /// </remarks>
 /// <seealso cref="ProjectionFactory{TAggregate,TProjection}"/>
 /// <seealso cref="IRecordStore"/>
-public record Projection : Record
+public abstract record Projection : Record
 {
   /// <summary>
   /// Factory type string
@@ -24,7 +24,7 @@ public record Projection : Record
   public string? FactoryType { get; init; }
   
   /// <summary>
-  /// The number of <see cref="Event"/>s applied to the source <see cref="Aggregate"/>.
+  /// The number of <see cref="Event"/>s applied to the source <see cref="Aggregate{TAggregate}"/>.
   /// </summary>
   public long Version { get; init; }
   

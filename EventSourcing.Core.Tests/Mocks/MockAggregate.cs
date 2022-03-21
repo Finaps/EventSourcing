@@ -51,7 +51,7 @@ public interface IMock
   public List<string> MockStringSet { get; }
 }
 
-public record MockEvent : Event, IMock
+public record MockEvent : Event<MockAggregate>, IMock
 {
   public bool MockBoolean { get; init; }
   public string MockString { get; init; }
@@ -69,7 +69,7 @@ public record MockEvent : Event, IMock
   public List<string> MockStringSet { get; init; }
 }
 
-public record MockSnapshot : Snapshot, IMock
+public record MockSnapshot : Snapshot<MockAggregate>, IMock
 {
   public bool MockBoolean { get; init; }
   public string MockString { get; init; }
@@ -87,7 +87,7 @@ public record MockSnapshot : Snapshot, IMock
   public List<string> MockStringSet { get; init; }
 }
 
-public class MockAggregate : Aggregate, IMock
+public class MockAggregate : Aggregate<MockAggregate>, IMock
 {
   public Guid NiceRelation { get; private set; }
   public bool MockBoolean { get; private set; }
@@ -101,7 +101,7 @@ public class MockAggregate : Aggregate, IMock
   public List<float> MockFloatList { get; private set; }
   public List<string> MockStringSet { get; private set; }
   
-  protected override void Apply(Event e)
+  protected override void Apply(Event<MockAggregate> e)
   {
     switch (e)
     {

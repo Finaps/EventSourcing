@@ -3,14 +3,14 @@ using EventSourcing.Example.Domain.Shared;
 
 namespace EventSourcing.Example.Domain.Baskets;
 
-public class Basket : Aggregate
+public class Basket : Aggregate<Basket>
 {
     public List<Item> Items { get; } = new();
     public bool CheckedOut;
     public DateTimeOffset BasketCreated { get; private set; }
     public DateTimeOffset BasketExpires { get; private set; }
 
-    protected override void Apply(Event e)
+    protected override void Apply(Event<Basket> e)
     {
         if (e is BasketCreatedEvent created)
         {

@@ -4,3 +4,5 @@ global using System.Threading.Tasks;
 global using System.Collections.Generic;
 
 global using Xunit;
+
+global using EventSourcing.Core.Tests.Mocks;

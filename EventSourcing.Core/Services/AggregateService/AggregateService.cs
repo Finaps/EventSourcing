@@ -19,28 +19,25 @@ public class AggregateService : IAggregateService
   /// <inheritdoc />
   public async Task<TAggregate?> RehydrateAsync<TAggregate>(Guid partitionId, Guid aggregateId, DateTimeOffset date,
     CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
-  { 
-    var snapshot = await _store.Snapshots
-      .Where(x => 
-        x.PartitionId == partitionId &&
-        x.AggregateId == aggregateId &&
-        x.Timestamp <= date)
+  {
+    var snapshot = await _store
+      .GetSnapshots<TAggregate>()
+      .Where(x => x.PartitionId == partitionId && x.AggregateId == aggregateId && x.Timestamp <= date)
       .OrderBy(x => x.Index)
       .AsAsyncEnumerable()
       .LastOrDefaultAsync(cancellationToken);
 
     var index = snapshot?.Index ?? -1;
 
-    var events = _store.Events
-      .Where(x =>
-        x.PartitionId == partitionId &&
-        x.AggregateId == aggregateId &&
-        x.Timestamp <= date &&
-        x.Index > index)
+    var events = _store
+      .GetEvents<TAggregate>()
+      .Where(x => x.PartitionId == partitionId && x.AggregateId == aggregateId && x.Timestamp <= date && x.Index > index)
       .OrderBy(x => x.Index)
       .AsAsyncEnumerable();
 
-    return await Aggregate.RehydrateAsync<TAggregate>(partitionId, aggregateId, snapshot, events, cancellationToken);
+    var aggregate = new TAggregate { PartitionId = partitionId, Id = aggregateId };
+    await aggregate.RehydrateAsync(snapshot, events, cancellationToken);
+    return aggregate.Version == 0 ? null : aggregate;
   }
 
   /// <inheritdoc />

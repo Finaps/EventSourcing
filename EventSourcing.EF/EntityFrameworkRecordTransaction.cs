@@ -9,9 +9,9 @@ public class EntityFrameworkRecordTransaction : IRecordTransaction
   private record AddEventsAction(IList<Event> Events) : TransactionAction;
   private record AddSnapshotAction(Snapshot Snapshot) : TransactionAction;
   private record UpsertProjectionAction(Projection Projection) : TransactionAction;
-  private record DeleteAllEventsAction(Guid AggregateId) : TransactionAction;
-  private record DeleteSnapshotAction(Guid AggregateId, long Index) : TransactionAction;
-  private record DeleteProjectionAction(Guid AggregateId, string Type) : TransactionAction;
+  private record DeleteAllEventsAction(Event Event) : TransactionAction;
+  private record DeleteSnapshotAction(Snapshot Snapshot) : TransactionAction;
+  private record DeleteProjectionAction(Projection Projection) : TransactionAction;
 
   private readonly List<TransactionAction> _actions = new();
 
@@ -44,21 +44,21 @@ public class EntityFrameworkRecordTransaction : IRecordTransaction
     return this;
   }
 
-  public IRecordTransaction DeleteAllEvents(Guid aggregateId, long index)
+  public IRecordTransaction DeleteAllEvents<TAggregate>(Guid aggregateId, long index) where TAggregate : Aggregate, new()
   {
-    _actions.Add(new DeleteAllEventsAction(aggregateId));
+    _actions.Add(new DeleteAllEventsAction(new Event<TAggregate> { PartitionId = PartitionId, AggregateId = aggregateId, Index = index }));
     return this;
   }
 
-  public IRecordTransaction DeleteSnapshot(Guid aggregateId, long index)
+  public IRecordTransaction DeleteSnapshot<TAggregate>(Guid aggregateId, long index) where TAggregate : Aggregate, new()
   {
-    _actions.Add(new DeleteSnapshotAction(aggregateId, index));
+    _actions.Add(new DeleteSnapshotAction(new Snapshot<TAggregate> { PartitionId = PartitionId, AggregateId = aggregateId, Index = index }));
     return this;
   }
 
-  public IRecordTransaction DeleteProjection(Guid aggregateId, string type)
+  public IRecordTransaction DeleteProjection<TProjection>(Guid aggregateId) where TProjection : Projection, new()
   {
-    _actions.Add(new DeleteProjectionAction(aggregateId, type));
+    _actions.Add(new DeleteProjectionAction(new TProjection { PartitionId = PartitionId, AggregateId = aggregateId }));
     return this;
   }
 
@@ -73,21 +73,21 @@ public class EntityFrameworkRecordTransaction : IRecordTransaction
         case AddEventsAction(var events):
           var first = events.First();
 
-          // If Previous Event.Index is not present, throw Error
-          if (first.Index != 0 && await _store.Context.Set<EventEntity>().CountAsync(x => 
-                x.PartitionId == PartitionId && x.AggregateId == first.AggregateId && x.Index == first.Index - 1, cancellationToken) == 0)
+          if (first.Index != 0 && await _store.Context.FindAsync(
+                _store.Context.Model.FindEntityType(first.GetType())?.GetRootType().ClrType, 
+                first.PartitionId, first.AggregateId, first.Index - 1) == null)
             throw new RecordStoreException("Tried to add nonconsecutive Event");
 
-          _store.Context.AddRange(events.Select(e => _store.Serializer.Serialize(e)));
+          _store.Context.AddRange(events);
           break;
         
         case AddSnapshotAction(var snapshot):
-          _store.Context.Add(_store.Serializer.Serialize(snapshot));
+          _store.Context.Add(snapshot);
           break;
         
         case UpsertProjectionAction(var projection):
           
-          // Since EF Core has no Upsert functionality, we have to first query the original Projection
+          // Since EF Core has no Upsert functionality, we have to first query the original Projection :(
           var existing = await _store.Context.FindAsync(
             projection.GetType(),
             projection.PartitionId, projection.AggregateId);
@@ -99,18 +99,18 @@ public class EntityFrameworkRecordTransaction : IRecordTransaction
 
           break;
         
-        case DeleteAllEventsAction(var aggregateId):
-          await _store.Context.DeleteWhereAsync(nameof(EventEntity), PartitionId, aggregateId, cancellationToken);
+        case DeleteAllEventsAction(var e):
+          await _store.Context.DeleteWhereAsync(nameof(e), PartitionId, e.AggregateId, cancellationToken);
           break;
         
-        case DeleteSnapshotAction(var aggregateId, var index):
-          var snapshotEntity = new SnapshotEntity { PartitionId = PartitionId, AggregateId = aggregateId, Index = index };
-          _store.Context.Attach(snapshotEntity);
-          _store.Context.Remove(snapshotEntity);
+        case DeleteSnapshotAction(var snapshot):
+          _store.Context.Attach(snapshot);
+          _store.Context.Remove(snapshot);
           break;
         
-        case DeleteProjectionAction(var aggregateId, var type):
-          await _store.Context.DeleteWhereAsync(type, PartitionId, aggregateId, cancellationToken);
+        case DeleteProjectionAction(var projection):
+          _store.Context.Attach(projection);
+          _store.Context.Remove(projection);
           break;
       }
     }

@@ -1,14 +1,14 @@
 namespace EventSourcing.Core.Tests.Mocks;
 
-public record EmptyEvent : Event;
+public record EmptyEvent : Event<EmptyAggregate>;
+
+public record EmptySnapshot : Snapshot<EmptyAggregate>;
 
 public record EmptyProjection : Projection;
 
-public record EmptySnapshot : Snapshot;
-
-public class EmptyAggregate : Aggregate
+public class EmptyAggregate : Aggregate<EmptyAggregate>
 {
-  protected override void Apply(Event e) {}
+  protected override void Apply(Event<EmptyAggregate> e) {}
 }
 
 public class EmptyProjectionFactory : ProjectionFactory<EmptyAggregate, EmptyProjection>

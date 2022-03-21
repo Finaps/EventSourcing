@@ -1,3 +1,6 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
 namespace EventSourcing.Core;
 
 /// <summary>
@@ -9,7 +12,6 @@ namespace EventSourcing.Core;
 public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : Record
 {
   private readonly RecordTypeCache _recordTypeCache;
-  private readonly EventMigratorService _eventMigratorService;
 
   /// <summary>
   /// Create <see cref="RecordConverter{TRecord}"/>
@@ -21,7 +23,6 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
   public RecordConverter(RecordConverterOptions? options = null)
   {
     _recordTypeCache = new RecordTypeCache(options?.RecordTypes);
-    _eventMigratorService = new EventMigratorService(options?.MigratorTypes);
   }
 
   /// <summary>
@@ -34,20 +35,15 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
   /// Serialize Record
   /// </summary>
   public override void Write(Utf8JsonWriter writer, TRecord value, JsonSerializerOptions options) =>
-    JsonSerializer.Serialize(writer, value, value.GetType());
+    JsonSerializer.Serialize(writer, value with { Type = RecordTypeCache.GetAssemblyRecordTypeString(value.GetType()) }, value.GetType());
 
   /// <summary>
   /// Deserialize Record
   /// </summary>
   /// <exception cref="JsonException">Thrown when <see cref="Record"/> type cannot be found.</exception>
-  public override TRecord Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-  {
-    var type = DeserializeRecordType(reader);
-    var record = JsonSerializer.Deserialize(ref reader, type) as Record
-                 ?? throw new JsonException($"Error Converting Json to {type.Name}.");
-
-    return (TRecord)(record is Event e ? _eventMigratorService.Migrate(e) : record);
-  }
+  public override TRecord Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => 
+    JsonSerializer.Deserialize(ref reader, DeserializeRecordType(reader)) as TRecord 
+           ?? throw new JsonException($"Error Converting Json to {typeToConvert}.");
 
   private Type DeserializeRecordType(Utf8JsonReader reader)
   {

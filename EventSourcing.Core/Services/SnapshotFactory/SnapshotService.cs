@@ -1,7 +1,7 @@
 namespace EventSourcing.Core;
 
 /// <summary>
-/// Create all <see cref="Snapshot"/>s for a particular <see cref="Aggregate"/> type
+/// Create all <see cref="Snapshot"/>s for a particular <see cref="Aggregate{TAggregate}"/> type
 /// </summary>
 internal static class SnapshotService
 {
@@ -17,9 +17,9 @@ internal static class SnapshotService
     .ToDictionary(x => x.Key, x => x.ToList());
 
   /// <summary>
-  /// Create all <see cref="Snapshot"/>s for a particular <see cref="Aggregate"/>
+  /// Create all <see cref="Snapshot"/>s for a particular <see cref="Aggregate{TAggregate}"/>
   /// </summary>
-  /// <param name="aggregate"><see cref="Aggregate"/> to create snapshot for</param>
+  /// <param name="aggregate"><see cref="Aggregate{TAggregate}"/> to create snapshot for</param>
   /// <returns></returns>
   public static List<Snapshot> CreateSnapshots(Aggregate aggregate) => 
     AggregateSnapshotFactories.TryGetValue(aggregate.GetType(), out var factories)

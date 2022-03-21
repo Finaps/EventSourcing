@@ -58,7 +58,7 @@ public abstract record Record
   /// </summary>
   /// <remarks>
   /// <para>
-  /// Set to <see cref="Aggregate"/>.<see cref="Aggregate.Type"/> when <see cref="Event"/> is added to an Aggregate.
+  /// Set to <see cref="Aggregate{TAggregate}"/>.<see cref="Aggregate{TAggregate}.Type"/> when <see cref="Event"/> is added to an Aggregate.
   /// </para>
   /// </remarks>
   public string? AggregateType { get; init; }
@@ -68,7 +68,7 @@ public abstract record Record
   /// </summary>
   /// <remarks>
   /// <para>
-  /// Set to <see cref="Aggregate"/>.<see cref="Aggregate.PartitionId"/> when <see cref="Event"/> is added to an Aggregate.
+  /// Set to <see cref="Aggregate{TAggregate}"/>.<see cref="Aggregate{TAggregate}.PartitionId"/> when <see cref="Event"/> is added to an Aggregate.
   /// </para>
   /// <para>
   /// <see cref="PartitionId"/> is mapped directly to CosmosDB's <c>PartitionKey</c>.
@@ -86,7 +86,7 @@ public abstract record Record
   /// </summary>
   /// <remarks>
   /// <para>
-  /// Set to <see cref="Aggregate"/>.<see cref="Aggregate.Id"/> when <see cref="Event"/> is added to an Aggregate.
+  /// Set to <see cref="Aggregate{TAggregate}"/>.<see cref="Aggregate{TAggregate}.Id"/> when <see cref="Event"/> is added to an Aggregate.
   /// </para>
   /// </remarks>
   public Guid AggregateId { get; init; }
@@ -106,7 +106,7 @@ public abstract record Record
   /// </summary>
   protected Record()
   {
-    Type = RecordTypeCache.GetAssemblyRecordTypeString(GetType());
+    Type = GetType().Name;
     Timestamp = DateTimeOffset.Now;
   }
 }

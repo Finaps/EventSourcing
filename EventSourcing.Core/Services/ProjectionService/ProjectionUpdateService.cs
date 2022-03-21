@@ -1,21 +1,21 @@
 namespace EventSourcing.Core;
 
 /// <summary>
-/// Update <see cref="Projection"/>s in bulk, by rehydrating and persisting their source <see cref="Aggregate"/>s
+/// Update <see cref="Projection"/>s in bulk, by rehydrating and persisting their source <see cref="Aggregate{TAggregate}"/>s
 /// </summary>
 /// <remarks>
 /// <para>
-/// To update <see cref="Projection"/>s of a particular <see cref="Aggregate"/>,
+/// To update <see cref="Projection"/>s of a particular <see cref="Aggregate{TAggregate}"/>,
 /// rehydrate and persist this aggregate using the <see cref="IAggregateService"/>
 /// </para>
 /// <para>
 /// The <see cref="Projection"/>.<see cref="Projection.Hash"/> property is used to decide whether it is out of date.
 /// This hash is determined at projection creation time based on the
-/// <see cref="Aggregate"/>.<see cref="Aggregate.ComputeHash"/> and <see cref="IProjectionFactory"/>.<see cref="IProjectionFactory"/>.<see cref="IProjectionFactory.ComputeHash"/> methods.
+/// <see cref="Aggregate{TAggregate}"/>.<see cref="Aggregate{TAggregate}.ComputeHash"/> and <see cref="IProjectionFactory"/>.<see cref="IProjectionFactory"/>.<see cref="IProjectionFactory.ComputeHash"/> methods.
 /// </para>
 /// </remarks>
 /// <seealso cref="IAggregateService"/>
-/// <seealso cref="Aggregate"/>
+/// <seealso cref="Aggregate{TAggregate}"/>
 /// <seealso cref="IProjectionFactory"/>
 public class ProjectionUpdateService : IProjectionUpdateService
 {
@@ -34,10 +34,10 @@ public class ProjectionUpdateService : IProjectionUpdateService
   }
 
   /// <summary>
-  /// Update specified <see cref="Projection"/> type for a particular <see cref="Aggregate"/> type
+  /// Update specified <see cref="Projection"/> type for a particular <see cref="Aggregate{TAggregate}"/> type
   /// </summary>
   /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
-  /// <typeparam name="TAggregate"><see cref="Aggregate"/> type</typeparam>
+  /// <typeparam name="TAggregate"><see cref="Aggregate{TAggregate}"/> type</typeparam>
   /// <typeparam name="TProjection"><see cref="Projection"/> type</typeparam>
   public async Task UpdateAllProjectionsAsync<TAggregate, TProjection>(CancellationToken cancellationToken = default)
     where TAggregate : Aggregate, new() where TProjection : Projection, new()

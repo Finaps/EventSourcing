@@ -47,15 +47,15 @@ public class CosmosRecordStore : IRecordStore
   }
 
   /// <inheritdoc />
-  public IQueryable<Event> Events =>_container
+  public IQueryable<Event> GetEvents<TAggregate>() where TAggregate : Aggregate, new() => _container
     .AsCosmosAsyncQueryable<Event>()
-    .Where(x => x.Kind == RecordKind.Event && x.Type != ReservationToken);
+    .Where(x => x.AggregateType == typeof(TAggregate).Name && x.Kind == RecordKind.Event && x.Type != ReservationToken);
 
   /// <inheritdoc />
-  public IQueryable<Snapshot> Snapshots => _container
+  public IQueryable<Snapshot> GetSnapshots<TAggregate>() where TAggregate : Aggregate, new() => _container
     .AsCosmosAsyncQueryable<Snapshot>()
-    .Where(x => x.Kind == RecordKind.Snapshot);
-  
+    .Where(x => x.AggregateType == typeof(TAggregate).Name && x.Kind == RecordKind.Snapshot);
+
   /// <inheritdoc />
   public IQueryable<TProjection> GetProjections<TProjection>() where TProjection : Projection, new() => _container
     .AsCosmosAsyncQueryable<TProjection>()
@@ -108,25 +108,25 @@ public class CosmosRecordStore : IRecordStore
       .CommitAsync(cancellationToken);
 
   /// <inheritdoc />
-  public async Task DeleteAllEventsAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
+  public async Task DeleteAllEventsAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
   {
     // Get existing Event Indices
-    var index = await Events
+    var index = await GetEvents<TAggregate>()
       .Where(x => x.PartitionId == partitionId && x.AggregateId == aggregateId)
       .Select(x => x.Index)
       .AsAsyncEnumerable()
       .MaxAsync(cancellationToken);
     
     await CreateTransaction(partitionId)
-      .DeleteAllEvents(aggregateId, index)
+      .DeleteAllEvents<TAggregate>(aggregateId, index)
       .CommitAsync(cancellationToken);
   }
 
   /// <inheritdoc />
-  public async Task DeleteAllSnapshotsAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
+  public async Task DeleteAllSnapshotsAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
   {
     // Get Existing Snapshot Indices
-    var snapshotIndices = await Snapshots
+    var snapshotIndices = await GetSnapshots<TAggregate>()
       .Where(x => x.PartitionId == partitionId && x.AggregateId == aggregateId)
       .Select(x => x.Index)
       .OrderBy(index => index)
@@ -138,45 +138,25 @@ public class CosmosRecordStore : IRecordStore
     {
       var transaction = CreateTransaction(partitionId);
       foreach (var index in indices)
-        transaction.DeleteSnapshot(aggregateId, index);
+        transaction.DeleteSnapshot<TAggregate>(aggregateId, index);
       await transaction.CommitAsync(cancellationToken);
     }
   }
 
   /// <inheritdoc />
-  public async Task DeleteSnapshotAsync(Guid partitionId, Guid aggregateId, long index, CancellationToken cancellationToken = default) =>
+  public async Task DeleteSnapshotAsync<TAggregate>(Guid partitionId, Guid aggregateId, long index, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new() =>
     await CreateTransaction(partitionId)
-      .DeleteSnapshot(aggregateId, index)
+      .DeleteSnapshot<TAggregate>(aggregateId, index)
       .CommitAsync(cancellationToken);
-
-  /// <inheritdoc />
-  public async Task DeleteAllProjectionsAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
-  {
-    // Get Existing Projection Types
-    var types = await _container
-      .AsCosmosAsyncQueryable<Projection>()
-      .Where(x =>  x.Kind == RecordKind.Projection && x.PartitionId == partitionId && x.AggregateId == aggregateId)
-      .Select(x => x.Type)
-      .AsAsyncEnumerable()
-      .ToListAsync(cancellationToken);
-
-    foreach (var typeBatch in types.Chunk(MaxTransactionSize))
-    {
-      var transaction = CreateTransaction(partitionId);
-      foreach (var t in typeBatch)
-        transaction.DeleteProjection(aggregateId, t);
-      await transaction.CommitAsync(cancellationToken);
-    }
-  }
 
   /// <inheritdoc />
   public async Task DeleteProjectionAsync<TProjection>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection, new() =>
     await CreateTransaction(partitionId)
-      .DeleteProjection(aggregateId, new TProjection().Type)
+      .DeleteProjection<TProjection>(aggregateId)
       .CommitAsync(cancellationToken);
 
   /// <inheritdoc />
-  public async Task<int> DeleteAggregateAsync(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
+  public async Task<int> DeleteAggregateAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
   {
     if (!_isDeleteAggregateProcedureInitialized)
     {

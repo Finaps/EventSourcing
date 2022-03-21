@@ -12,7 +12,7 @@ using Xunit;
 
 namespace EventSourcing.Cosmos.Tests;
 
-public class CosmosEventSourcingTests : EventSourcingTests
+public partial class CosmosEventSourcingTests : EventSourcingTests
 {
   private readonly IOptions<CosmosRecordStoreOptions> _options;
 
@@ -126,7 +126,8 @@ public class CosmosEventSourcingTests : EventSourcingTests
     }));
       
     var exception = await Assert.ThrowsAsync<RecordStoreException>(async () =>
-      await store.Events
+      await store
+        .GetEvents<EmptyAggregate>()
         .Where(x => x.AggregateId == Guid.NewGuid())
         .AsAsyncEnumerable()
         .ToListAsync()
@@ -145,7 +146,8 @@ public class CosmosEventSourcingTests : EventSourcingTests
     }));
 
     var exception = await Assert.ThrowsAsync<RecordStoreException>(async () =>
-      await store.Events
+      await store
+        .GetEvents<EmptyAggregate>()
         .Where(x => x.AggregateId == Guid.NewGuid())
         .AsAsyncEnumerable()
         .ToListAsync()
@@ -164,7 +166,8 @@ public class CosmosEventSourcingTests : EventSourcingTests
     }));
 
     var exception = await Assert.ThrowsAsync<RecordStoreException>(async () =>
-      await store.Events
+      await store
+        .GetEvents<EmptyAggregate>()
         .Where(x => x.AggregateId == Guid.NewGuid())
         .AsAsyncEnumerable()
         .ToListAsync()

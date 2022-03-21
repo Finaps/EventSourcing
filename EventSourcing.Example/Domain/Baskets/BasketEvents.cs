@@ -1,6 +1,6 @@
 namespace EventSourcing.Example.Domain.Baskets;
 
-public record BasketCreatedEvent(TimeSpan ExpirationTime) : Event;
-public record ProductAddedToBasketEvent(int Quantity, Guid ProductId ) : Event;
-public record ProductRemovedFromBasketEvent(int Quantity, Guid ProductId) : Event;
-public record BasketCheckedOutEvent : Event;
+public record BasketCreatedEvent(TimeSpan ExpirationTime) : Event<Basket>;
+public record ProductAddedToBasketEvent(int Quantity, Guid ProductId ) : Event<Basket>;
+public record ProductRemovedFromBasketEvent(int Quantity, Guid ProductId) : Event<Basket>;
+public record BasketCheckedOutEvent : Event<Basket>;

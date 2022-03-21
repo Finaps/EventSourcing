@@ -1,5 +1,3 @@
-using EventSourcing.Core.Tests.Mocks;
-
 namespace EventSourcing.Core.Tests;
 
 public abstract partial class EventSourcingTests
@@ -17,7 +15,7 @@ public abstract partial class EventSourcingTests
   public async Task Can_Add_Snapshot()
   {
     var aggregate = new SnapshotAggregate();
-    aggregate.Apply(new EmptyEvent());
+    aggregate.Apply(new SnapshotEvent());
     
     var factory = new SimpleSnapshotFactory();
     await RecordStore.AddSnapshotAsync(factory.CreateSnapshot(aggregate));
@@ -27,7 +25,7 @@ public abstract partial class EventSourcingTests
   public async Task Cannot_Add_Snapshot_With_Duplicate_AggregateId_And_Index()
   {
     var aggregate = new SnapshotAggregate();
-    aggregate.Apply(new EmptyEvent());
+    aggregate.Apply(new SnapshotEvent());
 
     var factory = new SimpleSnapshotFactory();
 
@@ -42,12 +40,13 @@ public abstract partial class EventSourcingTests
   public async Task Can_Get_Snapshot_By_PartitionId()
   {
     var aggregate = new SnapshotAggregate { PartitionId = Guid.NewGuid() };
-    aggregate.Apply(new EmptyEvent());
+    aggregate.Apply(new SnapshotEvent());
     
     var factory = new SimpleSnapshotFactory();
     await RecordStore.AddSnapshotAsync(factory.CreateSnapshot(aggregate));
 
-    var count = await RecordStore.Snapshots
+    var count = await RecordStore
+      .GetSnapshots<SnapshotAggregate>()
       .Where(x => x.PartitionId == aggregate.PartitionId)
       .AsAsyncEnumerable()
       .CountAsync();
@@ -59,12 +58,13 @@ public abstract partial class EventSourcingTests
   public async Task Can_Get_Snapshot_By_AggregateId()
   {
     var aggregate = new SnapshotAggregate();
-    aggregate.Apply(new EmptyEvent());
+    aggregate.Apply(new SnapshotEvent());
 
     var factory = new SimpleSnapshotFactory();
     await RecordStore.AddSnapshotAsync(factory.CreateSnapshot(aggregate));
 
-    var count = await RecordStore.Snapshots
+    var count = await RecordStore
+      .GetSnapshots<SnapshotAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
@@ -76,12 +76,12 @@ public abstract partial class EventSourcingTests
   public async Task Can_Get_Latest_Snapshot_By_AggregateId()
   {
     var aggregate = new SnapshotAggregate();
-    aggregate.Apply(new EmptyEvent());
+    aggregate.Apply(new SnapshotEvent());
     
     var factory = new SimpleSnapshotFactory();
     
     var snapshot = factory.CreateSnapshot(aggregate);
-    aggregate.Apply(new EmptyEvent());
+    aggregate.Apply(new SnapshotEvent());
     var snapshot2 = factory.CreateSnapshot(aggregate);
 
     Assert.NotEqual(snapshot.Index, snapshot2.Index);
@@ -89,7 +89,8 @@ public abstract partial class EventSourcingTests
     await RecordStore.AddSnapshotAsync(snapshot);
     await RecordStore.AddSnapshotAsync(snapshot2);
 
-    var result = await RecordStore.Snapshots
+    var result = await RecordStore
+      .GetSnapshots<SnapshotAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .OrderByDescending(x => x.Index)
       .AsAsyncEnumerable()
