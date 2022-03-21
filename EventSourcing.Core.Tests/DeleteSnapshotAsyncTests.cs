@@ -1,5 +1,3 @@
-using EventSourcing.Core.Tests.Mocks;
-
 namespace EventSourcing.Core.Tests;
 
 public abstract partial class EventSourcingTests
@@ -10,14 +8,16 @@ public abstract partial class EventSourcingTests
     var snapshot = new EmptySnapshot { AggregateId = Guid.NewGuid(), AggregateType = nameof(EmptyAggregate) };
     await RecordStore.AddSnapshotAsync(snapshot);
 
-    Assert.NotNull(await RecordStore.Snapshots
+    Assert.NotNull(await RecordStore
+      .GetSnapshots<EmptyAggregate>()
       .Where(x => x.AggregateId == snapshot.AggregateId)
       .AsAsyncEnumerable()
       .SingleAsync());
 
-    await RecordStore.DeleteSnapshotAsync(snapshot.AggregateId, snapshot.Index);
+    await RecordStore.DeleteSnapshotAsync<EmptyAggregate>(snapshot.AggregateId, snapshot.Index);
 
-    Assert.False(await RecordStore.Snapshots
+    Assert.False(await RecordStore
+      .GetSnapshots<EmptyAggregate>()
       .Where(x => x.AggregateId == snapshot.AggregateId)
       .AsAsyncEnumerable()
       .AnyAsync());

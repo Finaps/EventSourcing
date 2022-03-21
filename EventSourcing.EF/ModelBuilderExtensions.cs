@@ -1,28 +1,44 @@
 using EventSourcing.Core;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace EventSourcing.EF;
 
 public static class ModelBuilderExtensions
 {
-  public static EntityTypeBuilder<TEvent> EventEntity<TEvent>(this ModelBuilder builder) where TEvent : Event
-  {
-    var eventBuilder = builder.Entity<TEvent>();
-    eventBuilder.HasKey(x => new { x.PartitionId, x.AggregateId, x.Index });
-    eventBuilder.HasIndex(x => x.AggregateType);
-    eventBuilder.HasIndex(x => x.Type);
-    eventBuilder.HasIndex(x => x.Timestamp);
-    return eventBuilder;
-  }
+  public static ModelBuilder SnapshotEntity(this ModelBuilder builder, Type aggregateType) =>
+    builder.Entity(typeof(Snapshot<>).MakeGenericType(aggregateType), x =>
+    {
+      x.ToTable(aggregateType.SnapshotTable());
+      x.HasKey(nameof(Snapshot.PartitionId), nameof(Snapshot.AggregateId), nameof(Snapshot.Index));
+      x.HasIndex(nameof(Snapshot.Type));
+      x.HasIndex(nameof(Snapshot.Timestamp));
+      x.Property(nameof(Snapshot.Type)).HasMaxLength(256);
+      x.Property(nameof(Snapshot.AggregateType)).HasMaxLength(256);
+    });
   
-  public static EntityTypeBuilder<TProjection> ProjectionEntity<TProjection>(this ModelBuilder builder) where TProjection : Projection
+  public static ModelBuilder EventEntity(this ModelBuilder builder, Type aggregateType) =>
+    builder.Entity(typeof(Event<>).MakeGenericType(aggregateType), x =>
+    {
+      x.ToTable(aggregateType.EventTable());
+      x.HasKey(nameof(Event.PartitionId), nameof(Event.AggregateId), nameof(Event.Index));
+      x.HasIndex(nameof(Event.Type));
+      x.HasIndex(nameof(Event.Timestamp));
+      x.Property(nameof(Event.Type)).HasMaxLength(256);
+      x.Property(nameof(Event.AggregateType)).HasMaxLength(256);
+    });
+
+  public static ModelBuilder ProjectionEntity(this ModelBuilder builder, Type type)
   {
-    EntityFrameworkRecordStore.ProjectionTypes.Add(typeof(TProjection));
-    var projectionBuilder = builder.Entity<TProjection>();
-    projectionBuilder.HasKey(x => new { x.PartitionId, x.AggregateId });
-    projectionBuilder.HasIndex(x => x.AggregateType);
-    projectionBuilder.HasIndex(x => x.Hash);
-    return projectionBuilder;
+    EntityFrameworkRecordStore.ProjectionTypes.Add(type);
+    return builder.Entity(type, x =>
+    {
+      x.HasKey(nameof(Projection.PartitionId), nameof(Projection.AggregateId));
+      x.HasIndex(nameof(Projection.AggregateType));
+      x.HasIndex(nameof(Projection.Hash));
+
+      x.Property(nameof(Projection.Type)).HasMaxLength(256);
+      x.Property(nameof(Projection.AggregateType)).HasMaxLength(256);
+      x.Property(nameof(Projection.Hash)).HasMaxLength(256);
+    });
   }
 }

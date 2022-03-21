@@ -26,7 +26,7 @@ public class AggregateTransaction : IAggregateTransaction
       throw new ArgumentException(
         $"Error adding {aggregate} to {nameof(AggregateTransaction)}. Aggregate already added.", nameof(aggregate));
 
-    _recordTransaction.AddEvents(aggregate.UncommittedEvents.ToList());
+    _recordTransaction.AddEvents(aggregate.UncommittedEvents);
 
     foreach (var snapshot in SnapshotService.CreateSnapshots(aggregate))
       _recordTransaction.AddSnapshot(snapshot);
@@ -43,6 +43,6 @@ public class AggregateTransaction : IAggregateTransaction
     await _recordTransaction.CommitAsync(cancellationToken);
 
     // If Transaction succeeded: Clear all uncommitted Events (they have been committed now)
-    foreach (var aggregate in _aggregates) aggregate.ClearUncommittedEvents();
+    foreach (var aggregate in _aggregates) aggregate.UncommittedEvents.Clear();
   }
 }

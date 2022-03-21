@@ -1,12 +1,12 @@
 namespace EventSourcing.Core;
 
 /// <summary>
-/// Create <see cref="Projection"/> for <see cref="Aggregate"/>
+/// Create <see cref="Projection"/> for <see cref="Aggregate{TAggregate}"/>
 /// </summary>
 public interface IProjectionFactory : IHashable
 {
   /// <summary>
-  /// Source <see cref="Aggregate"/> type
+  /// Source <see cref="Aggregate{TAggregate}"/> type
   /// </summary>
   Type AggregateType { get; }
   
@@ -16,9 +16,9 @@ public interface IProjectionFactory : IHashable
   Type ProjectionType { get; }
   
   /// <summary>
-  /// Create <see cref="Projection"/> for <see cref="Aggregate"/>
+  /// Create <see cref="Projection"/> for <see cref="Aggregate{TAggregate}"/>
   /// </summary>
-  /// <param name="aggregate">Source <see cref="Aggregate"/></param>
-  /// <returns>Resulting <see cref="Projection"/> of <see cref="Aggregate"/></returns>
+  /// <param name="aggregate">Source <see cref="Aggregate{TAggregate}"/></param>
+  /// <returns>Resulting <see cref="Projection"/> of <see cref="Aggregate{TAggregate}"/></returns>
   Projection CreateProjection(Aggregate aggregate);
 }

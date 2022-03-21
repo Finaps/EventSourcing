@@ -1,5 +1,3 @@
-using EventSourcing.Core.Tests.Mocks;
-
 namespace EventSourcing.Core.Tests;
 
 public abstract partial class EventSourcingTests
@@ -15,9 +13,10 @@ public abstract partial class EventSourcingTests
 
         await RecordStore.AddEventsAsync(events);
         
-        var deleted = await RecordStore.DeleteAggregateAsync(Guid.Empty, aggregate.Id);
+        var deleted = await RecordStore.DeleteAggregateAsync<EmptyAggregate>(Guid.Empty, aggregate.Id);
         
-        var count = await RecordStore.Events
+        var count = await RecordStore
+            .GetEvents<EmptyAggregate>()
             .Where(x => x.AggregateId == aggregate.Id)
             .AsAsyncEnumerable()
             .CountAsync();
@@ -34,7 +33,8 @@ public abstract partial class EventSourcingTests
         // Store event
         var e = aggregate.Apply(new EmptyEvent());
         await RecordStore.AddEventsAsync(new List<Event>{e});
-        Assert.NotNull(await RecordStore.Events
+        Assert.NotNull(await RecordStore
+            .GetEvents<EmptyAggregate>()
             .Where(x => x.AggregateId == e.AggregateId)
             .AsAsyncEnumerable()
             .SingleAsync());
@@ -42,7 +42,8 @@ public abstract partial class EventSourcingTests
         // Store snapshot
         var snapshot = new EmptySnapshot { AggregateId = aggregate.Id, AggregateType = nameof(EmptyAggregate) };
         await RecordStore.AddSnapshotAsync(snapshot);
-        Assert.NotNull(await RecordStore.Snapshots
+        Assert.NotNull(await RecordStore
+            .GetSnapshots<EmptyAggregate>()
             .Where(x => x.AggregateId == snapshot.AggregateId)
             .AsAsyncEnumerable()
             .SingleAsync());
@@ -53,14 +54,16 @@ public abstract partial class EventSourcingTests
         Assert.NotNull(await RecordStore.GetProjectionByIdAsync<EmptyProjection>(projection.AggregateId));
         
         // Delete all items created
-        var deleted = await RecordStore.DeleteAggregateAsync(Guid.Empty, aggregate.Id);
+        var deleted = await RecordStore.DeleteAggregateAsync<EmptyAggregate>(Guid.Empty, aggregate.Id);
         
-        var eventsCount = await RecordStore.Events
+        var eventsCount = await RecordStore
+            .GetEvents<EmptyAggregate>()
             .Where(x => x.AggregateId == aggregate.Id)
             .AsAsyncEnumerable()
             .CountAsync();
         
-        var snapshotsCount = await RecordStore.Snapshots
+        var snapshotsCount = await RecordStore
+            .GetSnapshots<EmptyAggregate>()
             .Where(x => x.AggregateId == aggregate.Id)
             .AsAsyncEnumerable()
             .CountAsync();
@@ -92,9 +95,10 @@ public abstract partial class EventSourcingTests
             events.Add(aggregate.Apply(new EmptyEvent()));
 
         await RecordStore.AddEventsAsync(events);
-        var deleted = await RecordStore.DeleteAggregateAsync(Guid.Empty, aggregate.Id);
+        var deleted = await RecordStore.DeleteAggregateAsync<EmptyAggregate>(Guid.Empty, aggregate.Id);
         
-        var count = await RecordStore.Events
+        var count = await RecordStore
+            .GetEvents<EmptyAggregate>()
             .Where(x => x.AggregateId == aggregate.Id)
             .AsAsyncEnumerable()
             .CountAsync();

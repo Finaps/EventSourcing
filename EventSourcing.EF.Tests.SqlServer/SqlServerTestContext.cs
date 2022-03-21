@@ -19,38 +19,29 @@ public class SqlServerTestContext : RecordContext
   {
     base.OnModelCreating(builder);
 
-    builder.Entity<EventEntity>()
-      .Property(x => x.Json)
-      .HasConversion(
-        json => json.RootElement.ToString(), 
-        str => JsonDocument.Parse(str, new JsonDocumentOptions()));
+    builder.Entity<MockEvent>(entity =>
+    {
+      entity.OwnsOne(x => x.MockNestedRecord);
+      entity.OwnsMany(x => x.MockNestedRecordList);
+      entity.Property(x => x.MockFloatList).HasBinaryConversion();
+      entity.Property(x => x.MockStringSet).HasStringConversion(";");
+    });
+
+    builder.Entity<MockSnapshot>(entity =>
+    {
+      entity.OwnsOne(x => x.MockNestedRecord);
+      entity.OwnsMany(x => x.MockNestedRecordList);
+      entity.Property(x => x.MockFloatList).HasBinaryConversion();
+      entity.Property(x => x.MockStringSet).HasStringConversion(";");
+    });
     
-    builder.Entity<SnapshotEntity>()
-      .Property(x => x.Json)
-      .HasConversion(
-        json => json.RootElement.ToString(), 
-        str => JsonDocument.Parse(str, new JsonDocumentOptions()));
-
-    var mockProjection = builder.ProjectionEntity<MockAggregateProjection>();
-    mockProjection.OwnsOne(x => x.MockNestedRecord);
-    mockProjection.OwnsMany(x => x.MockNestedRecordList);
-
-    mockProjection
-      .Property(x => x.MockFloatList)
-      .HasConversion(
-        list => list.SelectMany(BitConverter.GetBytes).ToArray(),
-        bytes => bytes.Chunk(4).Select(b => BitConverter.ToSingle(b)).ToList(),
-        new ValueComparer<List<float>>(
-          (x, y) => x.SequenceEqual(y), x => x.GetHashCode()));
-    
-    mockProjection
-      .Property(x => x.MockStringSet)
-      .HasConversion(
-        list => string.Join(";", list),
-        str => str.Split(";", StringSplitOptions.RemoveEmptyEntries).ToList());
-
-    builder.ProjectionEntity<EmptyProjection>();
-    builder.ProjectionEntity<BankAccountProjection>();
+    builder.Entity<MockAggregateProjection>(entity =>
+    {
+      entity.OwnsOne(x => x.MockNestedRecord);
+      entity.OwnsMany(x => x.MockNestedRecordList);
+      entity.Property(x => x.MockFloatList).HasBinaryConversion();
+      entity.Property(x => x.MockStringSet).HasStringConversion(";");
+    });
   }
 }
 

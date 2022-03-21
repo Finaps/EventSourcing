@@ -3,7 +3,7 @@ namespace EventSourcing.Core;
 /// <summary>
 /// Create <see cref="TSnapshot"/> for <see cref="TAggregate"/>
 /// </summary>
-/// <typeparam name="TAggregate"><see cref="Aggregate"/> type</typeparam>
+/// <typeparam name="TAggregate"><see cref="Aggregate{TAggregate}"/> type</typeparam>
 /// <typeparam name="TSnapshot"><see cref="Projection"/> type</typeparam>
 public abstract class SnapshotFactory<TAggregate, TSnapshot> : ISnapshotFactory
   where TAggregate : Aggregate where TSnapshot : Snapshot

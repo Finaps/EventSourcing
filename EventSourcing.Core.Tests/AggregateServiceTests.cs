@@ -1,5 +1,3 @@
-using EventSourcing.Core.Tests.Mocks;
-
 namespace EventSourcing.Core.Tests;
 
 public abstract partial class EventSourcingTests
@@ -9,11 +7,12 @@ public abstract partial class EventSourcingTests
   public async Task Can_Persist_Event()
   {
     var aggregate = new SimpleAggregate();
-    aggregate.Apply(new EmptyEvent());
+    aggregate.Apply(new SimpleEvent());
 
     await AggregateService.PersistAsync(aggregate);
 
-    var result = await RecordStore.Events
+    var result = await RecordStore
+      .GetEvents<SimpleAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .SingleOrDefaultAsync();
@@ -25,7 +24,7 @@ public abstract partial class EventSourcingTests
   public Task Cannot_Add_Event_With_Empty_Aggregate_Id()
   {
     var aggregate = new SimpleAggregate { Id = Guid.Empty };
-    Assert.Throws<RecordValidationException>(() => aggregate.Apply(new EmptyEvent()));
+    Assert.Throws<RecordValidationException>(() => aggregate.Apply(new SimpleEvent()));
     
     return Task.CompletedTask;
   }
@@ -36,14 +35,15 @@ public abstract partial class EventSourcingTests
     var aggregate = new SimpleAggregate();
     var events = new List<Event>
     {
-      aggregate.Apply(new EmptyEvent()),
-      aggregate.Apply(new EmptyEvent()),
-      aggregate.Apply(new EmptyEvent())
+      aggregate.Apply(new SimpleEvent()),
+      aggregate.Apply(new SimpleEvent()),
+      aggregate.Apply(new SimpleEvent())
     };
 
     await AggregateService.PersistAsync(aggregate);
 
-    var eventCount = await RecordStore.Events
+    var eventCount = await RecordStore
+      .GetEvents<SimpleAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
@@ -57,9 +57,9 @@ public abstract partial class EventSourcingTests
     var aggregate = new SimpleAggregate();
     var events = new List<Event>
     {
-      aggregate.Apply(new EmptyEvent()),
-      aggregate.Apply(new EmptyEvent()),
-      aggregate.Apply(new EmptyEvent())
+      aggregate.Apply(new SimpleEvent()),
+      aggregate.Apply(new SimpleEvent()),
+      aggregate.Apply(new SimpleEvent())
     };
 
     await AggregateService.PersistAsync(aggregate);
@@ -73,9 +73,9 @@ public abstract partial class EventSourcingTests
   public async Task Can_Rehydrate_Aggregate_Up_To_Date()
   {
     var aggregate = new SimpleAggregate();
-    aggregate.Apply(new EmptyEvent());
-    aggregate.Apply(new EmptyEvent());
-    aggregate.Apply(new EmptyEvent { Timestamp = DateTimeOffset.Now.AddYears(1) });
+    aggregate.Apply(new SimpleEvent());
+    aggregate.Apply(new SimpleEvent());
+    aggregate.Apply(new SimpleEvent { Timestamp = DateTimeOffset.Now.AddYears(1) });
 
     await AggregateService.PersistAsync(aggregate);
 
@@ -91,53 +91,88 @@ public abstract partial class EventSourcingTests
   }
 
   [Fact]
-  public async Task Uncommitted_Events_Are_Cleared_After_Persist()
-  {
-    var aggregate = new SimpleAggregate();
-
-    aggregate.Apply(new EmptyEvent());
-    aggregate.Apply(new EmptyEvent());
-
-    await AggregateService.PersistAsync(aggregate);
-
-    Assert.Empty(aggregate.UncommittedEvents);
-  }
-
-  [Fact]
-  public async Task Empty_Uncommitted_Events_After_Rehydrate()
-  {
-    var aggregate = new SimpleAggregate();
-    aggregate.Apply(new EmptyEvent());
-    aggregate.Apply(new EmptyEvent());
-
-    await AggregateService.PersistAsync(aggregate);
-
-    var result = await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate.Id);
-
-    Assert.NotNull(result);
-    Assert.Empty(result!.UncommittedEvents);
-  }
-
-  [Fact]
   public async Task Can_Rehydrate_And_Persist()
   {
     var aggregate = new SimpleAggregate();
     var events = new List<Event>
     {
-      aggregate.Apply(new EmptyEvent()),
-      aggregate.Apply(new EmptyEvent()),
+      aggregate.Apply(new SimpleEvent()),
+      aggregate.Apply(new SimpleEvent()),
     };
 
     await AggregateService.PersistAsync(aggregate);
     await AggregateService.RehydrateAndPersistAsync<SimpleAggregate>(aggregate.Id,
-      a => a.Apply(new EmptyEvent()));
+      a => a.Apply(new SimpleEvent()));
 
-    var count = await RecordStore.Events
+    var count = await RecordStore
+      .GetEvents<SimpleAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
 
     Assert.Equal(events.Count + 1, count);
+  }
+
+  [Fact]
+  public async Task Can_Rehydrate_And_Persist_MockAggregate()
+  {
+    var aggregate = new MockAggregate();
+    var e = aggregate.Apply(new MockEvent
+    {
+      MockBoolean = true,
+      MockString = "Hello World",
+      MockDecimal = 0.55m,
+      MockDouble = 0.6,
+      MockEnum = MockEnum.C,
+      MockFlagEnum = MockFlagEnum.A | MockFlagEnum.D,
+
+      MockNestedRecord = new MockNestedRecord
+      {
+        MockBoolean = false,
+        MockString = "Bonjour",
+        MockDecimal = 0.82m,
+        MockDouble = 0.999
+      },
+
+      MockNestedRecordList = new List<MockNestedRecordItem>
+      {
+        new()
+        {
+          MockBoolean = false,
+          MockString = "Bye Bye",
+          MockDecimal = 99.99m,
+          MockDouble = 0.111
+        },
+      },
+
+      MockFloatList = new List<float> { .1f, .5f, .9f },
+      MockStringSet = new List<string> { "A", "B", "C", "C" }
+    });
+
+    await AggregateService.PersistAsync(aggregate);
+
+    var result = await AggregateService.RehydrateAsync<MockAggregate>(aggregate.Id);
+    
+    Assert.Equal(e.MockBoolean, result.MockBoolean);
+    Assert.Equal(e.MockString, result.MockString);
+    Assert.Equal(e.MockDecimal, result.MockDecimal);
+    Assert.Equal(e.MockDouble, result.MockDouble);
+    Assert.Equal(e.MockEnum, result.MockEnum);
+    Assert.Equal(e.MockFlagEnum, result.MockFlagEnum);
+    Assert.Equal(e.MockNestedRecord.MockBoolean, result.MockNestedRecord.MockBoolean);
+    Assert.Equal(e.MockNestedRecord.MockString, result.MockNestedRecord.MockString);
+    Assert.Equal(e.MockNestedRecord.MockDecimal, result.MockNestedRecord.MockDecimal);
+    Assert.Equal(e.MockNestedRecord.MockDouble, result.MockNestedRecord.MockDouble);
+    Assert.Equal(e.MockNestedRecordList.Single().MockBoolean, result.MockNestedRecordList.Single().MockBoolean);
+    Assert.Equal(e.MockNestedRecordList.Single().MockString, result.MockNestedRecordList.Single().MockString);
+    Assert.Equal(e.MockNestedRecordList.Single().MockDecimal, result.MockNestedRecordList.Single().MockDecimal);
+    Assert.Equal(e.MockNestedRecordList.Single().MockDouble, result.MockNestedRecordList.Single().MockDouble);
+    Assert.Equal(e.MockFloatList[0], result.MockFloatList[0]);
+    Assert.Equal(e.MockFloatList[1], result.MockFloatList[1]);
+    Assert.Equal(e.MockFloatList[2], result.MockFloatList[2]);
+    Assert.Contains(e.MockStringSet, x => x == "A");
+    Assert.Contains(e.MockStringSet, x => x == "B");
+    Assert.Contains(e.MockStringSet, x => x == "C");
   }
   
   [Fact]
@@ -146,15 +181,16 @@ public abstract partial class EventSourcingTests
     var aggregate = new SimpleAggregate { PartitionId = Guid.NewGuid() };
     var events = new List<Event>
     {
-      aggregate.Apply(new EmptyEvent()),
-      aggregate.Apply(new EmptyEvent()),
+      aggregate.Apply(new SimpleEvent()),
+      aggregate.Apply(new SimpleEvent()),
     };
 
     await AggregateService.PersistAsync(aggregate);
     await AggregateService.RehydrateAndPersistAsync<SimpleAggregate>(aggregate.PartitionId, aggregate.Id,
-      a => a.Apply(new EmptyEvent()));
+      a => a.Apply(new SimpleEvent()));
 
-    var count = await RecordStore.Events
+    var count = await RecordStore
+      .GetEvents<SimpleAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
@@ -170,16 +206,18 @@ public abstract partial class EventSourcingTests
     
     var eventsCount = factory.SnapshotInterval;
     foreach (var _ in new int[eventsCount])
-      aggregate.Apply(new EmptyEvent());
+      aggregate.Apply(new SnapshotEvent());
 
     await AggregateService.PersistAsync(aggregate);
 
-    var snapshotResult = await RecordStore.Snapshots
+    var snapshotResult = await RecordStore
+      .GetSnapshots<SnapshotAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .SingleOrDefaultAsync();
 
-    var eventCount = await RecordStore.Events
+    var eventCount = await RecordStore
+      .GetEvents<SnapshotAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
@@ -196,16 +234,18 @@ public abstract partial class EventSourcingTests
     
     var eventsCount = factory.SnapshotInterval - 1;
     foreach (var _ in new int[eventsCount])
-      aggregate.Apply(new EmptyEvent());
+      aggregate.Apply(new SnapshotEvent());
 
     await AggregateService.PersistAsync(aggregate);
 
-    var snapshotCount = await RecordStore.Snapshots
+    var snapshotCount = await RecordStore
+      .GetSnapshots<SnapshotAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
     
-    var eventCount = await RecordStore.Events
+    var eventCount = await RecordStore
+      .GetEvents<SnapshotAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .LongCountAsync();
@@ -222,16 +262,18 @@ public abstract partial class EventSourcingTests
     
     var eventsCount = 2 * factory.SnapshotInterval;
     foreach (var _ in new int[eventsCount])
-      aggregate.Apply(new EmptyEvent());
+      aggregate.Apply(new SnapshotEvent());
 
     await AggregateService.PersistAsync(aggregate);
     
-    var snapshotCount = await RecordStore.Snapshots
+    var snapshotCount = await RecordStore
+      .GetSnapshots<SnapshotAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
     
-    var eventCount = await RecordStore.Events
+    var eventCount = await RecordStore
+      .GetEvents<SnapshotAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .LongCountAsync();
@@ -248,7 +290,7 @@ public abstract partial class EventSourcingTests
     
     var eventsCount = factory.SnapshotInterval;
     foreach (var _ in new int[eventsCount])
-      aggregate.Apply(new EmptyEvent());
+      aggregate.Apply(new SnapshotEvent());
 
     await AggregateService.PersistAsync(aggregate);
     var result = await AggregateService.RehydrateAsync<SnapshotAggregate>(aggregate.Id);
@@ -266,11 +308,11 @@ public abstract partial class EventSourcingTests
     var factory = new SimpleSnapshotFactory();
 
     foreach (var _ in new int[factory.SnapshotInterval])
-      aggregate.Apply(new EmptyEvent());
+      aggregate.Apply(new SnapshotEvent());
     await AggregateService.PersistAsync(aggregate);
     
     foreach (var _ in new int[3])
-      aggregate.Apply(new EmptyEvent());
+      aggregate.Apply(new SnapshotEvent());
     await AggregateService.PersistAsync(aggregate);
     
     await Task.Delay(100);
@@ -278,17 +320,19 @@ public abstract partial class EventSourcingTests
     await Task.Delay(100);
 
     foreach (var _ in new int[factory.SnapshotInterval])
-      aggregate.Apply(new EmptyEvent());
+      aggregate.Apply(new SnapshotEvent());
     await AggregateService.PersistAsync(aggregate);
 
     var result = await AggregateService.RehydrateAsync<SnapshotAggregate>(aggregate.Id, date);
     
-    var snapshotCount = await RecordStore.Snapshots
+    var snapshotCount = await RecordStore
+      .GetSnapshots<SnapshotAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
 
-    var eventsCount = await RecordStore.Events
+    var eventsCount = await RecordStore
+      .GetEvents<SnapshotAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
@@ -310,20 +354,21 @@ public abstract partial class EventSourcingTests
     var eventsCount = factory.SnapshotInterval;
       
     foreach (var _ in new int[eventsCount])
-      aggregate.Apply(new EmptyEvent());
+      aggregate.Apply(new SnapshotEvent());
     await AggregateService.PersistAsync(aggregate);
       
     foreach (var _ in new int[eventsCount])
-      aggregate.Apply(new EmptyEvent());
+      aggregate.Apply(new SnapshotEvent());
     await AggregateService.PersistAsync(aggregate);
     
     foreach (var _ in new int[eventsCount - 1])
-      aggregate.Apply(new EmptyEvent());
+      aggregate.Apply(new SnapshotEvent());
     await AggregateService.PersistAsync(aggregate);
       
     var result = await AggregateService.RehydrateAsync<SnapshotAggregate>(aggregate.Id);
     
-    var snapshotCount = await RecordStore.Snapshots
+    var snapshotCount = await RecordStore
+      .GetSnapshots<SnapshotAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
@@ -344,16 +389,17 @@ public abstract partial class EventSourcingTests
     var eventsCount = factory.SnapshotInterval;
       
     foreach (var _ in new int[eventsCount])
-      aggregate.Apply(new EmptyEvent());
+      aggregate.Apply(new SnapshotEvent());
     await AggregateService.PersistAsync(aggregate);
       
     foreach (var _ in new int[eventsCount - 1])
-      aggregate.Apply(new EmptyEvent());
+      aggregate.Apply(new SnapshotEvent());
     await AggregateService.PersistAsync(aggregate);
       
     var result = await AggregateService.RehydrateAsync<SnapshotAggregate>(aggregate.Id);
 
-    var snapshotCount = await RecordStore.Snapshots
+    var snapshotCount = await RecordStore
+      .GetSnapshots<SnapshotAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
@@ -372,13 +418,13 @@ public abstract partial class EventSourcingTests
     
     var aggregate1 = new SimpleAggregate();
     foreach (var _ in new int[3])
-      aggregate1.Apply(new EmptyEvent());
+      aggregate1.Apply(new SimpleEvent());
 
     transaction.Add(aggregate1);
 
     var aggregate2 = new SimpleAggregate();
     foreach (var _ in new int[4])
-      aggregate2.Apply(new EmptyEvent());
+      aggregate2.Apply(new SimpleEvent());
     
     transaction.Add(aggregate2);
 
@@ -397,19 +443,20 @@ public abstract partial class EventSourcingTests
     var transaction = AggregateService.CreateTransaction();
     
     var aggregate1 = new SimpleAggregate();
-    foreach (var _ in new int[3])
-      aggregate1.Apply(new EmptyEvent());
-
+    var e = aggregate1.Apply(new SimpleEvent());
+    aggregate1.Apply(new SimpleEvent());
+    aggregate1.Apply(new SimpleEvent());
+    
     transaction.Add(aggregate1);
 
     var aggregate2 = new SimpleAggregate();
     foreach (var _ in new int[4])
-      aggregate2.Apply(new EmptyEvent());
+      aggregate2.Apply(new SimpleEvent());
     
     transaction.Add(aggregate2);
 
     // Sneakily commit first event of first aggregate before committing transaction
-    await RecordStore.AddEventsAsync(new List<Event> { aggregate1.UncommittedEvents.First() });
+    await RecordStore.AddEventsAsync(new List<Event> { e });
 
     await Assert.ThrowsAsync<RecordStoreException>(async () => await transaction.CommitAsync());
 
@@ -428,7 +475,7 @@ public abstract partial class EventSourcingTests
     
     var aggregate = new SimpleAggregate { PartitionId = Guid.NewGuid() };
     foreach (var _ in new int[3])
-      aggregate.Apply(new EmptyEvent());
+      aggregate.Apply(new SimpleEvent());
 
     Assert.Throws<RecordValidationException>(() => transaction.Add(aggregate));
 
@@ -445,7 +492,7 @@ public abstract partial class EventSourcingTests
     
     var aggregate = new SimpleAggregate();
     foreach (var _ in new int[3])
-      aggregate.Apply(new EmptyEvent());
+      aggregate.Apply(new SimpleEvent());
 
     transaction.Add(aggregate);
 
@@ -464,16 +511,18 @@ public abstract partial class EventSourcingTests
     var eventsCount = factory.SnapshotInterval;
     foreach (var _ in new int[eventsCount])
     {
-      aggregate.Apply(new EmptyEvent());
+      aggregate.Apply(new SnapshotEvent());
       await AggregateService.PersistAsync(aggregate);
     }
 
-    var snapshotResult = await RecordStore.Snapshots
+    var snapshotResult = await RecordStore
+      .GetSnapshots<SnapshotAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .SingleOrDefaultAsync();
 
-    var eventCount = await RecordStore.Events
+    var eventCount = await RecordStore
+      .GetEvents<SnapshotAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
@@ -481,6 +530,4 @@ public abstract partial class EventSourcingTests
     Assert.NotNull(snapshotResult);
     Assert.Equal((int) factory.SnapshotInterval, eventCount);
   }
-
-
 }

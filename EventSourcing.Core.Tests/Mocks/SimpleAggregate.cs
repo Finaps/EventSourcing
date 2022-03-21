@@ -1,8 +1,10 @@
 namespace EventSourcing.Core.Tests.Mocks;
 
-internal class SimpleAggregate : Aggregate
+public record SimpleEvent : Event<SimpleAggregate>;
+
+public class SimpleAggregate : Aggregate<SimpleAggregate>
 {
   public int Counter { get; private set; }
 
-  protected override void Apply(Event e) => Counter++;
+  protected override void Apply(Event<SimpleAggregate> e) => Counter++;
 }

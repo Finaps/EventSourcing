@@ -1,4 +1,5 @@
 using System;
+using EventSourcing.Core;
 using EventSourcing.Core.Tests;
 using EventSourcing.Core.Tests.Mocks;
 using Microsoft.EntityFrameworkCore;
@@ -14,13 +15,24 @@ public class PostgresTestContext : RecordContext
   protected override void OnModelCreating(ModelBuilder builder)
   {
     base.OnModelCreating(builder);
-    
-    var mockProjection = builder.ProjectionEntity<MockAggregateProjection>();
-    mockProjection.OwnsOne(x => x.MockNestedRecord);
-    mockProjection.OwnsMany(x => x.MockNestedRecordList);
 
-    builder.ProjectionEntity<EmptyProjection>();
-    builder.ProjectionEntity<BankAccountProjection>();
+    builder.Entity<MockEvent>(entity =>
+    {
+      entity.OwnsOne(x => x.MockNestedRecord);
+      entity.OwnsMany(x => x.MockNestedRecordList);
+    });
+
+    builder.Entity<MockSnapshot>(entity =>
+    {
+      entity.OwnsOne(x => x.MockNestedRecord);
+      entity.OwnsMany(x => x.MockNestedRecordList);
+    });
+    
+    builder.Entity<MockAggregateProjection>(entity =>
+    {
+      entity.OwnsOne(x => x.MockNestedRecord);
+      entity.OwnsMany(x => x.MockNestedRecordList);
+    });
   }
 }
 

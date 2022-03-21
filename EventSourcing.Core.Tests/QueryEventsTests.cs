@@ -1,5 +1,3 @@
-using EventSourcing.Core.Tests.Mocks;
-
 namespace EventSourcing.Core.Tests;
 
 public abstract partial class EventSourcingTests
@@ -18,7 +16,8 @@ public abstract partial class EventSourcingTests
 
     await RecordStore.AddEventsAsync(events1);
 
-    var count = await RecordStore.Events
+    var count = await RecordStore
+      .GetEvents<EmptyAggregate>()
       .Where(x => x.PartitionId == aggregate1.PartitionId)
       .AsAsyncEnumerable()
       .CountAsync();
@@ -40,7 +39,8 @@ public abstract partial class EventSourcingTests
 
     await RecordStore.AddEventsAsync(events);
 
-    var count = await RecordStore.Events
+    var count = await RecordStore
+      .GetEvents<EmptyAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
@@ -68,7 +68,8 @@ public abstract partial class EventSourcingTests
     await RecordStore.AddEventsAsync(events);
     await RecordStore.AddEventsAsync(events2);
 
-    var result = await RecordStore.Events
+    var result = await RecordStore
+      .GetEvents<EmptyAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .Where(x => x.Index > 0)
       .AsAsyncEnumerable()
@@ -90,8 +91,8 @@ public abstract partial class EventSourcingTests
     var aggregate2 = new SimpleAggregate();
     var events2 = new List<Event>
     {
-      aggregate2.Apply(new EmptyEvent()),
-      aggregate2.Apply(new EmptyEvent())
+      aggregate2.Apply(new SimpleEvent()),
+      aggregate2.Apply(new SimpleEvent())
     };
 
     await RecordStore.AddEventsAsync(events);
@@ -100,7 +101,8 @@ public abstract partial class EventSourcingTests
     // If I just would query all events by Type, I'd get all events from the history of tests
     // Therefore I test the same thing by two assertions.
 
-    var result = await RecordStore.Events
+    var result = await RecordStore
+      .GetEvents<EmptyAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .Where(x => x.AggregateType == aggregate.Type)
       .AsAsyncEnumerable()
@@ -108,7 +110,8 @@ public abstract partial class EventSourcingTests
 
     Assert.All(result, e => Assert.Equal(aggregate.Id, e.AggregateId));
 
-    var result2 = await RecordStore.Events
+    var result2 = await RecordStore
+      .GetEvents<EmptyAggregate>()
       .Where(x => x.AggregateId == aggregate2.Id)
       .Where(x => x.AggregateType == aggregate.Type)
       .AsAsyncEnumerable()
@@ -120,7 +123,7 @@ public abstract partial class EventSourcingTests
   [Fact]
   public async Task Can_Query_Mock_Event()
   {
-    var aggregate = new EmptyAggregate();
+    var aggregate = new MockAggregate();
     var e = aggregate.Apply(new MockEvent
     {
       MockBoolean = true,
@@ -155,7 +158,8 @@ public abstract partial class EventSourcingTests
 
     await RecordStore.AddEventsAsync(new List<Event> { e });
 
-    var result = (await RecordStore.Events
+    var result = (await RecordStore
+        .GetEvents<MockAggregate>()
         .Where(x => x.AggregateId == aggregate.Id)
         .AsAsyncEnumerable()
         .ToListAsync())

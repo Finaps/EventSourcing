@@ -3,13 +3,13 @@ using EventSourcing.Example.Domain.Shared;
 
 namespace EventSourcing.Example.Domain.Products;
 
-public class Product : Aggregate
+public class Product : Aggregate<Product>
 {
     public string Name { get; private set; }
     public int Quantity { get; private set; }
     public List<Reservation> Reservations { get; private set; } = new();
 
-    protected override void Apply(Event e)
+    protected override void Apply(Event<Product> e)
     {
         switch (e)
         {
@@ -34,7 +34,13 @@ public class Product : Aggregate
             case ReservationRemovedEvent reservationRemovedEvent:
                 RemoveReservation(reservationRemovedEvent.BasketId, reservationRemovedEvent.Quantity);
                 break;
-            
+        }
+    }
+
+    protected override void Apply(Snapshot<Product> s)
+    {
+        switch (s)
+        {
             case ProductSnapshot snapshot:
                 Name = snapshot.Name;
                 Quantity = snapshot.Quantity;

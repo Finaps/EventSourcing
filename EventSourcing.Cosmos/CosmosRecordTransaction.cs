@@ -88,7 +88,7 @@ public class CosmosRecordTransaction : IRecordTransaction
   }
 
   /// <inheritdoc />
-  public IRecordTransaction DeleteAllEvents(Guid aggregateId, long index)
+  public IRecordTransaction DeleteAllEvents<TAggregate>(Guid aggregateId, long index) where TAggregate : Aggregate, new()
   {
     var reservation = new Event
     {
@@ -118,7 +118,7 @@ public class CosmosRecordTransaction : IRecordTransaction
   }
 
   /// <inheritdoc />
-  public IRecordTransaction DeleteSnapshot(Guid aggregateId, long index)
+  public IRecordTransaction DeleteSnapshot<TAggregate>(Guid aggregateId, long index) where TAggregate : Aggregate, new()
   {
     var snapshot = new Snapshot { PartitionId = PartitionId, AggregateId = aggregateId, Index = index };
     _batch.DeleteItem(snapshot.id, CosmosRecordStore.BatchItemRequestOptions);
@@ -128,9 +128,9 @@ public class CosmosRecordTransaction : IRecordTransaction
   }
 
   /// <inheritdoc />
-  public IRecordTransaction DeleteProjection(Guid aggregateId, string type)
+  public IRecordTransaction DeleteProjection<TProjection>(Guid aggregateId) where TProjection : Projection, new()
   {
-    var projection = new Projection { PartitionId = PartitionId, AggregateId = aggregateId, Type = type };
+    var projection = new TProjection { PartitionId = PartitionId, AggregateId = aggregateId };
     _batch.DeleteItem(projection.id, CosmosRecordStore.BatchItemRequestOptions);
     _actions.Add((CosmosEventTransactionAction.DeleteProjection, projection));
 

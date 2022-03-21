@@ -1,20 +1,34 @@
 namespace EventSourcing.Core.Tests.Mocks;
 
-public class SnapshotAggregate : Aggregate
+public record SnapshotEvent : Event<SnapshotAggregate>;
+
+public record SnapshotSnapshot : Snapshot<SnapshotAggregate>
+{
+  public int Counter { get; init; }
+}
+
+public class SnapshotAggregate : Aggregate<SnapshotAggregate>
 {
   public int Counter;
   public int EventsAppliedAfterHydration;
   public int SnapshotsAppliedAfterHydration;
 
-  protected override void Apply(Event e)
+  protected override void Apply(Event<SnapshotAggregate> e)
   {
     switch (e)
     {
-      case EmptyEvent:
+      case SnapshotEvent:
         EventsAppliedAfterHydration++;
         Counter++;
         break;
-      case SimpleSnapshot snapshot:
+    }
+  }
+
+  protected override void Apply(Snapshot<SnapshotAggregate> s)
+  {
+    switch (s)
+    {
+      case SnapshotSnapshot snapshot:
         SnapshotsAppliedAfterHydration++;
         Counter = snapshot.Counter;
         break;
@@ -22,9 +36,9 @@ public class SnapshotAggregate : Aggregate
   }
 }
 
-public class SimpleSnapshotFactory : SnapshotFactory<SnapshotAggregate, SimpleSnapshot>
+public class SimpleSnapshotFactory : SnapshotFactory<SnapshotAggregate, SnapshotSnapshot>
 {
   public override long SnapshotInterval => 10;
-  protected override SimpleSnapshot CreateSnapshot(SnapshotAggregate aggregate) =>
+  protected override SnapshotSnapshot CreateSnapshot(SnapshotAggregate aggregate) =>
     new() { Counter = aggregate.Counter };
 }
