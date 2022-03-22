@@ -5,6 +5,8 @@ namespace EventSourcing.EF;
 
 public class RecordContext : DbContext
 {
+  public const int MaxTypeLength = 128; // Corresponds with SQL max table name length or 128 (Postgres = 64)
+  
   public RecordContext() {}
   public RecordContext(DbContextOptions options) : base(options) {}
   protected override void OnModelCreating(ModelBuilder builder)

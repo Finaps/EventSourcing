@@ -5,19 +5,24 @@ public abstract partial class EventSourcingTests
   [Fact]
   public async Task Can_Delete_Snapshot()
   {
-    var snapshot = new EmptySnapshot { AggregateId = Guid.NewGuid(), AggregateType = nameof(EmptyAggregate) };
+    var aggregate = new SnapshotAggregate();
+    var e = aggregate.Apply(new SnapshotEvent());
+    await RecordStore.AddEventsAsync(new List<Event> { e });
+
+    var factory = new SimpleSnapshotFactory();
+    var snapshot = factory.CreateSnapshot(aggregate);
     await RecordStore.AddSnapshotAsync(snapshot);
 
     Assert.NotNull(await RecordStore
-      .GetSnapshots<EmptyAggregate>()
+      .GetSnapshots<SnapshotAggregate>()
       .Where(x => x.AggregateId == snapshot.AggregateId)
       .AsAsyncEnumerable()
       .SingleAsync());
 
-    await RecordStore.DeleteSnapshotAsync<EmptyAggregate>(snapshot.AggregateId, snapshot.Index);
+    await RecordStore.DeleteSnapshotAsync<SnapshotAggregate>(snapshot.AggregateId, snapshot.Index);
 
     Assert.False(await RecordStore
-      .GetSnapshots<EmptyAggregate>()
+      .GetSnapshots<SnapshotAggregate>()
       .Where(x => x.AggregateId == snapshot.AggregateId)
       .AsAsyncEnumerable()
       .AnyAsync());

@@ -6,6 +6,8 @@ namespace EventSourcing.Core;
 
 public interface IHashable
 {
+  const int HashLength = 32;
+  
   /// <summary>
   /// Compute Hash
   /// </summary>
@@ -41,5 +43,5 @@ public interface IHashable
     ByteArrayToString(MD5.HashData(Encoding.ASCII.GetBytes(string.Concat(hashes))));
 
   private static string ByteArrayToString(IEnumerable<byte> source) =>
-    string.Concat(source.Select(x => x.ToString("X2")));
+    string.Concat(source.Select(x => x.ToString("X2")))[..HashLength];
 }

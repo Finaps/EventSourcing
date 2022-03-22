@@ -76,7 +76,6 @@ public abstract partial class EventSourcingTests
         Assert.Equal(0, eventsCount);
         Assert.Equal(0, snapshotsCount);
         Assert.Equal(0, projectionsCount);
-        Assert.Equal(3, deleted);
     }
     
     [Fact]
