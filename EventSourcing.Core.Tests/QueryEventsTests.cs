@@ -104,7 +104,6 @@ public abstract partial class EventSourcingTests
     var result = await RecordStore
       .GetEvents<EmptyAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
-      .Where(x => x.AggregateType == aggregate.Type)
       .AsAsyncEnumerable()
       .ToListAsync();
 
@@ -113,7 +112,6 @@ public abstract partial class EventSourcingTests
     var result2 = await RecordStore
       .GetEvents<EmptyAggregate>()
       .Where(x => x.AggregateId == aggregate2.Id)
-      .Where(x => x.AggregateType == aggregate.Type)
       .AsAsyncEnumerable()
       .ToListAsync();
 

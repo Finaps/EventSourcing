@@ -422,6 +422,8 @@ public abstract partial class EventSourcingTests
 
     transaction.Add(aggregate1);
 
+    var hash = aggregate1.ComputeHash();
+
     var aggregate2 = new SimpleAggregate();
     foreach (var _ in new int[4])
       aggregate2.Apply(new SimpleEvent());

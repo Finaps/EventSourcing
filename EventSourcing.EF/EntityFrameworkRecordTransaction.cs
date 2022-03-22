@@ -71,13 +71,6 @@ public class EntityFrameworkRecordTransaction : IRecordTransaction
       switch (action)
       {
         case AddEventsAction(var events):
-          var first = events.First();
-
-          if (first.Index != 0 && await _store.Context.FindAsync(
-                _store.Context.Model.FindEntityType(first.GetType())?.GetRootType().ClrType, 
-                first.PartitionId, first.AggregateId, first.Index - 1) == null)
-            throw new RecordStoreException("Tried to add nonconsecutive Event");
-
           _store.Context.AddRange(events);
           break;
         

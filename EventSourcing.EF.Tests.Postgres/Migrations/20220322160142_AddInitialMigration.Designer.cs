@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EventSourcing.EF.Tests.Postgres.Migrations
 {
     [DbContext(typeof(PostgresTestContext))]
-    [Migration("20220321095900_AddInitialMigration")]
+    [Migration("20220322160142_AddInitialMigration")]
     partial class AddInitialMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -37,26 +37,39 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("AggregateType")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<long?>("PreviousIndex")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bigint")
+                        .HasComputedColumnSql("CASE WHEN \"Index\" = 0 THEN NULL ELSE \"Index\" - 1 END", true);
 
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.HasKey("PartitionId", "AggregateId", "Index");
+
+                    b.HasIndex("AggregateType");
 
                     b.HasIndex("Timestamp");
 
                     b.HasIndex("Type");
 
+                    b.HasIndex("PartitionId", "AggregateId", "PreviousIndex");
+
                     b.ToTable("BankAccountEvents", (string)null);
 
                     b.HasDiscriminator<string>("Type").HasValue("Event<BankAccount>");
+
+                    b.HasCheckConstraint("CK_BankAccountEvents_Discriminator", "\"Type\" IN ('Event<BankAccount>', 'BankAccountCreatedEvent', 'BankAccountFundsDepositedEvent', 'BankAccountFundsTransferredEvent', 'BankAccountFundsWithdrawnEvent')");
+
+                    b.HasCheckConstraint("CK_BankAccountEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.EmptyAggregate>", b =>
@@ -71,26 +84,39 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("AggregateType")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<long?>("PreviousIndex")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bigint")
+                        .HasComputedColumnSql("CASE WHEN \"Index\" = 0 THEN NULL ELSE \"Index\" - 1 END", true);
 
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.HasKey("PartitionId", "AggregateId", "Index");
+
+                    b.HasIndex("AggregateType");
 
                     b.HasIndex("Timestamp");
 
                     b.HasIndex("Type");
 
+                    b.HasIndex("PartitionId", "AggregateId", "PreviousIndex");
+
                     b.ToTable("EmptyAggregateEvents", (string)null);
 
                     b.HasDiscriminator<string>("Type").HasValue("Event<EmptyAggregate>");
+
+                    b.HasCheckConstraint("CK_EmptyAggregateEvents_Discriminator", "\"Type\" IN ('Event<EmptyAggregate>', 'EmptyEvent')");
+
+                    b.HasCheckConstraint("CK_EmptyAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.MockAggregate>", b =>
@@ -105,26 +131,39 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("AggregateType")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<long?>("PreviousIndex")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bigint")
+                        .HasComputedColumnSql("CASE WHEN \"Index\" = 0 THEN NULL ELSE \"Index\" - 1 END", true);
 
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.HasKey("PartitionId", "AggregateId", "Index");
+
+                    b.HasIndex("AggregateType");
 
                     b.HasIndex("Timestamp");
 
                     b.HasIndex("Type");
 
+                    b.HasIndex("PartitionId", "AggregateId", "PreviousIndex");
+
                     b.ToTable("MockAggregateEvents", (string)null);
 
                     b.HasDiscriminator<string>("Type").HasValue("Event<MockAggregate>");
+
+                    b.HasCheckConstraint("CK_MockAggregateEvents_Discriminator", "\"Type\" IN ('Event<MockAggregate>', 'MockEvent')");
+
+                    b.HasCheckConstraint("CK_MockAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.SimpleAggregate>", b =>
@@ -139,26 +178,39 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("AggregateType")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<long?>("PreviousIndex")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bigint")
+                        .HasComputedColumnSql("CASE WHEN \"Index\" = 0 THEN NULL ELSE \"Index\" - 1 END", true);
 
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.HasKey("PartitionId", "AggregateId", "Index");
+
+                    b.HasIndex("AggregateType");
 
                     b.HasIndex("Timestamp");
 
                     b.HasIndex("Type");
 
+                    b.HasIndex("PartitionId", "AggregateId", "PreviousIndex");
+
                     b.ToTable("SimpleAggregateEvents", (string)null);
 
                     b.HasDiscriminator<string>("Type").HasValue("Event<SimpleAggregate>");
+
+                    b.HasCheckConstraint("CK_SimpleAggregateEvents_Discriminator", "\"Type\" IN ('Event<SimpleAggregate>', 'SimpleEvent')");
+
+                    b.HasCheckConstraint("CK_SimpleAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.SnapshotAggregate>", b =>
@@ -173,26 +225,39 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("AggregateType")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<long?>("PreviousIndex")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bigint")
+                        .HasComputedColumnSql("CASE WHEN \"Index\" = 0 THEN NULL ELSE \"Index\" - 1 END", true);
 
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.HasKey("PartitionId", "AggregateId", "Index");
+
+                    b.HasIndex("AggregateType");
 
                     b.HasIndex("Timestamp");
 
                     b.HasIndex("Type");
 
+                    b.HasIndex("PartitionId", "AggregateId", "PreviousIndex");
+
                     b.ToTable("SnapshotAggregateEvents", (string)null);
 
                     b.HasDiscriminator<string>("Type").HasValue("Event<SnapshotAggregate>");
+
+                    b.HasCheckConstraint("CK_SnapshotAggregateEvents_Discriminator", "\"Type\" IN ('Event<SnapshotAggregate>', 'SnapshotEvent')");
+
+                    b.HasCheckConstraint("CK_SnapshotAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.BankAccount>", b =>
@@ -207,18 +272,20 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("AggregateType")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.HasKey("PartitionId", "AggregateId", "Index");
+
+                    b.HasIndex("AggregateType");
 
                     b.HasIndex("Timestamp");
 
@@ -227,6 +294,10 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     b.ToTable("BankAccountSnapshots", (string)null);
 
                     b.HasDiscriminator<string>("Type").HasValue("Snapshot<BankAccount>");
+
+                    b.HasCheckConstraint("CK_BankAccountSnapshots_Discriminator", "\"Type\" IN ('Snapshot<BankAccount>', 'BankAccountSnapshot')");
+
+                    b.HasCheckConstraint("CK_BankAccountSnapshots_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.EmptyAggregate>", b =>
@@ -241,18 +312,20 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("AggregateType")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.HasKey("PartitionId", "AggregateId", "Index");
+
+                    b.HasIndex("AggregateType");
 
                     b.HasIndex("Timestamp");
 
@@ -261,6 +334,10 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     b.ToTable("EmptyAggregateSnapshots", (string)null);
 
                     b.HasDiscriminator<string>("Type").HasValue("Snapshot<EmptyAggregate>");
+
+                    b.HasCheckConstraint("CK_EmptyAggregateSnapshots_Discriminator", "\"Type\" IN ('Snapshot<EmptyAggregate>', 'EmptySnapshot')");
+
+                    b.HasCheckConstraint("CK_EmptyAggregateSnapshots_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.MockAggregate>", b =>
@@ -275,18 +352,20 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("AggregateType")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.HasKey("PartitionId", "AggregateId", "Index");
+
+                    b.HasIndex("AggregateType");
 
                     b.HasIndex("Timestamp");
 
@@ -295,6 +374,10 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     b.ToTable("MockAggregateSnapshots", (string)null);
 
                     b.HasDiscriminator<string>("Type").HasValue("Snapshot<MockAggregate>");
+
+                    b.HasCheckConstraint("CK_MockAggregateSnapshots_Discriminator", "\"Type\" IN ('Snapshot<MockAggregate>', 'MockSnapshot')");
+
+                    b.HasCheckConstraint("CK_MockAggregateSnapshots_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.SimpleAggregate>", b =>
@@ -309,24 +392,28 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("AggregateType")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.HasKey("PartitionId", "AggregateId", "Index");
+
+                    b.HasIndex("AggregateType");
 
                     b.HasIndex("Timestamp");
 
                     b.HasIndex("Type");
 
                     b.ToTable("SimpleAggregateSnapshots", (string)null);
+
+                    b.HasCheckConstraint("CK_SimpleAggregateSnapshots_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.SnapshotAggregate>", b =>
@@ -341,18 +428,20 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("AggregateType")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.HasKey("PartitionId", "AggregateId", "Index");
+
+                    b.HasIndex("AggregateType");
 
                     b.HasIndex("Timestamp");
 
@@ -361,6 +450,10 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     b.ToTable("SnapshotAggregateSnapshots", (string)null);
 
                     b.HasDiscriminator<string>("Type").HasValue("Snapshot<SnapshotAggregate>");
+
+                    b.HasCheckConstraint("CK_SnapshotAggregateSnapshots_Discriminator", "\"Type\" IN ('Snapshot<SnapshotAggregate>', 'SnapshotSnapshot')");
+
+                    b.HasCheckConstraint("CK_SnapshotAggregateSnapshots_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Tests.BankAccountProjection", b =>
@@ -372,16 +465,16 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("AggregateType")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.Property<string>("FactoryType")
                         .HasColumnType("text");
 
                     b.Property<string>("Hash")
                         .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
 
                     b.Property<string>("Iban")
                         .IsRequired()
@@ -396,8 +489,8 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.Property<long>("Version")
                         .HasColumnType("bigint");
@@ -407,6 +500,10 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasIndex("AggregateType");
 
                     b.HasIndex("Hash");
+
+                    b.HasIndex("Timestamp");
+
+                    b.HasIndex("Type");
 
                     b.ToTable("BankAccountProjection");
                 });
@@ -420,24 +517,24 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("AggregateType")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.Property<string>("FactoryType")
                         .HasColumnType("text");
 
                     b.Property<string>("Hash")
                         .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
 
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.Property<long>("Version")
                         .HasColumnType("bigint");
@@ -447,6 +544,10 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasIndex("AggregateType");
 
                     b.HasIndex("Hash");
+
+                    b.HasIndex("Timestamp");
+
+                    b.HasIndex("Type");
 
                     b.ToTable("EmptyProjection");
                 });
@@ -460,16 +561,16 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("AggregateType")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.Property<string>("FactoryType")
                         .HasColumnType("text");
 
                     b.Property<string>("Hash")
                         .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
 
                     b.Property<bool>("MockBoolean")
                         .HasColumnType("boolean");
@@ -502,8 +603,8 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
 
                     b.Property<long>("Version")
                         .HasColumnType("bigint");
@@ -514,7 +615,13 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
 
                     b.HasIndex("Hash");
 
+                    b.HasIndex("Timestamp");
+
+                    b.HasIndex("Type");
+
                     b.ToTable("MockAggregateProjection");
+
+                    b.HasCheckConstraint("CK_MockAggregateProjection_MockEnum_Enum", "\"MockEnum\" IN (0, 1, 2)");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Tests.BankAccountCreatedEvent", b =>
@@ -530,6 +637,10 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("text");
 
                     b.HasDiscriminator().HasValue("BankAccountCreatedEvent");
+
+                    b.HasCheckConstraint("CK_BankAccountEvents_Discriminator", "\"Type\" IN ('Event<BankAccount>', 'BankAccountCreatedEvent', 'BankAccountFundsDepositedEvent', 'BankAccountFundsTransferredEvent', 'BankAccountFundsWithdrawnEvent')");
+
+                    b.HasCheckConstraint("CK_BankAccountEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Tests.BankAccountFundsDepositedEvent", b =>
@@ -541,6 +652,10 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("numeric");
 
                     b.HasDiscriminator().HasValue("BankAccountFundsDepositedEvent");
+
+                    b.HasCheckConstraint("CK_BankAccountEvents_Discriminator", "\"Type\" IN ('Event<BankAccount>', 'BankAccountCreatedEvent', 'BankAccountFundsDepositedEvent', 'BankAccountFundsTransferredEvent', 'BankAccountFundsWithdrawnEvent')");
+
+                    b.HasCheckConstraint("CK_BankAccountEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Tests.BankAccountFundsTransferredEvent", b =>
@@ -558,6 +673,10 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("uuid");
 
                     b.HasDiscriminator().HasValue("BankAccountFundsTransferredEvent");
+
+                    b.HasCheckConstraint("CK_BankAccountEvents_Discriminator", "\"Type\" IN ('Event<BankAccount>', 'BankAccountCreatedEvent', 'BankAccountFundsDepositedEvent', 'BankAccountFundsTransferredEvent', 'BankAccountFundsWithdrawnEvent')");
+
+                    b.HasCheckConstraint("CK_BankAccountEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Tests.BankAccountFundsWithdrawnEvent", b =>
@@ -569,6 +688,10 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("numeric");
 
                     b.HasDiscriminator().HasValue("BankAccountFundsWithdrawnEvent");
+
+                    b.HasCheckConstraint("CK_BankAccountEvents_Discriminator", "\"Type\" IN ('Event<BankAccount>', 'BankAccountCreatedEvent', 'BankAccountFundsDepositedEvent', 'BankAccountFundsTransferredEvent', 'BankAccountFundsWithdrawnEvent')");
+
+                    b.HasCheckConstraint("CK_BankAccountEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Tests.BankAccountSnapshot", b =>
@@ -587,17 +710,10 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("text");
 
                     b.HasDiscriminator().HasValue("BankAccountSnapshot");
-                });
 
-            modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.AttributeEvent", b =>
-                {
-                    b.HasBaseType("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.EmptyAggregate>");
+                    b.HasCheckConstraint("CK_BankAccountSnapshots_Discriminator", "\"Type\" IN ('Snapshot<BankAccount>', 'BankAccountSnapshot')");
 
-                    b.Property<string>("SomeString")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasDiscriminator().HasValue("AttributeEvent");
+                    b.HasCheckConstraint("CK_BankAccountSnapshots_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.EmptyEvent", b =>
@@ -605,6 +721,10 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasBaseType("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.EmptyAggregate>");
 
                     b.HasDiscriminator().HasValue("EmptyEvent");
+
+                    b.HasCheckConstraint("CK_EmptyAggregateEvents_Discriminator", "\"Type\" IN ('Event<EmptyAggregate>', 'EmptyEvent')");
+
+                    b.HasCheckConstraint("CK_EmptyAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.EmptySnapshot", b =>
@@ -612,6 +732,10 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasBaseType("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.EmptyAggregate>");
 
                     b.HasDiscriminator().HasValue("EmptySnapshot");
+
+                    b.HasCheckConstraint("CK_EmptyAggregateSnapshots_Discriminator", "\"Type\" IN ('Snapshot<EmptyAggregate>', 'EmptySnapshot')");
+
+                    b.HasCheckConstraint("CK_EmptyAggregateSnapshots_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.MockEvent", b =>
@@ -646,6 +770,12 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("text[]");
 
                     b.HasDiscriminator().HasValue("MockEvent");
+
+                    b.HasCheckConstraint("CK_MockAggregateEvents_Discriminator", "\"Type\" IN ('Event<MockAggregate>', 'MockEvent')");
+
+                    b.HasCheckConstraint("CK_MockAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
+
+                    b.HasCheckConstraint("CK_MockAggregateEvents_MockEnum_Enum", "\"MockEnum\" IN (0, 1, 2)");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.MockSnapshot", b =>
@@ -680,6 +810,12 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("text[]");
 
                     b.HasDiscriminator().HasValue("MockSnapshot");
+
+                    b.HasCheckConstraint("CK_MockAggregateSnapshots_Discriminator", "\"Type\" IN ('Snapshot<MockAggregate>', 'MockSnapshot')");
+
+                    b.HasCheckConstraint("CK_MockAggregateSnapshots_NonNegativeIndex", "\"Index\" >= 0");
+
+                    b.HasCheckConstraint("CK_MockAggregateSnapshots_MockEnum_Enum", "\"MockEnum\" IN (0, 1, 2)");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.SimpleEvent", b =>
@@ -687,6 +823,10 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasBaseType("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.SimpleAggregate>");
 
                     b.HasDiscriminator().HasValue("SimpleEvent");
+
+                    b.HasCheckConstraint("CK_SimpleAggregateEvents_Discriminator", "\"Type\" IN ('Event<SimpleAggregate>', 'SimpleEvent')");
+
+                    b.HasCheckConstraint("CK_SimpleAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.SnapshotEvent", b =>
@@ -694,6 +834,10 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasBaseType("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.SnapshotAggregate>");
 
                     b.HasDiscriminator().HasValue("SnapshotEvent");
+
+                    b.HasCheckConstraint("CK_SnapshotAggregateEvents_Discriminator", "\"Type\" IN ('Event<SnapshotAggregate>', 'SnapshotEvent')");
+
+                    b.HasCheckConstraint("CK_SnapshotAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.SnapshotSnapshot", b =>
@@ -704,6 +848,100 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("integer");
 
                     b.HasDiscriminator().HasValue("SnapshotSnapshot");
+
+                    b.HasCheckConstraint("CK_SnapshotAggregateSnapshots_Discriminator", "\"Type\" IN ('Snapshot<SnapshotAggregate>', 'SnapshotSnapshot')");
+
+                    b.HasCheckConstraint("CK_SnapshotAggregateSnapshots_NonNegativeIndex", "\"Index\" >= 0");
+                });
+
+            modelBuilder.Entity("EventSourcing.Core.Event<EventSourcing.Core.Tests.BankAccount>", b =>
+                {
+                    b.HasOne("EventSourcing.Core.Event<EventSourcing.Core.Tests.BankAccount>", null)
+                        .WithOne()
+                        .HasForeignKey("EventSourcing.Core.Event<EventSourcing.Core.Tests.BankAccount>", "PartitionId", "AggregateId", "PreviousIndex")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_BankAccountEvents_ConsecutiveIndex");
+                });
+
+            modelBuilder.Entity("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.EmptyAggregate>", b =>
+                {
+                    b.HasOne("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.EmptyAggregate>", null)
+                        .WithOne()
+                        .HasForeignKey("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.EmptyAggregate>", "PartitionId", "AggregateId", "PreviousIndex")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_EmptyAggregateEvents_ConsecutiveIndex");
+                });
+
+            modelBuilder.Entity("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.MockAggregate>", b =>
+                {
+                    b.HasOne("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.MockAggregate>", null)
+                        .WithOne()
+                        .HasForeignKey("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.MockAggregate>", "PartitionId", "AggregateId", "PreviousIndex")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_MockAggregateEvents_ConsecutiveIndex");
+                });
+
+            modelBuilder.Entity("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.SimpleAggregate>", b =>
+                {
+                    b.HasOne("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.SimpleAggregate>", null)
+                        .WithOne()
+                        .HasForeignKey("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.SimpleAggregate>", "PartitionId", "AggregateId", "PreviousIndex")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_SimpleAggregateEvents_ConsecutiveIndex");
+                });
+
+            modelBuilder.Entity("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.SnapshotAggregate>", b =>
+                {
+                    b.HasOne("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.SnapshotAggregate>", null)
+                        .WithOne()
+                        .HasForeignKey("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.SnapshotAggregate>", "PartitionId", "AggregateId", "PreviousIndex")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_SnapshotAggregateEvents_ConsecutiveIndex");
+                });
+
+            modelBuilder.Entity("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.BankAccount>", b =>
+                {
+                    b.HasOne("EventSourcing.Core.Event<EventSourcing.Core.Tests.BankAccount>", null)
+                        .WithOne()
+                        .HasForeignKey("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.BankAccount>", "PartitionId", "AggregateId", "Index")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.EmptyAggregate>", b =>
+                {
+                    b.HasOne("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.EmptyAggregate>", null)
+                        .WithOne()
+                        .HasForeignKey("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.EmptyAggregate>", "PartitionId", "AggregateId", "Index")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.MockAggregate>", b =>
+                {
+                    b.HasOne("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.MockAggregate>", null)
+                        .WithOne()
+                        .HasForeignKey("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.MockAggregate>", "PartitionId", "AggregateId", "Index")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.SimpleAggregate>", b =>
+                {
+                    b.HasOne("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.SimpleAggregate>", null)
+                        .WithOne()
+                        .HasForeignKey("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.SimpleAggregate>", "PartitionId", "AggregateId", "Index")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.SnapshotAggregate>", b =>
+                {
+                    b.HasOne("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.SnapshotAggregate>", null)
+                        .WithOne()
+                        .HasForeignKey("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.SnapshotAggregate>", "PartitionId", "AggregateId", "Index")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.MockAggregateProjection", b =>

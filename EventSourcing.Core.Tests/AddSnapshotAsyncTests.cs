@@ -15,9 +15,11 @@ public abstract partial class EventSourcingTests
   public async Task Can_Add_Snapshot()
   {
     var aggregate = new SnapshotAggregate();
-    aggregate.Apply(new SnapshotEvent());
+    var e = aggregate.Apply(new SnapshotEvent());
+    await RecordStore.AddEventsAsync(new List<Event> { e });
     
     var factory = new SimpleSnapshotFactory();
+    
     await RecordStore.AddSnapshotAsync(factory.CreateSnapshot(aggregate));
   }
 
@@ -25,7 +27,8 @@ public abstract partial class EventSourcingTests
   public async Task Cannot_Add_Snapshot_With_Duplicate_AggregateId_And_Index()
   {
     var aggregate = new SnapshotAggregate();
-    aggregate.Apply(new SnapshotEvent());
+    var e = aggregate.Apply(new SnapshotEvent());
+    await RecordStore.AddEventsAsync(new List<Event> { e });
 
     var factory = new SimpleSnapshotFactory();
 
@@ -40,7 +43,8 @@ public abstract partial class EventSourcingTests
   public async Task Can_Get_Snapshot_By_PartitionId()
   {
     var aggregate = new SnapshotAggregate { PartitionId = Guid.NewGuid() };
-    aggregate.Apply(new SnapshotEvent());
+    var e = aggregate.Apply(new SnapshotEvent());
+    await RecordStore.AddEventsAsync(new List<Event> { e });
     
     var factory = new SimpleSnapshotFactory();
     await RecordStore.AddSnapshotAsync(factory.CreateSnapshot(aggregate));
@@ -58,7 +62,8 @@ public abstract partial class EventSourcingTests
   public async Task Can_Get_Snapshot_By_AggregateId()
   {
     var aggregate = new SnapshotAggregate();
-    aggregate.Apply(new SnapshotEvent());
+    var e = aggregate.Apply(new SnapshotEvent());
+    await RecordStore.AddEventsAsync(new List<Event> { e });
 
     var factory = new SimpleSnapshotFactory();
     await RecordStore.AddSnapshotAsync(factory.CreateSnapshot(aggregate));
@@ -76,17 +81,21 @@ public abstract partial class EventSourcingTests
   public async Task Can_Get_Latest_Snapshot_By_AggregateId()
   {
     var aggregate = new SnapshotAggregate();
-    aggregate.Apply(new SnapshotEvent());
+    var e1 = aggregate.Apply(new SnapshotEvent());
+    await RecordStore.AddEventsAsync(new List<Event> { e1 });
     
     var factory = new SimpleSnapshotFactory();
     
-    var snapshot = factory.CreateSnapshot(aggregate);
-    aggregate.Apply(new SnapshotEvent());
+    var snapshot1 = factory.CreateSnapshot(aggregate);
+    
+    var e2 = aggregate.Apply(new SnapshotEvent());
+    await RecordStore.AddEventsAsync(new List<Event> { e2 });
+    
     var snapshot2 = factory.CreateSnapshot(aggregate);
 
-    Assert.NotEqual(snapshot.Index, snapshot2.Index);
+    Assert.NotEqual(snapshot1.Index, snapshot2.Index);
 
-    await RecordStore.AddSnapshotAsync(snapshot);
+    await RecordStore.AddSnapshotAsync(snapshot1);
     await RecordStore.AddSnapshotAsync(snapshot2);
 
     var result = await RecordStore

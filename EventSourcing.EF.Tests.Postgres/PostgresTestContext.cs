@@ -50,6 +50,8 @@ public class TestContextFactory : IDesignTimeDbContextFactory<PostgresTestContex
 
     return new PostgresTestContext(new DbContextOptionsBuilder<PostgresTestContext>()
       .UseNpgsql(configuration.GetConnectionString("RecordStore"))
+      .UseAllCheckConstraints()
+      .EnableSensitiveDataLogging()
       .Options);
   }
 }
