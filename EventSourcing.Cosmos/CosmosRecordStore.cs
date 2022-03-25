@@ -19,9 +19,9 @@ public class CosmosRecordStore : IRecordStore
   private bool _isDeleteAggregateProcedureInitialized;
 
   /// <summary>
-  /// Initialize Cosmos Event Store
+  /// Initialize Cosmos Record Store
   /// </summary>
-  /// <param name="options">Cosmos Event Store Options</param>
+  /// <param name="options">Cosmos Record Store Options</param>
   /// <exception cref="ArgumentException"></exception>
   public CosmosRecordStore(IOptions<CosmosRecordStoreOptions> options)
   {
