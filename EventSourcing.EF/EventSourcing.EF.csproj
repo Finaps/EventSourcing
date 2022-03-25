@@ -15,4 +15,8 @@
       <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.3" />
     </ItemGroup>
 
+    <PropertyGroup>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+
 </Project>

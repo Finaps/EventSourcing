@@ -3,6 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventSourcing.EF;
 
+/// <summary>
+/// ACID <see cref="EntityFrameworkRecordTransaction"/> of <see cref="Event"/>s, <see cref="Snapshot"/>s & <see cref="Projection"/>s
+/// </summary>
 public class EntityFrameworkRecordTransaction : IRecordTransaction
 {
   private record TransactionAction;
@@ -16,14 +19,22 @@ public class EntityFrameworkRecordTransaction : IRecordTransaction
   private readonly List<TransactionAction> _actions = new();
 
   private readonly EntityFrameworkRecordStore _store;
+
+  /// <inheritdoc />
   public Guid PartitionId { get; }
 
+  /// <summary>
+  /// Create <see cref="EntityFrameworkRecordTransaction"/>
+  /// </summary>
+  /// <param name="store"><see cref="EntityFrameworkRecordStore"/></param>
+  /// <param name="partitionId">Unique Partition Identifier</param>
   public EntityFrameworkRecordTransaction(EntityFrameworkRecordStore store, Guid partitionId)
   {
     _store = store;
     PartitionId = partitionId;
   }
 
+  /// <inheritdoc />
   public IRecordTransaction AddEvents(IList<Event> events)
   {
     RecordValidation.ValidateEventSequence(PartitionId, events);
@@ -31,6 +42,7 @@ public class EntityFrameworkRecordTransaction : IRecordTransaction
     return this;
   }
 
+  /// <inheritdoc />
   public IRecordTransaction AddSnapshot(Snapshot snapshot)
   {
     RecordValidation.ValidateSnapshot(PartitionId, snapshot);
@@ -38,30 +50,35 @@ public class EntityFrameworkRecordTransaction : IRecordTransaction
     return this;
   }
 
+  /// <inheritdoc />
   public IRecordTransaction UpsertProjection(Projection projection)
   {
     _actions.Add(new UpsertProjectionAction(projection));
     return this;
   }
 
+  /// <inheritdoc />
   public IRecordTransaction DeleteAllEvents<TAggregate>(Guid aggregateId, long index) where TAggregate : Aggregate, new()
   {
     _actions.Add(new DeleteAllEventsAction(new Event<TAggregate> { PartitionId = PartitionId, AggregateId = aggregateId, Index = index }));
     return this;
   }
 
+  /// <inheritdoc />
   public IRecordTransaction DeleteSnapshot<TAggregate>(Guid aggregateId, long index) where TAggregate : Aggregate, new()
   {
     _actions.Add(new DeleteSnapshotAction(new Snapshot<TAggregate> { PartitionId = PartitionId, AggregateId = aggregateId, Index = index }));
     return this;
   }
 
+  /// <inheritdoc />
   public IRecordTransaction DeleteProjection<TProjection>(Guid aggregateId) where TProjection : Projection, new()
   {
     _actions.Add(new DeleteProjectionAction(new TProjection { PartitionId = PartitionId, AggregateId = aggregateId }));
     return this;
   }
 
+  /// <inheritdoc />
   public async Task CommitAsync(CancellationToken cancellationToken = default)
   {
     await using var transaction = await _store.Context.Database.BeginTransactionAsync(cancellationToken);
