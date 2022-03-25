@@ -3,44 +3,180 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EventSourcing.EF;
 
+/// <summary>
+/// <see cref="DbContext"/> for Finaps.EventSourcing <see cref="Record"/> Types
+/// </summary>
 public class RecordContext : DbContext
 {
-  public const int MaxTypeLength = 128; // Corresponds with SQL max table name length or 128 (Postgres = 64)
+  private const string PreviousIndex = "PreviousIndex";
   
+  /// <inheritdoc />
   public RecordContext() {}
+
+  /// <inheritdoc />
   public RecordContext(DbContextOptions options) : base(options) {}
+
+  /// <summary>
+  /// Find all <see cref="Record"/>s and add them to the <see cref="RecordContext"/>
+  /// </summary>
+  /// <param name="builder"><see cref="ModelBuilder"/></param>
   protected override void OnModelCreating(ModelBuilder builder)
   {
-    var records = GetAssemblyTypes<Record>();
+    // TODO: Make this easier to manually configure
     
+    // Get all Records in Assembly
+    var records = GetAssemblyTypes<Record>();
+
+    // Get all Events, grouped by Aggregate Type
     var events = records
       .Where(type => typeof(Event).IsAssignableFrom(type))
       .GroupBy(GetAggregateType).Where(x => x.Key != null)
       .ToDictionary(grouping => grouping.Key!, grouping => grouping.ToList());
     
+    // Get all Snapshots, grouped by Aggregate Type
     var snapshots = records
       .Where(type => typeof(Snapshot).IsAssignableFrom(type))
       .GroupBy(GetAggregateType).Where(x => x.Key != null)
       .ToDictionary(grouping => grouping.Key!, grouping => grouping.ToList());
 
+    // Get all projections
     var projections = records
       .Where(type => typeof(Projection).IsAssignableFrom(type))
       .ToList();
 
-    foreach (var (aggregateType, types) in events)
+    // Get maximum lengths of type names, to constrain column sizes
+    var maxAggregateTypeLength = events.Keys.Max(x => x.Name.Length);
+    var maxEventTypeLength = events.Values.SelectMany(x => x).Max(x => x.Name.Length);
+    var maxSnapshotTypeLength = snapshots.Values.SelectMany(x => x).Max(x => x.Name.Length);
+    var maxProjectionTypeLength = projections.Max(x => x.Name.Length);
+    
+    // For each Aggregate Type, create one table containing all Events and another containing all Snapshots
+    // See https://docs.microsoft.com/en-us/ef/core/modeling/inheritance#table-per-hierarchy-and-discriminator-configuration
+    foreach (var aggregateType in events.Keys)
     {
-      builder.EventEntity(aggregateType);
-      builder.SnapshotEntity(aggregateType);
-      foreach (var type in types) builder.Entity(type).HasDiscriminator<string>(nameof(Event.Type));
+      var eventType = typeof(Event<>).MakeGenericType(aggregateType);
+      builder.Entity(eventType, @event =>
+      {
+        // Create table for Event<TAggregate> -> "TAggregateEvents"
+        @event.ToTable(aggregateType.EventTable());
+        
+        // Add Indices for AggregateType, Type and Timestamp
+        @event.HasIndex(nameof(Event.AggregateType));
+        @event.HasIndex(nameof(Event.Type));
+        @event.HasIndex(nameof(Event.Timestamp));
+    
+        // Constrain Type sizes
+        @event.Property(nameof(Event.AggregateType)).HasMaxLength(maxAggregateTypeLength);
+        @event.Property(nameof(Event.Type)).HasMaxLength(maxEventTypeLength);
+        
+        // Events are uniquely identified by their PartitionId, AggregateId, and Index
+        @event.HasKey(nameof(Snapshot.PartitionId), nameof(Snapshot.AggregateId), nameof(Snapshot.Index));
+        
+        // Event Indices should be non-negative, this is enforced through a check constraint
+        @event.HasCheckConstraint($"CK_{aggregateType.EventTable()}_NonNegativeIndex", $"\"{nameof(Snapshot.Index)}\" >= 0");
+        
+        // Enforce Event Consecutiveness
+
+        // 1. Add Computed Shadow Property which contains the Index of the previous Event
+        // PreviousIndex is equal to Index - 1, except for Index == 0, then PreviousIndex = NULL
+        @event.Property<long?>(PreviousIndex)
+          .HasComputedColumnSql($"CASE WHEN \"{nameof(Event.Index)}\" = 0 THEN NULL ELSE \"{nameof(Event.Index)}\" - 1 END", true);
+        
+        // 2. Fix issue: SQL Server does not support filtered indices on computed columns
+        // In step 3, we want to add a foreign key to the previous Event, using the PreviousIndex computed column
+        // When adding a foreign key in EF Core, it automatically adds a unique index to this key
+        // Since PreviousIndex is nullable, EF Core makes the unique index filtered on NOT NULL, which fails in SQL Server
+        // The Index below is explicitly defined as not unique, which prevents EF Core from adding a filtered unique index 
+        @event.HasIndex(nameof(Event.PartitionId), nameof(Event.AggregateId), PreviousIndex).IsUnique(false);
+        
+        // 3. Enforce Event Consecutiveness using a foreign key to the previous Event
+        // This accomplishes three things:
+        //  1. It disallows adding a loose Event
+        //      e.g. adding Event with Index = 6 will fail when Event 5 does not exist.
+        //  2. It disallows removing Events in the middle of the chain.
+        //      i.e. if you want to remove Event 6, you are forced to remove Events after that as well
+        //  3. No implicit deletions will occur.
+        //      i.e. if you remove Event 0, a Cascade Delete would remove everything after, but that is now prevented.
+        //      rather, the system expects the user to be explicit about removing Events
+        @event.HasOne(eventType).WithOne()
+          .HasForeignKey(eventType, nameof(Event.PartitionId), nameof(Event.AggregateId), PreviousIndex)
+          .HasConstraintName($"FK_{aggregateType.EventTable()}_ConsecutiveIndex")
+          .OnDelete(DeleteBehavior.Restrict);
+      });
+      
+      var snapshotType = typeof(Snapshot<>).MakeGenericType(aggregateType);
+      builder.Entity(snapshotType, snapshot =>
+      {
+        // Create table for Snapshot<TAggregate> -> "TAggregateSnapshots"
+        snapshot.ToTable(aggregateType.SnapshotTable());
+      
+        // Add Indices for AggregateType, Type and Timestamp
+        snapshot.HasIndex(nameof(Snapshot.AggregateType));
+        snapshot.HasIndex(nameof(Snapshot.Type));
+        snapshot.HasIndex(nameof(Snapshot.Timestamp));
+    
+        // Constrain Type sizes
+        snapshot.Property(nameof(Snapshot.AggregateType)).HasMaxLength(maxAggregateTypeLength);
+        snapshot.Property(nameof(Snapshot.Type)).HasMaxLength(maxSnapshotTypeLength);
+
+        // Snapshots are uniquely identified by their PartitionId, AggregateId, and Index
+        snapshot.HasKey(nameof(Snapshot.PartitionId), nameof(Snapshot.AggregateId), nameof(Snapshot.Index));
+      
+        // Snapshot Indices should be non-negative, this is enforced through a check constraint
+        snapshot.HasCheckConstraint($"CK_{aggregateType.SnapshotTable()}_NonNegativeIndex", $"\"{nameof(Snapshot.Index)}\" >= 0");
+
+        // Tie Snapshot to corresponding Event, such that when the Event is removed, the Snapshot is also removed
+        snapshot.HasOne(typeof(Event<>).MakeGenericType(aggregateType)).WithOne()
+          .HasForeignKey(snapshotType, nameof(Snapshot.PartitionId), nameof(Snapshot.AggregateId), nameof(Snapshot.Index))
+          .OnDelete(DeleteBehavior.Cascade);
+      });
     }
     
-    foreach (var type in snapshots.Values.SelectMany(types => types))
+    // Add all Events to their respective Event<TAggregate> hierarchies
+    // TODO: Add NotNull Constraint for all non-nullable columns for specific Event type (Current EF Core limitation)
+    foreach (var type in events.Values.SelectMany(types => types))
       builder.Entity(type).HasDiscriminator<string>(nameof(Event.Type));
+    
+    // Add all Snapshots to their respective Snapshot<TAggregate> hierarchies
+    // TODO: Add NotNull Constraint for all non-nullable columns for specific Event type (Current EF Core limitation)
+    foreach (var type in snapshots.Values.SelectMany(types => types))
+      builder.Entity(type).HasDiscriminator<string>(nameof(Snapshot.Type));
 
-    foreach (var projection in projections)
-      builder.ProjectionEntity(projection);
+    // Add all Projections as separate tables
+    foreach (var type in projections)
+    {
+      EntityFrameworkRecordStore.ProjectionTypes.Add(type);
+      builder.Entity(type, projection =>
+      {
+        // Add Indices for AggregateType, Type and Timestamp
+        projection.HasIndex(nameof(Projection.AggregateType));
+        projection.HasIndex(nameof(Projection.Type));
+        projection.HasIndex(nameof(Projection.Timestamp));
+    
+        // Constrain Type sizes
+        projection.Property(nameof(Projection.AggregateType)).HasMaxLength(maxAggregateTypeLength);
+        projection.Property(nameof(Projection.Type)).HasMaxLength(maxProjectionTypeLength);
+    
+        // Constrain Aggregate Type size
+        projection.Property(nameof(Projection.AggregateType)).HasMaxLength(maxAggregateTypeLength);
+
+        // Projections are uniquely identified by their PartitionId and AggregateId
+        projection.HasKey(nameof(Projection.PartitionId), nameof(Projection.AggregateId));
+
+        // To quickly find Projections with an outdated hash
+        projection.HasIndex(nameof(Projection.Hash));
+      
+        // Hashes have a fixed length, better capitalize on that knowledge
+        projection.Property(nameof(Projection.Hash)).HasMaxLength(IHashable.HashLength);
+      });
+    }
   }
 
+  /// <summary>
+  /// Get Aggregate Type for a given <see cref="Event"/> or <see cref="Snapshot"/>
+  /// </summary>
+  /// <param name="type"><see cref="Event"/> or <see cref="Snapshot"/></param>
+  /// <returns></returns>
   private static Type? GetAggregateType(Type? type)
   {
     while (type != null)
@@ -53,6 +189,11 @@ public class RecordContext : DbContext
     return null;
   }
 
+  /// <summary>
+  /// See get all public, non-abstract types with a default constructor assignable from <see cref="T"/>
+  /// </summary>
+  /// <typeparam name="T"><see cref="Type"/></typeparam>
+  /// <returns></returns>
   private static List<Type> GetAssemblyTypes<T>() => AppDomain.CurrentDomain
     .GetAssemblies().SelectMany(x => x.GetTypes())
     .Where(type => typeof(T).IsAssignableFrom(type) && type.IsPublic && type.IsClass && !type.IsAbstract &&

@@ -34,8 +34,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("AggregateType")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(17)
+                        .HasColumnType("nvarchar(17)");
 
                     b.Property<long?>("PreviousIndex")
                         .ValueGeneratedOnAddOrUpdate()
@@ -47,8 +47,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.HasKey("PartitionId", "AggregateId", "Index");
 
@@ -63,6 +63,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                     b.ToTable("BankAccountEvents", (string)null);
 
                     b.HasDiscriminator<string>("Type").HasValue("Event<BankAccount>");
+
+                    b.HasCheckConstraint("CK_BankAccountEvents_Discriminator", "[Type] IN (N'Event<BankAccount>', N'BankAccountCreatedEvent', N'BankAccountFundsDepositedEvent', N'BankAccountFundsTransferredEvent', N'BankAccountFundsWithdrawnEvent')");
 
                     b.HasCheckConstraint("CK_BankAccountEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
@@ -79,8 +81,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("AggregateType")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(17)
+                        .HasColumnType("nvarchar(17)");
 
                     b.Property<long?>("PreviousIndex")
                         .ValueGeneratedOnAddOrUpdate()
@@ -92,8 +94,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.HasKey("PartitionId", "AggregateId", "Index");
 
@@ -108,6 +110,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                     b.ToTable("EmptyAggregateEvents", (string)null);
 
                     b.HasDiscriminator<string>("Type").HasValue("Event<EmptyAggregate>");
+
+                    b.HasCheckConstraint("CK_EmptyAggregateEvents_Discriminator", "[Type] IN (N'Event<EmptyAggregate>', N'EmptyEvent')");
 
                     b.HasCheckConstraint("CK_EmptyAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
@@ -124,8 +128,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("AggregateType")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(17)
+                        .HasColumnType("nvarchar(17)");
 
                     b.Property<long?>("PreviousIndex")
                         .ValueGeneratedOnAddOrUpdate()
@@ -137,8 +141,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.HasKey("PartitionId", "AggregateId", "Index");
 
@@ -153,6 +157,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                     b.ToTable("MockAggregateEvents", (string)null);
 
                     b.HasDiscriminator<string>("Type").HasValue("Event<MockAggregate>");
+
+                    b.HasCheckConstraint("CK_MockAggregateEvents_Discriminator", "[Type] IN (N'Event<MockAggregate>', N'MockEvent')");
 
                     b.HasCheckConstraint("CK_MockAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
@@ -169,8 +175,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("AggregateType")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(17)
+                        .HasColumnType("nvarchar(17)");
 
                     b.Property<long?>("PreviousIndex")
                         .ValueGeneratedOnAddOrUpdate()
@@ -182,8 +188,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.HasKey("PartitionId", "AggregateId", "Index");
 
@@ -198,6 +204,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                     b.ToTable("SimpleAggregateEvents", (string)null);
 
                     b.HasDiscriminator<string>("Type").HasValue("Event<SimpleAggregate>");
+
+                    b.HasCheckConstraint("CK_SimpleAggregateEvents_Discriminator", "[Type] IN (N'Event<SimpleAggregate>', N'SimpleEvent')");
 
                     b.HasCheckConstraint("CK_SimpleAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
@@ -214,8 +222,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("AggregateType")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(17)
+                        .HasColumnType("nvarchar(17)");
 
                     b.Property<long?>("PreviousIndex")
                         .ValueGeneratedOnAddOrUpdate()
@@ -227,8 +235,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
                     b.HasKey("PartitionId", "AggregateId", "Index");
 
@@ -243,6 +251,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                     b.ToTable("SnapshotAggregateEvents", (string)null);
 
                     b.HasDiscriminator<string>("Type").HasValue("Event<SnapshotAggregate>");
+
+                    b.HasCheckConstraint("CK_SnapshotAggregateEvents_Discriminator", "[Type] IN (N'Event<SnapshotAggregate>', N'SnapshotEvent')");
 
                     b.HasCheckConstraint("CK_SnapshotAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
@@ -259,16 +269,16 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("AggregateType")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(17)
+                        .HasColumnType("nvarchar(17)");
 
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("datetimeoffset");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(19)
+                        .HasColumnType("nvarchar(19)");
 
                     b.HasKey("PartitionId", "AggregateId", "Index");
 
@@ -281,6 +291,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                     b.ToTable("BankAccountSnapshots", (string)null);
 
                     b.HasDiscriminator<string>("Type").HasValue("Snapshot<BankAccount>");
+
+                    b.HasCheckConstraint("CK_BankAccountSnapshots_Discriminator", "[Type] IN (N'Snapshot<BankAccount>', N'BankAccountSnapshot')");
 
                     b.HasCheckConstraint("CK_BankAccountSnapshots_NonNegativeIndex", "\"Index\" >= 0");
                 });
@@ -297,16 +309,16 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("AggregateType")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(17)
+                        .HasColumnType("nvarchar(17)");
 
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("datetimeoffset");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(19)
+                        .HasColumnType("nvarchar(19)");
 
                     b.HasKey("PartitionId", "AggregateId", "Index");
 
@@ -319,6 +331,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                     b.ToTable("EmptyAggregateSnapshots", (string)null);
 
                     b.HasDiscriminator<string>("Type").HasValue("Snapshot<EmptyAggregate>");
+
+                    b.HasCheckConstraint("CK_EmptyAggregateSnapshots_Discriminator", "[Type] IN (N'Snapshot<EmptyAggregate>', N'EmptySnapshot')");
 
                     b.HasCheckConstraint("CK_EmptyAggregateSnapshots_NonNegativeIndex", "\"Index\" >= 0");
                 });
@@ -335,16 +349,16 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("AggregateType")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(17)
+                        .HasColumnType("nvarchar(17)");
 
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("datetimeoffset");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(19)
+                        .HasColumnType("nvarchar(19)");
 
                     b.HasKey("PartitionId", "AggregateId", "Index");
 
@@ -357,6 +371,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                     b.ToTable("MockAggregateSnapshots", (string)null);
 
                     b.HasDiscriminator<string>("Type").HasValue("Snapshot<MockAggregate>");
+
+                    b.HasCheckConstraint("CK_MockAggregateSnapshots_Discriminator", "[Type] IN (N'Snapshot<MockAggregate>', N'MockSnapshot')");
 
                     b.HasCheckConstraint("CK_MockAggregateSnapshots_NonNegativeIndex", "\"Index\" >= 0");
                 });
@@ -373,16 +389,16 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("AggregateType")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(17)
+                        .HasColumnType("nvarchar(17)");
 
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("datetimeoffset");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(19)
+                        .HasColumnType("nvarchar(19)");
 
                     b.HasKey("PartitionId", "AggregateId", "Index");
 
@@ -409,16 +425,16 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("AggregateType")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(17)
+                        .HasColumnType("nvarchar(17)");
 
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("datetimeoffset");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(19)
+                        .HasColumnType("nvarchar(19)");
 
                     b.HasKey("PartitionId", "AggregateId", "Index");
 
@@ -432,6 +448,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
 
                     b.HasDiscriminator<string>("Type").HasValue("Snapshot<SnapshotAggregate>");
 
+                    b.HasCheckConstraint("CK_SnapshotAggregateSnapshots_Discriminator", "[Type] IN (N'Snapshot<SnapshotAggregate>', N'SnapshotSnapshot')");
+
                     b.HasCheckConstraint("CK_SnapshotAggregateSnapshots_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
@@ -444,8 +462,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("AggregateType")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(17)
+                        .HasColumnType("nvarchar(17)");
 
                     b.Property<string>("FactoryType")
                         .HasColumnType("nvarchar(max)");
@@ -468,8 +486,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(23)
+                        .HasColumnType("nvarchar(23)");
 
                     b.Property<long>("Version")
                         .HasColumnType("bigint");
@@ -496,8 +514,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("AggregateType")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(17)
+                        .HasColumnType("nvarchar(17)");
 
                     b.Property<string>("FactoryType")
                         .HasColumnType("nvarchar(max)");
@@ -512,8 +530,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(23)
+                        .HasColumnType("nvarchar(23)");
 
                     b.Property<long>("Version")
                         .HasColumnType("bigint");
@@ -540,8 +558,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("AggregateType")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(17)
+                        .HasColumnType("nvarchar(17)");
 
                     b.Property<string>("FactoryType")
                         .HasColumnType("nvarchar(max)");
@@ -582,8 +600,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(23)
+                        .HasColumnType("nvarchar(23)");
 
                     b.Property<long>("Version")
                         .HasColumnType("bigint");
@@ -599,6 +617,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                     b.HasIndex("Type");
 
                     b.ToTable("MockAggregateProjection");
+
+                    b.HasCheckConstraint("CK_MockAggregateProjection_MockEnum_Enum", "[MockEnum] IN (0, 1, 2)");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Tests.BankAccountCreatedEvent", b =>
@@ -615,6 +635,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
 
                     b.HasDiscriminator().HasValue("BankAccountCreatedEvent");
 
+                    b.HasCheckConstraint("CK_BankAccountEvents_Discriminator", "[Type] IN (N'Event<BankAccount>', N'BankAccountCreatedEvent', N'BankAccountFundsDepositedEvent', N'BankAccountFundsTransferredEvent', N'BankAccountFundsWithdrawnEvent')");
+
                     b.HasCheckConstraint("CK_BankAccountEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
@@ -627,6 +649,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.HasDiscriminator().HasValue("BankAccountFundsDepositedEvent");
+
+                    b.HasCheckConstraint("CK_BankAccountEvents_Discriminator", "[Type] IN (N'Event<BankAccount>', N'BankAccountCreatedEvent', N'BankAccountFundsDepositedEvent', N'BankAccountFundsTransferredEvent', N'BankAccountFundsWithdrawnEvent')");
 
                     b.HasCheckConstraint("CK_BankAccountEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
@@ -647,6 +671,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
 
                     b.HasDiscriminator().HasValue("BankAccountFundsTransferredEvent");
 
+                    b.HasCheckConstraint("CK_BankAccountEvents_Discriminator", "[Type] IN (N'Event<BankAccount>', N'BankAccountCreatedEvent', N'BankAccountFundsDepositedEvent', N'BankAccountFundsTransferredEvent', N'BankAccountFundsWithdrawnEvent')");
+
                     b.HasCheckConstraint("CK_BankAccountEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
@@ -659,6 +685,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.HasDiscriminator().HasValue("BankAccountFundsWithdrawnEvent");
+
+                    b.HasCheckConstraint("CK_BankAccountEvents_Discriminator", "[Type] IN (N'Event<BankAccount>', N'BankAccountCreatedEvent', N'BankAccountFundsDepositedEvent', N'BankAccountFundsTransferredEvent', N'BankAccountFundsWithdrawnEvent')");
 
                     b.HasCheckConstraint("CK_BankAccountEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
@@ -680,6 +708,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
 
                     b.HasDiscriminator().HasValue("BankAccountSnapshot");
 
+                    b.HasCheckConstraint("CK_BankAccountSnapshots_Discriminator", "[Type] IN (N'Snapshot<BankAccount>', N'BankAccountSnapshot')");
+
                     b.HasCheckConstraint("CK_BankAccountSnapshots_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
@@ -689,6 +719,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
 
                     b.HasDiscriminator().HasValue("EmptyEvent");
 
+                    b.HasCheckConstraint("CK_EmptyAggregateEvents_Discriminator", "[Type] IN (N'Event<EmptyAggregate>', N'EmptyEvent')");
+
                     b.HasCheckConstraint("CK_EmptyAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
@@ -697,6 +729,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                     b.HasBaseType("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.EmptyAggregate>");
 
                     b.HasDiscriminator().HasValue("EmptySnapshot");
+
+                    b.HasCheckConstraint("CK_EmptyAggregateSnapshots_Discriminator", "[Type] IN (N'Snapshot<EmptyAggregate>', N'EmptySnapshot')");
 
                     b.HasCheckConstraint("CK_EmptyAggregateSnapshots_NonNegativeIndex", "\"Index\" >= 0");
                 });
@@ -734,7 +768,11 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
 
                     b.HasDiscriminator().HasValue("MockEvent");
 
+                    b.HasCheckConstraint("CK_MockAggregateEvents_Discriminator", "[Type] IN (N'Event<MockAggregate>', N'MockEvent')");
+
                     b.HasCheckConstraint("CK_MockAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
+
+                    b.HasCheckConstraint("CK_MockAggregateEvents_MockEnum_Enum", "[MockEnum] IN (0, 1, 2)");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.MockSnapshot", b =>
@@ -770,7 +808,11 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
 
                     b.HasDiscriminator().HasValue("MockSnapshot");
 
+                    b.HasCheckConstraint("CK_MockAggregateSnapshots_Discriminator", "[Type] IN (N'Snapshot<MockAggregate>', N'MockSnapshot')");
+
                     b.HasCheckConstraint("CK_MockAggregateSnapshots_NonNegativeIndex", "\"Index\" >= 0");
+
+                    b.HasCheckConstraint("CK_MockAggregateSnapshots_MockEnum_Enum", "[MockEnum] IN (0, 1, 2)");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.SimpleEvent", b =>
@@ -778,6 +820,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                     b.HasBaseType("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.SimpleAggregate>");
 
                     b.HasDiscriminator().HasValue("SimpleEvent");
+
+                    b.HasCheckConstraint("CK_SimpleAggregateEvents_Discriminator", "[Type] IN (N'Event<SimpleAggregate>', N'SimpleEvent')");
 
                     b.HasCheckConstraint("CK_SimpleAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
@@ -787,6 +831,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                     b.HasBaseType("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.SnapshotAggregate>");
 
                     b.HasDiscriminator().HasValue("SnapshotEvent");
+
+                    b.HasCheckConstraint("CK_SnapshotAggregateEvents_Discriminator", "[Type] IN (N'Event<SnapshotAggregate>', N'SnapshotEvent')");
 
                     b.HasCheckConstraint("CK_SnapshotAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
@@ -799,6 +845,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                         .HasColumnType("int");
 
                     b.HasDiscriminator().HasValue("SnapshotSnapshot");
+
+                    b.HasCheckConstraint("CK_SnapshotAggregateSnapshots_Discriminator", "[Type] IN (N'Snapshot<SnapshotAggregate>', N'SnapshotSnapshot')");
 
                     b.HasCheckConstraint("CK_SnapshotAggregateSnapshots_NonNegativeIndex", "\"Index\" >= 0");
                 });

@@ -57,6 +57,8 @@ public class SqlServerTestContextFactory : IDesignTimeDbContextFactory<SqlServer
 
     return new SqlServerTestContext(new DbContextOptionsBuilder<SqlServerTestContext>()
       .UseSqlServer(configuration.GetConnectionString("RecordStore"))
+      .UseAllCheckConstraints()
+      .EnableSensitiveDataLogging()
       .Options);
   }
 }
