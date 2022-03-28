@@ -44,26 +44,30 @@ public abstract partial class EventSourcingTests
     return aggregate;
   }
 
-  private static void AssertDefaultMock(IMock projection)
+  private static void AssertDefaultMock(IMock mock)
   {
-    Assert.Equal(default, projection.MockBoolean);
-    Assert.Equal(default, projection.MockString);
-    Assert.Equal(default, projection.MockDecimal);
-    Assert.Equal(default, projection.MockDouble);
-    Assert.Equal(default, projection.MockEnum);
-    Assert.Equal(default, projection.MockFlagEnum);
-    Assert.Equal(new MockNestedRecord(), projection.MockNestedRecord);
-    Assert.Equal(new List<MockNestedRecordItem>(), projection.MockNestedRecordList);
-    Assert.Equal(new List<float>(), projection.MockFloatList);
-    Assert.Equal(new List<string>(), projection.MockStringSet);
+    Assert.Equal(default, mock.MockBoolean);
+    Assert.Equal(default, mock.MockString);
+    Assert.Equal(default, mock.MockNullableString);
+    Assert.Equal(default, mock.MockDecimal);
+    Assert.Equal(default, mock.MockDouble);
+    Assert.Equal(default, mock.MockNullableDouble);
+    Assert.Equal(default, mock.MockEnum);
+    Assert.Equal(default, mock.MockFlagEnum);
+    Assert.Equal(new MockNestedRecord(), mock.MockNestedRecord);
+    Assert.Equal(new List<MockNestedRecordItem>(), mock.MockNestedRecordList);
+    Assert.Equal(new List<float>(), mock.MockFloatList);
+    Assert.Equal(new List<string>(), mock.MockStringSet);
   }
 
   private static void AssertEqualMock(IMock expected, IMock actual)
   {
     Assert.Equal(expected.MockBoolean, actual.MockBoolean);
     Assert.Equal(expected.MockString, actual.MockString);
+    Assert.Equal(expected.MockNullableString, actual.MockNullableString);
     Assert.Equal(expected.MockDecimal, actual.MockDecimal);
     Assert.Equal(expected.MockDouble, actual.MockDouble);
+    Assert.Equal(expected.MockNullableDouble, actual.MockNullableDouble);
     Assert.Equal(expected.MockEnum, actual.MockEnum);
     Assert.Equal(expected.MockFlagEnum, actual.MockFlagEnum);
     Assert.Equal(expected.MockNestedRecord, actual.MockNestedRecord);

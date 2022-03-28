@@ -121,8 +121,10 @@ public abstract partial class EventSourcingTests
     {
       MockBoolean = true,
       MockString = "Hello World",
+      MockNullableString = null,
       MockDecimal = 0.55m,
       MockDouble = 0.6,
+      MockNullableDouble = null,
       MockEnum = MockEnum.C,
       MockFlagEnum = MockFlagEnum.A | MockFlagEnum.D,
 
@@ -153,26 +155,7 @@ public abstract partial class EventSourcingTests
 
     var result = await AggregateService.RehydrateAsync<MockAggregate>(aggregate.Id);
     
-    Assert.Equal(e.MockBoolean, result.MockBoolean);
-    Assert.Equal(e.MockString, result.MockString);
-    Assert.Equal(e.MockDecimal, result.MockDecimal);
-    Assert.Equal(e.MockDouble, result.MockDouble);
-    Assert.Equal(e.MockEnum, result.MockEnum);
-    Assert.Equal(e.MockFlagEnum, result.MockFlagEnum);
-    Assert.Equal(e.MockNestedRecord.MockBoolean, result.MockNestedRecord.MockBoolean);
-    Assert.Equal(e.MockNestedRecord.MockString, result.MockNestedRecord.MockString);
-    Assert.Equal(e.MockNestedRecord.MockDecimal, result.MockNestedRecord.MockDecimal);
-    Assert.Equal(e.MockNestedRecord.MockDouble, result.MockNestedRecord.MockDouble);
-    Assert.Equal(e.MockNestedRecordList.Single().MockBoolean, result.MockNestedRecordList.Single().MockBoolean);
-    Assert.Equal(e.MockNestedRecordList.Single().MockString, result.MockNestedRecordList.Single().MockString);
-    Assert.Equal(e.MockNestedRecordList.Single().MockDecimal, result.MockNestedRecordList.Single().MockDecimal);
-    Assert.Equal(e.MockNestedRecordList.Single().MockDouble, result.MockNestedRecordList.Single().MockDouble);
-    Assert.Equal(e.MockFloatList[0], result.MockFloatList[0]);
-    Assert.Equal(e.MockFloatList[1], result.MockFloatList[1]);
-    Assert.Equal(e.MockFloatList[2], result.MockFloatList[2]);
-    Assert.Contains(e.MockStringSet, x => x == "A");
-    Assert.Contains(e.MockStringSet, x => x == "B");
-    Assert.Contains(e.MockStringSet, x => x == "C");
+    AssertEqualMock(e, result!);
   }
   
   [Fact]
