@@ -35,6 +35,7 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("AggregateType")
+                        .IsRequired()
                         .HasMaxLength(17)
                         .HasColumnType("character varying(17)");
 
@@ -82,6 +83,7 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("AggregateType")
+                        .IsRequired()
                         .HasMaxLength(17)
                         .HasColumnType("character varying(17)");
 
@@ -129,6 +131,7 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("AggregateType")
+                        .IsRequired()
                         .HasMaxLength(17)
                         .HasColumnType("character varying(17)");
 
@@ -176,6 +179,7 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("AggregateType")
+                        .IsRequired()
                         .HasMaxLength(17)
                         .HasColumnType("character varying(17)");
 
@@ -223,6 +227,7 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("AggregateType")
+                        .IsRequired()
                         .HasMaxLength(17)
                         .HasColumnType("character varying(17)");
 
@@ -270,6 +275,7 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("AggregateType")
+                        .IsRequired()
                         .HasMaxLength(17)
                         .HasColumnType("character varying(17)");
 
@@ -310,6 +316,7 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("AggregateType")
+                        .IsRequired()
                         .HasMaxLength(17)
                         .HasColumnType("character varying(17)");
 
@@ -350,6 +357,7 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("AggregateType")
+                        .IsRequired()
                         .HasMaxLength(17)
                         .HasColumnType("character varying(17)");
 
@@ -390,6 +398,7 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("AggregateType")
+                        .IsRequired()
                         .HasMaxLength(17)
                         .HasColumnType("character varying(17)");
 
@@ -426,6 +435,7 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("AggregateType")
+                        .IsRequired()
                         .HasMaxLength(17)
                         .HasColumnType("character varying(17)");
 
@@ -463,6 +473,7 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("AggregateType")
+                        .IsRequired()
                         .HasMaxLength(17)
                         .HasColumnType("character varying(17)");
 
@@ -515,6 +526,7 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("AggregateType")
+                        .IsRequired()
                         .HasMaxLength(17)
                         .HasColumnType("character varying(17)");
 
@@ -559,6 +571,7 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("AggregateType")
+                        .IsRequired()
                         .HasMaxLength(17)
                         .HasColumnType("character varying(17)");
 
@@ -588,6 +601,12 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     b.Property<List<float>>("MockFloatList")
                         .IsRequired()
                         .HasColumnType("real[]");
+
+                    b.Property<double?>("MockNullableDouble")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("MockNullableString")
+                        .HasColumnType("text");
 
                     b.Property<string>("MockString")
                         .HasColumnType("text");
@@ -639,6 +658,8 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_BankAccountEvents_Discriminator", "\"Type\" IN ('Event<BankAccount>', 'BankAccountCreatedEvent', 'BankAccountFundsDepositedEvent', 'BankAccountFundsTransferredEvent', 'BankAccountFundsWithdrawnEvent')");
 
                     b.HasCheckConstraint("CK_BankAccountEvents_NonNegativeIndex", "\"Index\" >= 0");
+
+                    b.HasCheckConstraint("CK_BankAccountCreatedEvent_NotNull", "NOT \"Type\" = 'BankAccountCreatedEvent' OR (\"Name\" IS NOT NULL AND \"Iban\" IS NOT NULL)");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Tests.BankAccountFundsDepositedEvent", b =>
@@ -654,6 +675,8 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_BankAccountEvents_Discriminator", "\"Type\" IN ('Event<BankAccount>', 'BankAccountCreatedEvent', 'BankAccountFundsDepositedEvent', 'BankAccountFundsTransferredEvent', 'BankAccountFundsWithdrawnEvent')");
 
                     b.HasCheckConstraint("CK_BankAccountEvents_NonNegativeIndex", "\"Index\" >= 0");
+
+                    b.HasCheckConstraint("CK_BankAccountFundsDepositedEvent_NotNull", "NOT \"Type\" = 'BankAccountFundsDepositedEvent' OR (\"Amount\" IS NOT NULL)");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Tests.BankAccountFundsTransferredEvent", b =>
@@ -675,6 +698,8 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_BankAccountEvents_Discriminator", "\"Type\" IN ('Event<BankAccount>', 'BankAccountCreatedEvent', 'BankAccountFundsDepositedEvent', 'BankAccountFundsTransferredEvent', 'BankAccountFundsWithdrawnEvent')");
 
                     b.HasCheckConstraint("CK_BankAccountEvents_NonNegativeIndex", "\"Index\" >= 0");
+
+                    b.HasCheckConstraint("CK_BankAccountFundsTransferredEvent_NotNull", "NOT \"Type\" = 'BankAccountFundsTransferredEvent' OR (\"DebtorAccount\" IS NOT NULL AND \"CreditorAccount\" IS NOT NULL AND \"Amount\" IS NOT NULL)");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Tests.BankAccountFundsWithdrawnEvent", b =>
@@ -690,6 +715,8 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_BankAccountEvents_Discriminator", "\"Type\" IN ('Event<BankAccount>', 'BankAccountCreatedEvent', 'BankAccountFundsDepositedEvent', 'BankAccountFundsTransferredEvent', 'BankAccountFundsWithdrawnEvent')");
 
                     b.HasCheckConstraint("CK_BankAccountEvents_NonNegativeIndex", "\"Index\" >= 0");
+
+                    b.HasCheckConstraint("CK_BankAccountFundsWithdrawnEvent_NotNull", "NOT \"Type\" = 'BankAccountFundsWithdrawnEvent' OR (\"Amount\" IS NOT NULL)");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Tests.BankAccountSnapshot", b =>
@@ -712,6 +739,8 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_BankAccountSnapshots_Discriminator", "\"Type\" IN ('Snapshot<BankAccount>', 'BankAccountSnapshot')");
 
                     b.HasCheckConstraint("CK_BankAccountSnapshots_NonNegativeIndex", "\"Index\" >= 0");
+
+                    b.HasCheckConstraint("CK_BankAccountSnapshot_NotNull", "NOT \"Type\" = 'BankAccountSnapshot' OR (\"Name\" IS NOT NULL AND \"Iban\" IS NOT NULL AND \"Balance\" IS NOT NULL)");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.EmptyEvent", b =>
@@ -759,6 +788,12 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .IsRequired()
                         .HasColumnType("real[]");
 
+                    b.Property<double?>("MockNullableDouble")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("MockNullableString")
+                        .HasColumnType("text");
+
                     b.Property<string>("MockString")
                         .IsRequired()
                         .HasColumnType("text");
@@ -774,6 +809,8 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_MockAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
 
                     b.HasCheckConstraint("CK_MockAggregateEvents_MockEnum_Enum", "\"MockEnum\" IN (0, 1, 2)");
+
+                    b.HasCheckConstraint("CK_MockEvent_NotNull", "NOT \"Type\" = 'MockEvent' OR (\"MockBoolean\" IS NOT NULL AND \"MockString\" IS NOT NULL AND \"MockDecimal\" IS NOT NULL AND \"MockDouble\" IS NOT NULL AND \"MockEnum\" IS NOT NULL AND \"MockFlagEnum\" IS NOT NULL AND \"MockFloatList\" IS NOT NULL AND \"MockStringSet\" IS NOT NULL)");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.MockSnapshot", b =>
@@ -799,6 +836,12 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .IsRequired()
                         .HasColumnType("real[]");
 
+                    b.Property<double?>("MockNullableDouble")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("MockNullableString")
+                        .HasColumnType("text");
+
                     b.Property<string>("MockString")
                         .IsRequired()
                         .HasColumnType("text");
@@ -814,6 +857,8 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_MockAggregateSnapshots_NonNegativeIndex", "\"Index\" >= 0");
 
                     b.HasCheckConstraint("CK_MockAggregateSnapshots_MockEnum_Enum", "\"MockEnum\" IN (0, 1, 2)");
+
+                    b.HasCheckConstraint("CK_MockSnapshot_NotNull", "NOT \"Type\" = 'MockSnapshot' OR (\"MockBoolean\" IS NOT NULL AND \"MockString\" IS NOT NULL AND \"MockDecimal\" IS NOT NULL AND \"MockDouble\" IS NOT NULL AND \"MockEnum\" IS NOT NULL AND \"MockFlagEnum\" IS NOT NULL AND \"MockFloatList\" IS NOT NULL AND \"MockStringSet\" IS NOT NULL)");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.SimpleEvent", b =>
@@ -850,6 +895,8 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_SnapshotAggregateSnapshots_Discriminator", "\"Type\" IN ('Snapshot<SnapshotAggregate>', 'SnapshotSnapshot')");
 
                     b.HasCheckConstraint("CK_SnapshotAggregateSnapshots_NonNegativeIndex", "\"Index\" >= 0");
+
+                    b.HasCheckConstraint("CK_SnapshotSnapshot_NotNull", "NOT \"Type\" = 'SnapshotSnapshot' OR (\"Counter\" IS NOT NULL)");
                 });
 
             modelBuilder.Entity("EventSourcing.Core.Event<EventSourcing.Core.Tests.BankAccount>", b =>

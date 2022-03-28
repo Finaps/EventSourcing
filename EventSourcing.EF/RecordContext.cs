@@ -1,5 +1,6 @@
 using EventSourcing.Core;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace EventSourcing.EF;
 
@@ -64,6 +65,11 @@ public class RecordContext : DbContext
         @event.HasIndex(nameof(Event.AggregateType));
         @event.HasIndex(nameof(Event.Type));
         @event.HasIndex(nameof(Event.Timestamp));
+
+        // Make Base Record Fields Required
+        @event.Property(nameof(Event.Type)).IsRequired();
+        @event.Property(nameof(Event.AggregateType)).IsRequired();
+        @event.Property(nameof(Event.Timestamp)).IsRequired();
     
         // Constrain Type sizes
         @event.Property(nameof(Event.AggregateType)).HasMaxLength(maxAggregateTypeLength);
@@ -114,6 +120,11 @@ public class RecordContext : DbContext
         snapshot.HasIndex(nameof(Snapshot.AggregateType));
         snapshot.HasIndex(nameof(Snapshot.Type));
         snapshot.HasIndex(nameof(Snapshot.Timestamp));
+        
+        // Make Base Record Fields Required
+        snapshot.Property(nameof(Snapshot.Type)).IsRequired();
+        snapshot.Property(nameof(Snapshot.AggregateType)).IsRequired();
+        snapshot.Property(nameof(Snapshot.Timestamp)).IsRequired();
     
         // Constrain Type sizes
         snapshot.Property(nameof(Snapshot.AggregateType)).HasMaxLength(maxAggregateTypeLength);
@@ -135,12 +146,18 @@ public class RecordContext : DbContext
     // Add all Events to their respective Event<TAggregate> hierarchies
     // TODO: Add NotNull Constraint for all non-nullable columns for specific Event type (Current EF Core limitation)
     foreach (var type in events.Values.SelectMany(types => types))
-      builder.Entity(type).HasDiscriminator<string>(nameof(Event.Type));
+      builder
+        .Entity(type)
+        .HasCheckConstraint($"CK_{type.Name}_NotNull", type.GetNotNullCheckConstraint())
+        .HasDiscriminator<string>(nameof(Event.Type));
     
     // Add all Snapshots to their respective Snapshot<TAggregate> hierarchies
     // TODO: Add NotNull Constraint for all non-nullable columns for specific Event type (Current EF Core limitation)
     foreach (var type in snapshots.Values.SelectMany(types => types))
-      builder.Entity(type).HasDiscriminator<string>(nameof(Snapshot.Type));
+      builder
+        .Entity(type)
+        .HasCheckConstraint($"CK_{type.Name}_NotNull", type.GetNotNullCheckConstraint())
+        .HasDiscriminator<string>(nameof(Snapshot.Type));
 
     // Add all Projections as separate tables
     foreach (var type in projections)
@@ -152,6 +169,11 @@ public class RecordContext : DbContext
         projection.HasIndex(nameof(Projection.AggregateType));
         projection.HasIndex(nameof(Projection.Type));
         projection.HasIndex(nameof(Projection.Timestamp));
+        
+        // Make Base Event Fields Required
+        projection.Property(nameof(Projection.Type)).IsRequired();
+        projection.Property(nameof(Projection.AggregateType)).IsRequired();
+        projection.Property(nameof(Projection.Timestamp)).IsRequired();
     
         // Constrain Type sizes
         projection.Property(nameof(Projection.AggregateType)).HasMaxLength(maxAggregateTypeLength);

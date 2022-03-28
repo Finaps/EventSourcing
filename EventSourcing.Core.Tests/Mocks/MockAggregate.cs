@@ -37,8 +37,10 @@ public interface IMock
 {
   public bool MockBoolean { get; }
   public string MockString { get; }
+  public string? MockNullableString { get; }
   public decimal MockDecimal { get; }
   public double MockDouble { get; }
+  public double? MockNullableDouble { get; }
     
   public MockEnum MockEnum { get; }
   public MockFlagEnum MockFlagEnum { get; }
@@ -55,9 +57,11 @@ public record MockEvent : Event<MockAggregate>, IMock
 {
   public bool MockBoolean { get; init; }
   public string MockString { get; init; }
+  public string? MockNullableString { get; init; }
   public decimal MockDecimal { get; init; }
   public double MockDouble { get; init; }
-    
+  public double? MockNullableDouble { get; init; }
+
   public MockEnum MockEnum { get; init; }
   public MockFlagEnum MockFlagEnum { get; init; }
     
@@ -73,9 +77,11 @@ public record MockSnapshot : Snapshot<MockAggregate>, IMock
 {
   public bool MockBoolean { get; init; }
   public string MockString { get; init; }
+  public string? MockNullableString { get; init; }
   public decimal MockDecimal { get; init; }
   public double MockDouble { get; init; }
-    
+  public double? MockNullableDouble { get; init; }
+
   public MockEnum MockEnum { get; init; }
   public MockFlagEnum MockFlagEnum { get; init; }
     
@@ -92,8 +98,10 @@ public class MockAggregate : Aggregate<MockAggregate>, IMock
   public Guid NiceRelation { get; private set; }
   public bool MockBoolean { get; private set; }
   public string MockString { get; private set; }
+  public string? MockNullableString { get; private set; }
   public decimal MockDecimal { get; private set; }
   public double MockDouble { get; private set; }
+  public double? MockNullableDouble { get; private set; }
   public MockEnum MockEnum { get; private set; }
   public MockFlagEnum MockFlagEnum { get; private set; }
   public MockNestedRecord MockNestedRecord { get; private set; }
@@ -108,8 +116,10 @@ public class MockAggregate : Aggregate<MockAggregate>, IMock
       case MockEvent m:
         MockBoolean = m.MockBoolean;
         MockString = m.MockString;
+        MockNullableString = m.MockNullableString;
         MockDecimal = m.MockDecimal;
         MockDouble = m.MockDouble;
+        MockNullableDouble = m.MockNullableDouble;
         MockEnum = m.MockEnum;
         MockFlagEnum = m.MockFlagEnum;
         MockNestedRecord = m.MockNestedRecord;
@@ -125,8 +135,10 @@ public record MockAggregateProjection : Projection, IMock
 {
   public bool MockBoolean { get; init; }
   public string? MockString { get; init; }
+  public string? MockNullableString { get; init; }
   public decimal MockDecimal { get; init; }
   public double MockDouble { get; init; }
+  public double? MockNullableDouble { get; init; }
   public MockEnum MockEnum { get; init; }
   public MockFlagEnum MockFlagEnum { get; init; }
   public MockNestedRecord MockNestedRecord { get; init; }
@@ -141,8 +153,10 @@ public class MockAggregateProjectionFactory : ProjectionFactory<MockAggregate, M
   {
     MockBoolean = aggregate.MockBoolean,
     MockString = aggregate.MockString,
+    MockNullableString = aggregate.MockNullableString,
     MockDecimal = aggregate.MockDecimal,
     MockDouble = aggregate.MockDouble,
+    MockNullableDouble = aggregate.MockNullableDouble,
     MockEnum = aggregate.MockEnum,
     MockFlagEnum = aggregate.MockFlagEnum,
     MockNestedRecord = aggregate.MockNestedRecord,
