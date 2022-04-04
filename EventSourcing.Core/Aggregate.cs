@@ -85,14 +85,14 @@ public abstract class Aggregate : IHashable
   /// and resolve them using the <see cref="Apply"/> method.
   /// </para>
   /// </remarks>
-  protected Aggregate()
+  internal Aggregate()
   {
     Id = Guid.NewGuid();
     Type = GetType().Name;
   }
 
   internal abstract Task RehydrateAsync(Snapshot? snapshot, IAsyncEnumerable<Event> events, CancellationToken cancellationToken = default);
-  public abstract string ComputeHash();
+  public virtual string ComputeHash() => "";
 }
 
 /// <summary>
@@ -114,6 +114,8 @@ public abstract class Aggregate : IHashable
 /// <seealso cref="IAggregateService"/>
 public abstract class Aggregate<TAggregate> : Aggregate where TAggregate : Aggregate, new()
 {
+  protected Aggregate() {}
+  
   internal override async Task RehydrateAsync(Snapshot? snapshot, IAsyncEnumerable<Event> events, CancellationToken cancellationToken = default)
   {
     if (snapshot != null) 

@@ -17,13 +17,14 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                     AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Index = table.Column<long>(type: "bigint", nullable: false),
                     PreviousIndex = table.Column<long>(type: "bigint", nullable: true, computedColumnSql: "CASE WHEN \"Index\" = 0 THEN NULL ELSE \"Index\" - 1 END", stored: true),
+                    ZeroIndex = table.Column<long>(type: "bigint", nullable: false, computedColumnSql: "cast(0 as bigint)", stored: true),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Iban = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     DebtorAccount = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     CreditorAccount = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    Type = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
-                    AggregateType = table.Column<string>(type: "nvarchar(17)", maxLength: 17, nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
@@ -51,8 +52,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                     AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Iban = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Type = table.Column<string>(type: "nvarchar(23)", maxLength: 23, nullable: false),
-                    AggregateType = table.Column<string>(type: "nvarchar(17)", maxLength: 17, nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     FactoryType = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Version = table.Column<long>(type: "bigint", nullable: false),
@@ -71,8 +72,9 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                     AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Index = table.Column<long>(type: "bigint", nullable: false),
                     PreviousIndex = table.Column<long>(type: "bigint", nullable: true, computedColumnSql: "CASE WHEN \"Index\" = 0 THEN NULL ELSE \"Index\" - 1 END", stored: true),
-                    Type = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
-                    AggregateType = table.Column<string>(type: "nvarchar(17)", maxLength: 17, nullable: false),
+                    ZeroIndex = table.Column<long>(type: "bigint", nullable: false, computedColumnSql: "cast(0 as bigint)", stored: true),
+                    Type = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
@@ -94,8 +96,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                 {
                     PartitionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Type = table.Column<string>(type: "nvarchar(23)", maxLength: 23, nullable: false),
-                    AggregateType = table.Column<string>(type: "nvarchar(17)", maxLength: 17, nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     FactoryType = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Version = table.Column<long>(type: "bigint", nullable: false),
@@ -114,6 +116,7 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                     AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Index = table.Column<long>(type: "bigint", nullable: false),
                     PreviousIndex = table.Column<long>(type: "bigint", nullable: true, computedColumnSql: "CASE WHEN \"Index\" = 0 THEN NULL ELSE \"Index\" - 1 END", stored: true),
+                    ZeroIndex = table.Column<long>(type: "bigint", nullable: false, computedColumnSql: "cast(0 as bigint)", stored: true),
                     MockBoolean = table.Column<bool>(type: "bit", nullable: true),
                     MockString = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     MockNullableString = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -128,8 +131,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                     MockNestedRecord_MockDouble = table.Column<double>(type: "float", nullable: true),
                     MockFloatList = table.Column<byte[]>(type: "varbinary(max)", nullable: true),
                     MockStringSet = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Type = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
-                    AggregateType = table.Column<string>(type: "nvarchar(17)", maxLength: 17, nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
@@ -167,8 +170,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                     MockNestedRecord_MockDouble = table.Column<double>(type: "float", nullable: false),
                     MockFloatList = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
                     MockStringSet = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Type = table.Column<string>(type: "nvarchar(23)", maxLength: 23, nullable: false),
-                    AggregateType = table.Column<string>(type: "nvarchar(17)", maxLength: 17, nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     FactoryType = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Version = table.Column<long>(type: "bigint", nullable: false),
@@ -188,8 +191,9 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                     AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Index = table.Column<long>(type: "bigint", nullable: false),
                     PreviousIndex = table.Column<long>(type: "bigint", nullable: true, computedColumnSql: "CASE WHEN \"Index\" = 0 THEN NULL ELSE \"Index\" - 1 END", stored: true),
-                    Type = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
-                    AggregateType = table.Column<string>(type: "nvarchar(17)", maxLength: 17, nullable: false),
+                    ZeroIndex = table.Column<long>(type: "bigint", nullable: false, computedColumnSql: "cast(0 as bigint)", stored: true),
+                    Type = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
@@ -213,8 +217,9 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                     AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Index = table.Column<long>(type: "bigint", nullable: false),
                     PreviousIndex = table.Column<long>(type: "bigint", nullable: true, computedColumnSql: "CASE WHEN \"Index\" = 0 THEN NULL ELSE \"Index\" - 1 END", stored: true),
-                    Type = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
-                    AggregateType = table.Column<string>(type: "nvarchar(17)", maxLength: 17, nullable: false),
+                    ZeroIndex = table.Column<long>(type: "bigint", nullable: false, computedColumnSql: "cast(0 as bigint)", stored: true),
+                    Type = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
@@ -240,8 +245,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Iban = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Balance = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    Type = table.Column<string>(type: "nvarchar(19)", maxLength: 19, nullable: false),
-                    AggregateType = table.Column<string>(type: "nvarchar(17)", maxLength: 17, nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
@@ -265,8 +270,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                     PartitionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Index = table.Column<long>(type: "bigint", nullable: false),
-                    Type = table.Column<string>(type: "nvarchar(19)", maxLength: 19, nullable: false),
-                    AggregateType = table.Column<string>(type: "nvarchar(17)", maxLength: 17, nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
@@ -328,8 +333,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                     MockNestedRecord_MockDouble = table.Column<double>(type: "float", nullable: true),
                     MockFloatList = table.Column<byte[]>(type: "varbinary(max)", nullable: true),
                     MockStringSet = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Type = table.Column<string>(type: "nvarchar(19)", maxLength: 19, nullable: false),
-                    AggregateType = table.Column<string>(type: "nvarchar(17)", maxLength: 17, nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
@@ -378,8 +383,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                     PartitionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Index = table.Column<long>(type: "bigint", nullable: false),
-                    Type = table.Column<string>(type: "nvarchar(19)", maxLength: 19, nullable: false),
-                    AggregateType = table.Column<string>(type: "nvarchar(17)", maxLength: 17, nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
@@ -402,8 +407,8 @@ namespace EventSourcing.EF.Tests.SqlServer.Migrations
                     AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Index = table.Column<long>(type: "bigint", nullable: false),
                     Counter = table.Column<int>(type: "int", nullable: true),
-                    Type = table.Column<string>(type: "nvarchar(19)", maxLength: 19, nullable: false),
-                    AggregateType = table.Column<string>(type: "nvarchar(17)", maxLength: 17, nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>

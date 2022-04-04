@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EventSourcing.EF.Tests.Postgres.Migrations
 {
     [DbContext(typeof(PostgresTestContext))]
-    [Migration("20220328133533_AddInitialMigration")]
+    [Migration("20220331140533_AddInitialMigration")]
     partial class AddInitialMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -38,8 +38,8 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
 
                     b.Property<string>("AggregateType")
                         .IsRequired()
-                        .HasMaxLength(17)
-                        .HasColumnType("character varying(17)");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<long?>("PreviousIndex")
                         .ValueGeneratedOnAddOrUpdate()
@@ -51,8 +51,13 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<long>("ZeroIndex")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bigint")
+                        .HasComputedColumnSql("cast(0 as bigint)", true);
 
                     b.HasKey("PartitionId", "AggregateId", "Index");
 
@@ -86,8 +91,8 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
 
                     b.Property<string>("AggregateType")
                         .IsRequired()
-                        .HasMaxLength(17)
-                        .HasColumnType("character varying(17)");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<long?>("PreviousIndex")
                         .ValueGeneratedOnAddOrUpdate()
@@ -99,8 +104,13 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<long>("ZeroIndex")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bigint")
+                        .HasComputedColumnSql("cast(0 as bigint)", true);
 
                     b.HasKey("PartitionId", "AggregateId", "Index");
 
@@ -134,8 +144,8 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
 
                     b.Property<string>("AggregateType")
                         .IsRequired()
-                        .HasMaxLength(17)
-                        .HasColumnType("character varying(17)");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<long?>("PreviousIndex")
                         .ValueGeneratedOnAddOrUpdate()
@@ -147,8 +157,13 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<long>("ZeroIndex")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bigint")
+                        .HasComputedColumnSql("cast(0 as bigint)", true);
 
                     b.HasKey("PartitionId", "AggregateId", "Index");
 
@@ -182,8 +197,8 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
 
                     b.Property<string>("AggregateType")
                         .IsRequired()
-                        .HasMaxLength(17)
-                        .HasColumnType("character varying(17)");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<long?>("PreviousIndex")
                         .ValueGeneratedOnAddOrUpdate()
@@ -195,8 +210,13 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<long>("ZeroIndex")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bigint")
+                        .HasComputedColumnSql("cast(0 as bigint)", true);
 
                     b.HasKey("PartitionId", "AggregateId", "Index");
 
@@ -230,8 +250,8 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
 
                     b.Property<string>("AggregateType")
                         .IsRequired()
-                        .HasMaxLength(17)
-                        .HasColumnType("character varying(17)");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<long?>("PreviousIndex")
                         .ValueGeneratedOnAddOrUpdate()
@@ -243,8 +263,13 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<long>("ZeroIndex")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bigint")
+                        .HasComputedColumnSql("cast(0 as bigint)", true);
 
                     b.HasKey("PartitionId", "AggregateId", "Index");
 
@@ -278,16 +303,16 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
 
                     b.Property<string>("AggregateType")
                         .IsRequired()
-                        .HasMaxLength(17)
-                        .HasColumnType("character varying(17)");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(19)
-                        .HasColumnType("character varying(19)");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.HasKey("PartitionId", "AggregateId", "Index");
 
@@ -319,16 +344,16 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
 
                     b.Property<string>("AggregateType")
                         .IsRequired()
-                        .HasMaxLength(17)
-                        .HasColumnType("character varying(17)");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(19)
-                        .HasColumnType("character varying(19)");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.HasKey("PartitionId", "AggregateId", "Index");
 
@@ -360,16 +385,16 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
 
                     b.Property<string>("AggregateType")
                         .IsRequired()
-                        .HasMaxLength(17)
-                        .HasColumnType("character varying(17)");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(19)
-                        .HasColumnType("character varying(19)");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.HasKey("PartitionId", "AggregateId", "Index");
 
@@ -401,16 +426,16 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
 
                     b.Property<string>("AggregateType")
                         .IsRequired()
-                        .HasMaxLength(17)
-                        .HasColumnType("character varying(17)");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(19)
-                        .HasColumnType("character varying(19)");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.HasKey("PartitionId", "AggregateId", "Index");
 
@@ -438,16 +463,16 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
 
                     b.Property<string>("AggregateType")
                         .IsRequired()
-                        .HasMaxLength(17)
-                        .HasColumnType("character varying(17)");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(19)
-                        .HasColumnType("character varying(19)");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.HasKey("PartitionId", "AggregateId", "Index");
 
@@ -476,8 +501,8 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
 
                     b.Property<string>("AggregateType")
                         .IsRequired()
-                        .HasMaxLength(17)
-                        .HasColumnType("character varying(17)");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("FactoryType")
                         .HasColumnType("text");
@@ -500,8 +525,8 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(23)
-                        .HasColumnType("character varying(23)");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<long>("Version")
                         .HasColumnType("bigint");
@@ -529,8 +554,8 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
 
                     b.Property<string>("AggregateType")
                         .IsRequired()
-                        .HasMaxLength(17)
-                        .HasColumnType("character varying(17)");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("FactoryType")
                         .HasColumnType("text");
@@ -545,8 +570,8 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(23)
-                        .HasColumnType("character varying(23)");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<long>("Version")
                         .HasColumnType("bigint");
@@ -574,8 +599,8 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
 
                     b.Property<string>("AggregateType")
                         .IsRequired()
-                        .HasMaxLength(17)
-                        .HasColumnType("character varying(17)");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("FactoryType")
                         .HasColumnType("text");
@@ -622,8 +647,8 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(23)
-                        .HasColumnType("character varying(23)");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<long>("Version")
                         .HasColumnType("bigint");

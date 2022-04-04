@@ -8,6 +8,7 @@ namespace EventSourcing.EF;
 public class EntityFrameworkRecordStore : IRecordStore
 {
   internal static List<Type> ProjectionTypes { get; } = new();
+
   internal RecordContext Context { get; set; }
 
   /// <summary>
