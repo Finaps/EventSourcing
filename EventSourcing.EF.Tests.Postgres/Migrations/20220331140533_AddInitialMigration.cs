@@ -19,13 +19,14 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     AggregateId = table.Column<Guid>(type: "uuid", nullable: false),
                     Index = table.Column<long>(type: "bigint", nullable: false),
                     PreviousIndex = table.Column<long>(type: "bigint", nullable: true, computedColumnSql: "CASE WHEN \"Index\" = 0 THEN NULL ELSE \"Index\" - 1 END", stored: true),
+                    ZeroIndex = table.Column<long>(type: "bigint", nullable: false, computedColumnSql: "cast(0 as bigint)", stored: true),
                     Name = table.Column<string>(type: "text", nullable: true),
                     Iban = table.Column<string>(type: "text", nullable: true),
                     Amount = table.Column<decimal>(type: "numeric", nullable: true),
                     DebtorAccount = table.Column<Guid>(type: "uuid", nullable: true),
                     CreditorAccount = table.Column<Guid>(type: "uuid", nullable: true),
-                    Type = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
-                    AggregateType = table.Column<string>(type: "character varying(17)", maxLength: 17, nullable: false),
+                    Type = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
@@ -53,8 +54,8 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     AggregateId = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Iban = table.Column<string>(type: "text", nullable: false),
-                    Type = table.Column<string>(type: "character varying(23)", maxLength: 23, nullable: false),
-                    AggregateType = table.Column<string>(type: "character varying(17)", maxLength: 17, nullable: false),
+                    Type = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     FactoryType = table.Column<string>(type: "text", nullable: true),
                     Version = table.Column<long>(type: "bigint", nullable: false),
@@ -73,8 +74,9 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     AggregateId = table.Column<Guid>(type: "uuid", nullable: false),
                     Index = table.Column<long>(type: "bigint", nullable: false),
                     PreviousIndex = table.Column<long>(type: "bigint", nullable: true, computedColumnSql: "CASE WHEN \"Index\" = 0 THEN NULL ELSE \"Index\" - 1 END", stored: true),
-                    Type = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
-                    AggregateType = table.Column<string>(type: "character varying(17)", maxLength: 17, nullable: false),
+                    ZeroIndex = table.Column<long>(type: "bigint", nullable: false, computedColumnSql: "cast(0 as bigint)", stored: true),
+                    Type = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
@@ -96,8 +98,8 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                 {
                     PartitionId = table.Column<Guid>(type: "uuid", nullable: false),
                     AggregateId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Type = table.Column<string>(type: "character varying(23)", maxLength: 23, nullable: false),
-                    AggregateType = table.Column<string>(type: "character varying(17)", maxLength: 17, nullable: false),
+                    Type = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     FactoryType = table.Column<string>(type: "text", nullable: true),
                     Version = table.Column<long>(type: "bigint", nullable: false),
@@ -116,6 +118,7 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     AggregateId = table.Column<Guid>(type: "uuid", nullable: false),
                     Index = table.Column<long>(type: "bigint", nullable: false),
                     PreviousIndex = table.Column<long>(type: "bigint", nullable: true, computedColumnSql: "CASE WHEN \"Index\" = 0 THEN NULL ELSE \"Index\" - 1 END", stored: true),
+                    ZeroIndex = table.Column<long>(type: "bigint", nullable: false, computedColumnSql: "cast(0 as bigint)", stored: true),
                     MockBoolean = table.Column<bool>(type: "boolean", nullable: true),
                     MockString = table.Column<string>(type: "text", nullable: true),
                     MockNullableString = table.Column<string>(type: "text", nullable: true),
@@ -130,8 +133,8 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     MockNestedRecord_MockDouble = table.Column<double>(type: "double precision", nullable: true),
                     MockFloatList = table.Column<List<float>>(type: "real[]", nullable: true),
                     MockStringSet = table.Column<List<string>>(type: "text[]", nullable: true),
-                    Type = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
-                    AggregateType = table.Column<string>(type: "character varying(17)", maxLength: 17, nullable: false),
+                    Type = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
@@ -169,8 +172,8 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     MockNestedRecord_MockDouble = table.Column<double>(type: "double precision", nullable: false),
                     MockFloatList = table.Column<List<float>>(type: "real[]", nullable: false),
                     MockStringSet = table.Column<List<string>>(type: "text[]", nullable: false),
-                    Type = table.Column<string>(type: "character varying(23)", maxLength: 23, nullable: false),
-                    AggregateType = table.Column<string>(type: "character varying(17)", maxLength: 17, nullable: false),
+                    Type = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     FactoryType = table.Column<string>(type: "text", nullable: true),
                     Version = table.Column<long>(type: "bigint", nullable: false),
@@ -190,8 +193,9 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     AggregateId = table.Column<Guid>(type: "uuid", nullable: false),
                     Index = table.Column<long>(type: "bigint", nullable: false),
                     PreviousIndex = table.Column<long>(type: "bigint", nullable: true, computedColumnSql: "CASE WHEN \"Index\" = 0 THEN NULL ELSE \"Index\" - 1 END", stored: true),
-                    Type = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
-                    AggregateType = table.Column<string>(type: "character varying(17)", maxLength: 17, nullable: false),
+                    ZeroIndex = table.Column<long>(type: "bigint", nullable: false, computedColumnSql: "cast(0 as bigint)", stored: true),
+                    Type = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
@@ -215,8 +219,9 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     AggregateId = table.Column<Guid>(type: "uuid", nullable: false),
                     Index = table.Column<long>(type: "bigint", nullable: false),
                     PreviousIndex = table.Column<long>(type: "bigint", nullable: true, computedColumnSql: "CASE WHEN \"Index\" = 0 THEN NULL ELSE \"Index\" - 1 END", stored: true),
-                    Type = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
-                    AggregateType = table.Column<string>(type: "character varying(17)", maxLength: 17, nullable: false),
+                    ZeroIndex = table.Column<long>(type: "bigint", nullable: false, computedColumnSql: "cast(0 as bigint)", stored: true),
+                    Type = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
@@ -242,8 +247,8 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     Name = table.Column<string>(type: "text", nullable: true),
                     Iban = table.Column<string>(type: "text", nullable: true),
                     Balance = table.Column<decimal>(type: "numeric", nullable: true),
-                    Type = table.Column<string>(type: "character varying(19)", maxLength: 19, nullable: false),
-                    AggregateType = table.Column<string>(type: "character varying(17)", maxLength: 17, nullable: false),
+                    Type = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
@@ -267,8 +272,8 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     PartitionId = table.Column<Guid>(type: "uuid", nullable: false),
                     AggregateId = table.Column<Guid>(type: "uuid", nullable: false),
                     Index = table.Column<long>(type: "bigint", nullable: false),
-                    Type = table.Column<string>(type: "character varying(19)", maxLength: 19, nullable: false),
-                    AggregateType = table.Column<string>(type: "character varying(17)", maxLength: 17, nullable: false),
+                    Type = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
@@ -330,8 +335,8 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     MockNestedRecord_MockDouble = table.Column<double>(type: "double precision", nullable: true),
                     MockFloatList = table.Column<List<float>>(type: "real[]", nullable: true),
                     MockStringSet = table.Column<List<string>>(type: "text[]", nullable: true),
-                    Type = table.Column<string>(type: "character varying(19)", maxLength: 19, nullable: false),
-                    AggregateType = table.Column<string>(type: "character varying(17)", maxLength: 17, nullable: false),
+                    Type = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
@@ -380,8 +385,8 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     PartitionId = table.Column<Guid>(type: "uuid", nullable: false),
                     AggregateId = table.Column<Guid>(type: "uuid", nullable: false),
                     Index = table.Column<long>(type: "bigint", nullable: false),
-                    Type = table.Column<string>(type: "character varying(19)", maxLength: 19, nullable: false),
-                    AggregateType = table.Column<string>(type: "character varying(17)", maxLength: 17, nullable: false),
+                    Type = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
@@ -404,8 +409,8 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     AggregateId = table.Column<Guid>(type: "uuid", nullable: false),
                     Index = table.Column<long>(type: "bigint", nullable: false),
                     Counter = table.Column<int>(type: "integer", nullable: true),
-                    Type = table.Column<string>(type: "character varying(19)", maxLength: 19, nullable: false),
-                    AggregateType = table.Column<string>(type: "character varying(17)", maxLength: 17, nullable: false),
+                    Type = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>

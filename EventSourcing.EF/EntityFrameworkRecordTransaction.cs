@@ -9,11 +9,17 @@ namespace EventSourcing.EF;
 public class EntityFrameworkRecordTransaction : IRecordTransaction
 {
   private record TransactionAction;
+
   private record AddEventsAction(IList<Event> Events) : TransactionAction;
+
   private record AddSnapshotAction(Snapshot Snapshot) : TransactionAction;
+
   private record UpsertProjectionAction(Projection Projection) : TransactionAction;
+
   private record DeleteAllEventsAction(Event Event) : TransactionAction;
+
   private record DeleteSnapshotAction(Snapshot Snapshot) : TransactionAction;
+
   private record DeleteProjectionAction(Projection Projection) : TransactionAction;
 
   private readonly List<TransactionAction> _actions = new();
@@ -58,16 +64,19 @@ public class EntityFrameworkRecordTransaction : IRecordTransaction
   }
 
   /// <inheritdoc />
-  public IRecordTransaction DeleteAllEvents<TAggregate>(Guid aggregateId, long index) where TAggregate : Aggregate, new()
+  public IRecordTransaction DeleteAllEvents<TAggregate>(Guid aggregateId, long index)
+    where TAggregate : Aggregate, new()
   {
-    _actions.Add(new DeleteAllEventsAction(new Event<TAggregate> { PartitionId = PartitionId, AggregateId = aggregateId, Index = index }));
+    _actions.Add(new DeleteAllEventsAction(new Event<TAggregate>
+      { PartitionId = PartitionId, AggregateId = aggregateId, Index = index }));
     return this;
   }
 
   /// <inheritdoc />
   public IRecordTransaction DeleteSnapshot<TAggregate>(Guid aggregateId, long index) where TAggregate : Aggregate, new()
   {
-    _actions.Add(new DeleteSnapshotAction(new Snapshot<TAggregate> { PartitionId = PartitionId, AggregateId = aggregateId, Index = index }));
+    _actions.Add(new DeleteSnapshotAction(new Snapshot<TAggregate>
+      { PartitionId = PartitionId, AggregateId = aggregateId, Index = index }));
     return this;
   }
 
@@ -88,13 +97,13 @@ public class EntityFrameworkRecordTransaction : IRecordTransaction
         case AddEventsAction(var events):
           _store.Context.AddRange(events);
           break;
-        
+
         case AddSnapshotAction(var snapshot):
           _store.Context.Add(snapshot);
           break;
-        
+
         case UpsertProjectionAction(var projection):
-          
+
           // Since EF Core has no Upsert functionality, we have to first query the original Projection :(
           var existing = await _store.Context.FindAsync(
             projection.GetType(),
@@ -106,16 +115,16 @@ public class EntityFrameworkRecordTransaction : IRecordTransaction
           _store.Context.Add(projection);
 
           break;
-        
+
         case DeleteAllEventsAction(var e):
           await _store.Context.DeleteWhereAsync(nameof(e), PartitionId, e.AggregateId, cancellationToken);
           break;
-        
+
         case DeleteSnapshotAction(var snapshot):
           _store.Context.Attach(snapshot);
           _store.Context.Remove(snapshot);
           break;
-        
+
         case DeleteProjectionAction(var projection):
           _store.Context.Attach(projection);
           _store.Context.Remove(projection);
@@ -129,7 +138,7 @@ public class EntityFrameworkRecordTransaction : IRecordTransaction
     }
     catch (DbUpdateException e)
     {
-      throw new RecordStoreException("Db Update Exception", e);
+      throw new RecordStoreException(e.Message, e);
     }
   }
 }
