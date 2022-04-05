@@ -51,6 +51,38 @@ public interface IMock
 
   public List<float> MockFloatList { get; }
   public List<string> MockStringSet { get; }
+
+  public static void AssertDefault(IMock mock)
+  {
+    Assert.Equal(default, mock.MockBoolean);
+    Assert.Equal(default, mock.MockString);
+    Assert.Equal(default, mock.MockNullableString);
+    Assert.Equal(default, mock.MockDecimal);
+    Assert.Equal(default, mock.MockDouble);
+    Assert.Equal(default, mock.MockNullableDouble);
+    Assert.Equal(default, mock.MockEnum);
+    Assert.Equal(default, mock.MockFlagEnum);
+    Assert.Equal(new MockNestedRecord(), mock.MockNestedRecord);
+    Assert.Equal(new List<MockNestedRecordItem>(), mock.MockNestedRecordList);
+    Assert.Equal(new List<float>(), mock.MockFloatList);
+    Assert.Equal(new List<string>(), mock.MockStringSet);
+  }
+
+  public static void AssertEqual(IMock expected, IMock actual)
+  {
+    Assert.Equal(expected.MockBoolean, actual.MockBoolean);
+    Assert.Equal(expected.MockString, actual.MockString);
+    Assert.Equal(expected.MockNullableString, actual.MockNullableString);
+    Assert.Equal(expected.MockDecimal, actual.MockDecimal);
+    Assert.Equal(expected.MockDouble, actual.MockDouble);
+    Assert.Equal(expected.MockNullableDouble, actual.MockNullableDouble);
+    Assert.Equal(expected.MockEnum, actual.MockEnum);
+    Assert.Equal(expected.MockFlagEnum, actual.MockFlagEnum);
+    Assert.Equal(expected.MockNestedRecord, actual.MockNestedRecord);
+    Assert.Equal(expected.MockNestedRecordList, actual.MockNestedRecordList);
+    Assert.Equal(expected.MockFloatList, actual.MockFloatList);
+    Assert.Equal(expected.MockStringSet, actual.MockStringSet);
+  }
 }
 
 public record MockEvent : Event<MockAggregate>, IMock
@@ -108,6 +140,48 @@ public class MockAggregate : Aggregate<MockAggregate>, IMock
   public List<MockNestedRecordItem> MockNestedRecordList { get; private set; }
   public List<float> MockFloatList { get; private set; }
   public List<string> MockStringSet { get; private set; }
+  
+  public static MockAggregate Create()
+  {
+    var aggregate = new MockAggregate();
+    aggregate.Apply(new MockEvent
+    {
+      MockBoolean = true,
+      MockString = "Hello World",
+      MockDecimal = .99m,
+      MockDouble = 3.14159265359,
+      MockEnum = MockEnum.B,
+      MockFlagEnum = MockFlagEnum.C | MockFlagEnum.E,
+      MockNestedRecord = new MockNestedRecord
+      {
+        MockBoolean = false,
+        MockString = "Bon Appetit",
+        MockDecimal = 9.99m,
+        MockDouble = 2.71828
+      },
+      MockNestedRecordList = new List<MockNestedRecordItem>
+      {
+        new ()
+        {
+          MockBoolean = true,
+          MockString = "Good",
+          MockDecimal = 99.99m,
+          MockDouble = 1.61803398875
+        },
+        new ()
+        {
+          MockBoolean = false,
+          MockString = "Bye",
+          MockDecimal = 99.99m,
+          MockDouble = 1.73205080757
+        }
+      },
+      MockFloatList = new List<float> { .1f, .2f, .3f },
+      MockStringSet = new List<string> { "No", "Duplicates", "Duplicates", "Here" }
+    });
+
+    return aggregate;
+  }
   
   protected override void Apply(Event<MockAggregate> e)
   {

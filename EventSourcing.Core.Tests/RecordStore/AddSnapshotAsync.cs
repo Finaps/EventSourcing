@@ -3,7 +3,7 @@ namespace EventSourcing.Core.Tests;
 public abstract partial class EventSourcingTests
 {
   [Fact]
-  public async Task Cannot_Create_Snapshot_For_Aggregate_Without_Events()
+  public async Task RecordStore_AddSnapshotAsync_Cannot_Create_Snapshot_For_Aggregate_Without_Events()
   {
     var aggregate = new SnapshotAggregate();
     var factory = new SimpleSnapshotFactory();
@@ -12,7 +12,7 @@ public abstract partial class EventSourcingTests
   }
   
   [Fact]
-  public async Task Can_Add_Snapshot()
+  public async Task RecordStore_AddSnapshotAsync_Can_Add_Snapshot()
   {
     var aggregate = new SnapshotAggregate();
     var e = aggregate.Apply(new SnapshotEvent());
@@ -24,7 +24,7 @@ public abstract partial class EventSourcingTests
   }
 
   [Fact]
-  public async Task Cannot_Add_Snapshot_With_Duplicate_AggregateId_And_Index()
+  public async Task RecordStore_AddSnapshotAsync_Cannot_Add_Snapshot_With_Duplicate_AggregateId_And_Index()
   {
     var aggregate = new SnapshotAggregate();
     var e = aggregate.Apply(new SnapshotEvent());
@@ -40,7 +40,7 @@ public abstract partial class EventSourcingTests
   }
   
   [Fact]
-  public async Task Can_Get_Snapshot_By_PartitionId()
+  public async Task RecordStore_AddSnapshotAsync_Can_Get_Snapshot_By_PartitionId()
   {
     var aggregate = new SnapshotAggregate { PartitionId = Guid.NewGuid() };
     var e = aggregate.Apply(new SnapshotEvent());
@@ -59,7 +59,7 @@ public abstract partial class EventSourcingTests
   }
 
   [Fact]
-  public async Task Can_Get_Snapshot_By_AggregateId()
+  public async Task RecordStore_AddSnapshotAsync_Can_Get_Snapshot_By_AggregateId()
   {
     var aggregate = new SnapshotAggregate();
     var e = aggregate.Apply(new SnapshotEvent());
@@ -78,7 +78,7 @@ public abstract partial class EventSourcingTests
   }
 
   [Fact]
-  public async Task Can_Get_Latest_Snapshot_By_AggregateId()
+  public async Task RecordStore_AddSnapshotAsync_Can_Get_Latest_Snapshot_By_AggregateId()
   {
     var aggregate = new SnapshotAggregate();
     var e1 = aggregate.Apply(new SnapshotEvent());

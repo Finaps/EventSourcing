@@ -3,7 +3,7 @@ namespace EventSourcing.Core.Tests;
 public abstract partial class EventSourcingTests
 {
   [Fact]
-  public async Task Can_Delete_Events()
+  public async Task RecordStore_DeleteAllEventsAsync_Can_Delete_Events()
   {
     var aggregate = new EmptyAggregate();
     var events = new List<Event>();
