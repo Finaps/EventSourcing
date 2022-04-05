@@ -3,7 +3,7 @@ namespace EventSourcing.Core.Tests;
 public abstract partial class EventSourcingTests
 {
   [Fact]
-  public async Task Can_Query_Events_By_PartitionId()
+  public async Task RecordStore_GetEvents_Can_Query_Events_By_PartitionId()
   {
     var aggregate1 = new EmptyAggregate { PartitionId = Guid.NewGuid() };
     var events1 = new List<Event>
@@ -26,7 +26,7 @@ public abstract partial class EventSourcingTests
   }
   
   [Fact]
-  public async Task Can_Query_Events_By_AggregateId()
+  public async Task RecordStore_GetEvents_Can_Query_Events_By_AggregateId()
   {
     var aggregate = new EmptyAggregate();
     var events = new List<Event>
@@ -49,7 +49,7 @@ public abstract partial class EventSourcingTests
   }
 
   [Fact]
-  public async Task Can_Query_Events_By_AggregateVersion()
+  public async Task RecordStore_GetEvents_Can_Query_Events_By_AggregateVersion()
   {
     var aggregate = new EmptyAggregate();
     var events = new List<Event>
@@ -79,7 +79,7 @@ public abstract partial class EventSourcingTests
   }
 
   [Fact]
-  public async Task Can_Query_Events_By_AggregateType()
+  public async Task RecordStore_GetEvents_Can_Query_Events_By_AggregateType()
   {
     var aggregate = new EmptyAggregate();
     var events = new List<Event>
@@ -119,7 +119,7 @@ public abstract partial class EventSourcingTests
   }
 
   [Fact]
-  public async Task Can_Query_Mock_Event()
+  public async Task RecordStore_GetEvents_Can_Query_Mock_Event()
   {
     var aggregate = new MockAggregate();
     var e = aggregate.Apply(new MockEvent

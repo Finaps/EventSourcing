@@ -3,13 +3,13 @@ namespace EventSourcing.Core.Tests;
 public abstract partial class EventSourcingTests
 {
   [Fact]
-  public async Task AddEventsAsync_Can_Add_Single_Event()
+  public async Task RecordStore_AddEventsAsync_Can_Add_Single_Event()
   {
     await RecordStore.AddEventsAsync(new Event[] { new EmptyAggregate().Apply(new EmptyEvent()) });
   }
 
   [Fact]
-  public async Task AddEventsAsync_Can_Add_Multiple_Events()
+  public async Task RecordStore_AddEventsAsync_Can_Add_Multiple_Events()
   {
     var aggregate = new EmptyAggregate();
     var events = new List<Event>();
@@ -21,20 +21,20 @@ public abstract partial class EventSourcingTests
   }
 
   [Fact]
-  public async Task AddEventsAsync_Can_Add_Empty_List()
+  public async Task RecordStore_AddEventsAsync_Can_Add_Empty_List()
   {
     await RecordStore.AddEventsAsync(Array.Empty<Event>());
   }
 
   [Fact]
-  public async Task AddEventsAsync_Cannot_Add_Null()
+  public async Task RecordStore_AddEventsAsync_Cannot_Add_Null()
   {
     await Assert.ThrowsAsync<ArgumentNullException>(async () =>
       await RecordStore.AddEventsAsync(null));
   }
   
   [Fact]
-  public async Task AddEventsAsync_Cannot_Add_Duplicate_Events()
+  public async Task RecordStore_AddEventsAsync_Cannot_Add_Duplicate_Events()
   {
     var aggregate = new EmptyAggregate();
     var e1 = aggregate.Apply(new EmptyEvent());
@@ -47,7 +47,7 @@ public abstract partial class EventSourcingTests
   }
   
   [Fact]
-  public async Task AddEventsAsync_Cannot_Add_Duplicate_Events_In_Separate_Calls()
+  public async Task RecordStore_AddEventsAsync_Cannot_Add_Duplicate_Events_In_Separate_Calls()
   {
     var aggregate = new EmptyAggregate();
     var e1 = aggregate.Apply(new EmptyEvent());
@@ -61,7 +61,7 @@ public abstract partial class EventSourcingTests
   }
 
   [Fact]
-  public async Task AddEventsAsync_Cannot_Add_Events_With_Different_AggregateIds()
+  public async Task RecordStore_AddEventsAsync_Cannot_Add_Events_With_Different_AggregateIds()
   {
     var aggregate1 = new EmptyAggregate();
     var event1 = aggregate1.Apply(new EmptyEvent());
@@ -74,7 +74,7 @@ public abstract partial class EventSourcingTests
   }
 
   [Fact]
-  public async Task AddEventsAsync_Cannot_Add_NonConsecutive_Events()
+  public async Task RecordStore_AddEventsAsync_Cannot_Add_NonConsecutive_Events()
   {
     var aggregate = new EmptyAggregate();
     var e1 = aggregate.Apply(new EmptyEvent());
@@ -85,7 +85,7 @@ public abstract partial class EventSourcingTests
   }
   
   [Fact]
-  public async Task AddEventsAsync_Cannot_Add_NonConsecutive_Events_In_Separate_Calls()
+  public async Task RecordStore_AddEventsAsync_Cannot_Add_NonConsecutive_Events_In_Separate_Calls()
   {
     var aggregate = new EmptyAggregate();
     var e1 = aggregate.Apply(new EmptyEvent());
@@ -99,7 +99,7 @@ public abstract partial class EventSourcingTests
   }
   
   [Fact]
-  public async Task AddEventsAsync_Cannot_Add_Event_With_Negative_Index()
+  public async Task RecordStore_AddEventsAsync_Cannot_Add_Event_With_Negative_Index()
   {
     var aggregate = new EmptyAggregate();
     var e = aggregate.Apply(new EmptyEvent()) with { Index = -1 };
@@ -109,7 +109,7 @@ public abstract partial class EventSourcingTests
   }
   
   [Fact]
-  public async Task AddEventsAsync_Cannot_Add_Event_With_Null_Type()
+  public async Task RecordStore_AddEventsAsync_Cannot_Add_Event_With_Null_Type()
   {
     var aggregate = new EmptyAggregate();
     var e = aggregate.Apply(new EmptyEvent()) with { Type = null };
@@ -119,7 +119,7 @@ public abstract partial class EventSourcingTests
   }
   
   [Fact]
-  public async Task AddEventsAsync_Cannot_Add_Event_With_Null_AggregateType()
+  public async Task RecordStore_AddEventsAsync_Cannot_Add_Event_With_Null_AggregateType()
   {
     var aggregate = new EmptyAggregate();
     var e = aggregate.Apply(new EmptyEvent()) with { AggregateType = null };

@@ -3,7 +3,7 @@ namespace EventSourcing.Core.Tests;
 public class AggregateTests
 {
   [Fact]
-  public void Can_Apply_Event()
+  public void Aggregate_Apply_Can_Apply_Event()
   {
     var aggregate = new SimpleAggregate();
     aggregate.Apply(new SimpleEvent());
@@ -12,7 +12,7 @@ public class AggregateTests
   }
 
   [Fact]
-  public void Can_Apply_Events()
+  public void Aggregate_Apply_Can_Apply_Events()
   {
     var aggregate = new SimpleAggregate();
     var events = new List<Event>
@@ -23,5 +23,14 @@ public class AggregateTests
     };
 
     Assert.Equal(events.Count, aggregate.Counter);
+  }
+  
+  [Fact]
+  public Task Aggregate_Apply_Cannot_Apply_Event_With_Empty_Aggregate_Id()
+  {
+    var aggregate = new SimpleAggregate { Id = Guid.Empty };
+    Assert.Throws<RecordValidationException>(() => aggregate.Apply(new SimpleEvent()));
+    
+    return Task.CompletedTask;
   }
 }

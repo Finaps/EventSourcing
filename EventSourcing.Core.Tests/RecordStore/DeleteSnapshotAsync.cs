@@ -3,7 +3,7 @@ namespace EventSourcing.Core.Tests;
 public abstract partial class EventSourcingTests
 {
   [Fact]
-  public async Task Can_Delete_Snapshot()
+  public async Task RecordStore_DeleteSnapshotAsync_Can_Delete_Snapshot()
   {
     var aggregate = new SnapshotAggregate();
     var e = aggregate.Apply(new SnapshotEvent());
