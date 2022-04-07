@@ -119,10 +119,10 @@ public abstract class Aggregate<TAggregate> : Aggregate where TAggregate : Aggre
   internal override async Task RehydrateAsync(Snapshot? snapshot, IAsyncEnumerable<Event> events, CancellationToken cancellationToken = default)
   {
     if (snapshot != null) 
-      ValidateAndApply((Snapshot<TAggregate>)snapshot);
+      ValidateAndApply((Snapshot<TAggregate>) snapshot);
     
-    await foreach (var e in events.WithCancellation(cancellationToken))
-      ValidateAndApply((Event<TAggregate>)e);
+    await foreach (var @event in events.WithCancellation(cancellationToken))
+      ValidateAndApply((Event<TAggregate>) @event);
   }
   
   /// <summary>
@@ -195,11 +195,11 @@ public abstract class Aggregate<TAggregate> : Aggregate where TAggregate : Aggre
 
   private void ValidateAndApply(Snapshot s)
   {
-    if (s is not Snapshot<TAggregate> @snapshot)
+    if (s is not Snapshot<TAggregate> snapshot)
       throw new RecordValidationException($"{s} does not derive from {typeof(Event<TAggregate>)}");
     
     RecordValidation.ValidateSnapshotForAggregate(this, s);
-    Apply(@snapshot);
+    Apply(snapshot);
     Version = s.Index + 1;
   }
 
