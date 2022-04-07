@@ -4,8 +4,8 @@ using EventSourcing.Core.Tests;
 
 namespace EventSourcing.EF.Tests.SqlServer;
 
-public class SqlServerEventSourcingTests : EventSourcingTests
+public class SqlServerEventSourcingTests : EntityFrameworkEventSourcingTests
 {
-  protected override IRecordStore RecordStore =>
-    new EntityFrameworkRecordStore(new SqlServerTestContextFactory().CreateDbContext(Array.Empty<string>()));
+  public override RecordContext RecordContext => new SqlServerTestContextFactory().CreateDbContext(Array.Empty<string>());
+  protected override IRecordStore RecordStore => new EntityFrameworkRecordStore(RecordContext);
 }
