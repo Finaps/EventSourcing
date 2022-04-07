@@ -117,7 +117,7 @@ public class EntityFrameworkRecordTransaction : IRecordTransaction
           break;
 
         case DeleteAllEventsAction(var e):
-          await _store.Context.DeleteWhereAsync(nameof(e), PartitionId, e.AggregateId, cancellationToken);
+          await _store.Context.DeleteWhereAsync($"{e.AggregateType}{nameof(Event)}s", PartitionId, e.AggregateId, cancellationToken);
           break;
 
         case DeleteSnapshotAction(var snapshot):
