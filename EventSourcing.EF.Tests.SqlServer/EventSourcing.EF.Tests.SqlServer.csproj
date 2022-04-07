@@ -39,6 +39,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\EventSourcing.Core.Tests\EventSourcing.Core.Tests.csproj" />
+      <ProjectReference Include="..\EventSourcing.EF.Tests\EventSourcing.EF.Tests.csproj" />
       <ProjectReference Include="..\EventSourcing.EF\EventSourcing.EF.csproj" />
     </ItemGroup>
 
