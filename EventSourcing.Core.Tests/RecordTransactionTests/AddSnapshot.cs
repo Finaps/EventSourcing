@@ -5,14 +5,16 @@ public abstract partial class EventSourcingTests
     [Fact]
     public async Task RecordTransaction_AddSnapshot_Can_Add_Snapshot_In_Transaction()
     {
-        var s = new Snapshot { AggregateId = Guid.NewGuid(), AggregateType = nameof(EmptyAggregate) };
+        var e = new SnapshotEvent { AggregateId = Guid.NewGuid() };
+        var s = new SnapshotSnapshot { AggregateId = e.AggregateId };
         
         await RecordStore.CreateTransaction()
+            .AddEvents(new List<Event> { e })
             .AddSnapshot(s)
             .CommitAsync();
 
         var count = await RecordStore
-            .GetSnapshots<EmptyAggregate>()
+            .GetSnapshots<SnapshotAggregate>()
             .Where(x => x.AggregateId == s.AggregateId)
             .AsAsyncEnumerable()
             .CountAsync();
