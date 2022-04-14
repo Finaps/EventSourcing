@@ -26,14 +26,6 @@ public static class ModelBuilderExtensions
       .IsRequired();
   }
 
-  public static EntityTypeBuilder<TRecord> HasCheckConstraint<TRecord>(
-    this EntityTypeBuilder<TRecord> builder, string name, Expression<Func<TRecord, bool>> check) where TRecord : Record
-  {
-    var constraintName = $"CK_{typeof(TRecord).Name}_{name}";
-
-    return builder.HasCheckConstraint(constraintName, new SqlExpressionConverter(check).ToString());
-  }
-
   private static string GetSimpleMemberName(this MemberInfo member)
   {
     var name = member.Name;
