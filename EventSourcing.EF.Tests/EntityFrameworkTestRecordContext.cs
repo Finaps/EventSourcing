@@ -1,0 +1,32 @@
+using EventSourcing.Core.Tests.Mocks;
+using Microsoft.EntityFrameworkCore;
+
+namespace EventSourcing.EF.Tests;
+
+public class EntityFrameworkTestRecordContext : RecordContext
+{
+  public EntityFrameworkTestRecordContext(DbContextOptions options) : base(options) {}
+  
+  protected override void OnModelCreating(ModelBuilder builder)
+  {
+    base.OnModelCreating(builder);
+
+    builder.Entity<MockEvent>(entity =>
+    {
+      entity.OwnsOne(x => x.MockNestedRecord);
+      entity.OwnsMany(x => x.MockNestedRecordList);
+    });
+
+    builder.Entity<MockSnapshot>(entity =>
+    {
+      entity.OwnsOne(x => x.MockNestedRecord);
+      entity.OwnsMany(x => x.MockNestedRecordList);
+    });
+    
+    builder.Entity<MockAggregateProjection>(entity =>
+    {
+      entity.OwnsOne(x => x.MockNestedRecord);
+      entity.OwnsMany(x => x.MockNestedRecordList);
+    });
+  }
+}
