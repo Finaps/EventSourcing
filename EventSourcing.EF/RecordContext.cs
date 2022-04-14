@@ -74,10 +74,9 @@ public class RecordContext : DbContext
         @event.HasKey(nameof(Snapshot.PartitionId), nameof(Snapshot.AggregateId), nameof(Snapshot.Index));
         
         // Event Indices should be non-negative, this is enforced through a check constraint
-        var nonNegativeCheckConstraintName = $"CK_{aggregateType.EventTable()}_NonNegativeIndex";
-        @event.HasCheckConstraint(nonNegativeCheckConstraintName, $"\"{nameof(Event.Index)}\" >= 0");
+        @event.HasCheckConstraint($"CK_{aggregateType.EventTable()}_NonNegativeIndex", $"\"{nameof(Event.Index)}\" >= 0");
         @event.Property<long>(ZeroIndex).HasComputedColumnSql("cast(0 as bigint)", true);
-        
+
         // Enforce Event Consecutiveness
 
         // 1. Add Computed Shadow Property which contains the Index of the previous Event
@@ -101,10 +100,9 @@ public class RecordContext : DbContext
         //  3. No implicit deletions will occur.
         //      i.e. if you remove Event 0, a Cascade Delete would remove everything after, but that is now prevented.
         //      rather, the system expects the user to be explicit about removing Events
-        var consecutiveIndexConstraintName = $"FK_{aggregateType.EventTable()}_ConsecutiveIndex";
         @event.HasOne(eventType).WithOne()
           .HasForeignKey(eventType, nameof(Event.PartitionId), nameof(Event.AggregateId), PreviousIndex)
-          .HasConstraintName(consecutiveIndexConstraintName)
+          .HasConstraintName($"FK_{aggregateType.EventTable()}_ConsecutiveIndex")
           .OnDelete(DeleteBehavior.Restrict);
       });
       

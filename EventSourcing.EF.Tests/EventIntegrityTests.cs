@@ -46,7 +46,21 @@ public abstract partial class EntityFrameworkEventSourcingTests
     
     Assert.False(await context.Set<SimpleEvent>().AnyAsync(x => x.AggregateId == aggregate.Id && x.Index == 9));
   }
-  
+
+  [Fact]
+  public async Task EventIntegrityTests_Cannot_Insert_Event_With_Null_AggregateType()
+  {
+    var context = RecordContext;
+    
+    context.Add(new SimpleEvent
+    {
+      AggregateId = Guid.NewGuid(),
+      AggregateType = null
+    });
+
+    await Assert.ThrowsAsync<DbUpdateException>(async () => await context.SaveChangesAsync());
+  }
+
   [Fact]
   public async Task EventIntegrityTests_Cannot_Insert_Nonconsecutive_Event()
   {

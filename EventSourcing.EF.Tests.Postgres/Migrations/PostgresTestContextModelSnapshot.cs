@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace EventSourcing.EF.Tests.Postgres.Migrations
 {
-    [DbContext(typeof(PostgresTestContext))]
+    [DbContext(typeof(PostgresTestRecordContext))]
     partial class PostgresTestContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

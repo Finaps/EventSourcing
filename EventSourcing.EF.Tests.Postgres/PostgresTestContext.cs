@@ -8,37 +8,14 @@ using Microsoft.Extensions.Configuration;
 
 namespace EventSourcing.EF.Tests.Postgres;
 
-public class PostgresTestContext : RecordContext
+public class PostgresTestRecordContext : EntityFrameworkTestRecordContext
 {
-  public PostgresTestContext(DbContextOptions<PostgresTestContext> options) : base(options) {}
-  
-  protected override void OnModelCreating(ModelBuilder builder)
-  {
-    base.OnModelCreating(builder);
-
-    builder.Entity<MockEvent>(entity =>
-    {
-      entity.OwnsOne(x => x.MockNestedRecord);
-      entity.OwnsMany(x => x.MockNestedRecordList);
-    });
-
-    builder.Entity<MockSnapshot>(entity =>
-    {
-      entity.OwnsOne(x => x.MockNestedRecord);
-      entity.OwnsMany(x => x.MockNestedRecordList);
-    });
-    
-    builder.Entity<MockAggregateProjection>(entity =>
-    {
-      entity.OwnsOne(x => x.MockNestedRecord);
-      entity.OwnsMany(x => x.MockNestedRecordList);
-    });
-  }
+  public PostgresTestRecordContext(DbContextOptions<PostgresTestRecordContext> options) : base(options) {}
 }
 
-public class TestContextFactory : IDesignTimeDbContextFactory<PostgresTestContext>
+public class TestContextFactory : IDesignTimeDbContextFactory<PostgresTestRecordContext>
 {
-  public PostgresTestContext CreateDbContext(string[] args)
+  public PostgresTestRecordContext CreateDbContext(string[] args)
   {
     var configuration = new ConfigurationBuilder()
       .AddJsonFile("appsettings.json", false)
@@ -48,7 +25,7 @@ public class TestContextFactory : IDesignTimeDbContextFactory<PostgresTestContex
     
     AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
-    return new PostgresTestContext(new DbContextOptionsBuilder<PostgresTestContext>()
+    return new PostgresTestRecordContext(new DbContextOptionsBuilder<PostgresTestRecordContext>()
       .UseNpgsql(configuration.GetConnectionString("RecordStore"))
       .UseAllCheckConstraints()
       .EnableSensitiveDataLogging()
