@@ -3,7 +3,7 @@ namespace EventSourcing.Core.Tests;
 public abstract partial class EventSourcingTests
 {
     [Fact]
-    public async Task RecordTransaction_AddSnapshot_Can_Delete_All_Event_In_Transaction()
+    public async Task RecordTransaction_DeleteAllEvents_Can_Delete_All_Events_In_Transaction()
     {
         var aggregateId = Guid.NewGuid();
         
@@ -20,7 +20,7 @@ public abstract partial class EventSourcingTests
           .CommitAsync();
         
         await RecordStore.CreateTransaction()
-            .DeleteAllEvents<EmptyAggregate>(aggregateId, events.Count)
+            .DeleteAllEvents<EmptyAggregate>(aggregateId, events.Count - 1)
             .CommitAsync();
 
         var count = await RecordStore
