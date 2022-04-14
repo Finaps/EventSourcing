@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace EventSourcing.EF.Tests.Postgres.Migrations
 {
-    [DbContext(typeof(PostgresTestContext))]
+    [DbContext(typeof(PostgresTestRecordContext))]
     [Migration("20220331140533_AddInitialMigration")]
     partial class AddInitialMigration
     {

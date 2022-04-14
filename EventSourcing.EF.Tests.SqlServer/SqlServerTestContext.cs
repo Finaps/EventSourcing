@@ -1,17 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.Json;
-using EventSourcing.Core.Tests;
 using EventSourcing.Core.Tests.Mocks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 
 namespace EventSourcing.EF.Tests.SqlServer;
 
-public class SqlServerTestContext : RecordContext
+public class SqlServerTestContext : EntityFrameworkTestRecordContext
 {
   public SqlServerTestContext(DbContextOptions<SqlServerTestContext> options) : base(options) {}
   
@@ -21,24 +15,18 @@ public class SqlServerTestContext : RecordContext
 
     builder.Entity<MockEvent>(entity =>
     {
-      entity.OwnsOne(x => x.MockNestedRecord);
-      entity.OwnsMany(x => x.MockNestedRecordList);
       entity.Property(x => x.MockFloatList).HasBinaryConversion();
       entity.Property(x => x.MockStringSet).HasStringConversion(";");
     });
 
     builder.Entity<MockSnapshot>(entity =>
     {
-      entity.OwnsOne(x => x.MockNestedRecord);
-      entity.OwnsMany(x => x.MockNestedRecordList);
       entity.Property(x => x.MockFloatList).HasBinaryConversion();
       entity.Property(x => x.MockStringSet).HasStringConversion(";");
     });
     
     builder.Entity<MockAggregateProjection>(entity =>
     {
-      entity.OwnsOne(x => x.MockNestedRecord);
-      entity.OwnsMany(x => x.MockNestedRecordList);
       entity.Property(x => x.MockFloatList).HasBinaryConversion();
       entity.Property(x => x.MockStringSet).HasStringConversion(";");
     });
