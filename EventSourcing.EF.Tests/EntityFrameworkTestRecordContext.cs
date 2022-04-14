@@ -1,4 +1,5 @@
 using EventSourcing.Core.Tests.Mocks;
+using EventSourcing.EF.Tests.Mocks;
 using Microsoft.EntityFrameworkCore;
 
 namespace EventSourcing.EF.Tests;
@@ -28,5 +29,8 @@ public class EntityFrameworkTestRecordContext : RecordContext
       entity.OwnsOne(x => x.MockNestedRecord);
       entity.OwnsMany(x => x.MockNestedRecordList);
     });
+
+    builder.AggregateReference<ReferenceEvent, ReferenceAggregate>(x => x.ReferenceAggregateId);
+    builder.AggregateReference<ReferenceEvent, EmptyAggregate>(x => x.EmptyAggregateId);
   }
 }

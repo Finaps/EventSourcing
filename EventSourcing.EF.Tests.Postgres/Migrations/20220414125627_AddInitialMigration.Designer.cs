@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using EventSourcing.EF.Tests.Postgres;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EventSourcing.EF.Tests.Postgres.Migrations
 {
     [DbContext(typeof(PostgresTestRecordContext))]
-    partial class PostgresTestContextModelSnapshot : ModelSnapshot
+    [Migration("20220414125627_AddInitialMigration")]
+    partial class AddInitialMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -23,7 +25,7 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("EventSourcing.Core.Event<EventSourcing.Core.Tests.BankAccount>", b =>
+            modelBuilder.Entity("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.BankAccount>", b =>
                 {
                     b.Property<Guid>("PartitionId")
                         .HasColumnType("uuid");
@@ -288,7 +290,60 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_SnapshotAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.BankAccount>", b =>
+            modelBuilder.Entity("EventSourcing.Core.Event<EventSourcing.EF.Tests.Mocks.ReferenceAggregate>", b =>
+                {
+                    b.Property<Guid>("PartitionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AggregateId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("Index")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("AggregateType")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<long?>("PreviousIndex")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bigint")
+                        .HasComputedColumnSql("CASE WHEN \"Index\" = 0 THEN NULL ELSE \"Index\" - 1 END", true);
+
+                    b.Property<DateTimeOffset>("Timestamp")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<long>("ZeroIndex")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bigint")
+                        .HasComputedColumnSql("cast(0 as bigint)", true);
+
+                    b.HasKey("PartitionId", "AggregateId", "Index");
+
+                    b.HasIndex("AggregateType");
+
+                    b.HasIndex("Timestamp");
+
+                    b.HasIndex("Type");
+
+                    b.HasIndex("PartitionId", "AggregateId", "PreviousIndex");
+
+                    b.ToTable("ReferenceAggregateEvents", (string)null);
+
+                    b.HasDiscriminator<string>("Type").HasValue("Event<ReferenceAggregate>");
+
+                    b.HasCheckConstraint("CK_ReferenceAggregateEvents_Discriminator", "\"Type\" IN ('Event<ReferenceAggregate>', 'ReferenceEvent')");
+
+                    b.HasCheckConstraint("CK_ReferenceAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
+                });
+
+            modelBuilder.Entity("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.BankAccount>", b =>
                 {
                     b.Property<Guid>("PartitionId")
                         .HasColumnType("uuid");
@@ -489,7 +544,44 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_SnapshotAggregateSnapshots_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Tests.BankAccountProjection", b =>
+            modelBuilder.Entity("EventSourcing.Core.Snapshot<EventSourcing.EF.Tests.Mocks.ReferenceAggregate>", b =>
+                {
+                    b.Property<Guid>("PartitionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AggregateId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("Index")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("AggregateType")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTimeOffset>("Timestamp")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.HasKey("PartitionId", "AggregateId", "Index");
+
+                    b.HasIndex("AggregateType");
+
+                    b.HasIndex("Timestamp");
+
+                    b.HasIndex("Type");
+
+                    b.ToTable("ReferenceAggregateSnapshots", (string)null);
+
+                    b.HasCheckConstraint("CK_ReferenceAggregateSnapshots_NonNegativeIndex", "\"Index\" >= 0");
+                });
+
+            modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.BankAccountProjection", b =>
                 {
                     b.Property<Guid>("PartitionId")
                         .HasColumnType("uuid");
@@ -666,9 +758,9 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_MockAggregateProjection_MockEnum_Enum", "\"MockEnum\" IN (0, 1, 2)");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Tests.BankAccountCreatedEvent", b =>
+            modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.BankAccountCreatedEvent", b =>
                 {
-                    b.HasBaseType("EventSourcing.Core.Event<EventSourcing.Core.Tests.BankAccount>");
+                    b.HasBaseType("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.BankAccount>");
 
                     b.Property<string>("Iban")
                         .IsRequired()
@@ -687,9 +779,9 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_BankAccountCreatedEvent_NotNull", "NOT \"Type\" = 'BankAccountCreatedEvent' OR (\"Name\" IS NOT NULL AND \"Iban\" IS NOT NULL)");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Tests.BankAccountFundsDepositedEvent", b =>
+            modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.BankAccountFundsDepositedEvent", b =>
                 {
-                    b.HasBaseType("EventSourcing.Core.Event<EventSourcing.Core.Tests.BankAccount>");
+                    b.HasBaseType("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.BankAccount>");
 
                     b.Property<decimal>("Amount")
                         .ValueGeneratedOnUpdateSometimes()
@@ -704,9 +796,9 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_BankAccountFundsDepositedEvent_NotNull", "NOT \"Type\" = 'BankAccountFundsDepositedEvent' OR (\"Amount\" IS NOT NULL)");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Tests.BankAccountFundsTransferredEvent", b =>
+            modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.BankAccountFundsTransferredEvent", b =>
                 {
-                    b.HasBaseType("EventSourcing.Core.Event<EventSourcing.Core.Tests.BankAccount>");
+                    b.HasBaseType("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.BankAccount>");
 
                     b.Property<decimal>("Amount")
                         .ValueGeneratedOnUpdateSometimes()
@@ -727,9 +819,9 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_BankAccountFundsTransferredEvent_NotNull", "NOT \"Type\" = 'BankAccountFundsTransferredEvent' OR (\"DebtorAccount\" IS NOT NULL AND \"CreditorAccount\" IS NOT NULL AND \"Amount\" IS NOT NULL)");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Tests.BankAccountFundsWithdrawnEvent", b =>
+            modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.BankAccountFundsWithdrawnEvent", b =>
                 {
-                    b.HasBaseType("EventSourcing.Core.Event<EventSourcing.Core.Tests.BankAccount>");
+                    b.HasBaseType("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.BankAccount>");
 
                     b.Property<decimal>("Amount")
                         .ValueGeneratedOnUpdateSometimes()
@@ -744,9 +836,9 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_BankAccountFundsWithdrawnEvent_NotNull", "NOT \"Type\" = 'BankAccountFundsWithdrawnEvent' OR (\"Amount\" IS NOT NULL)");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Tests.BankAccountSnapshot", b =>
+            modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.BankAccountSnapshot", b =>
                 {
-                    b.HasBaseType("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.BankAccount>");
+                    b.HasBaseType("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.BankAccount>");
 
                     b.Property<decimal>("Balance")
                         .HasColumnType("numeric");
@@ -924,11 +1016,35 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_SnapshotSnapshot_NotNull", "NOT \"Type\" = 'SnapshotSnapshot' OR (\"Counter\" IS NOT NULL)");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Event<EventSourcing.Core.Tests.BankAccount>", b =>
+            modelBuilder.Entity("EventSourcing.EF.Tests.Mocks.ReferenceEvent", b =>
                 {
-                    b.HasOne("EventSourcing.Core.Event<EventSourcing.Core.Tests.BankAccount>", null)
+                    b.HasBaseType("EventSourcing.Core.Event<EventSourcing.EF.Tests.Mocks.ReferenceAggregate>");
+
+                    b.Property<Guid?>("EmptyAggregateId")
+                        .IsRequired()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ReferenceAggregateId")
+                        .HasColumnType("uuid");
+
+                    b.HasIndex("PartitionId", "EmptyAggregateId", "ZeroIndex");
+
+                    b.HasIndex("PartitionId", "ReferenceAggregateId", "ZeroIndex");
+
+                    b.HasDiscriminator().HasValue("ReferenceEvent");
+
+                    b.HasCheckConstraint("CK_ReferenceAggregateEvents_Discriminator", "\"Type\" IN ('Event<ReferenceAggregate>', 'ReferenceEvent')");
+
+                    b.HasCheckConstraint("CK_ReferenceAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
+
+                    b.HasCheckConstraint("CK_ReferenceEvent_NotNull", "NOT \"Type\" = 'ReferenceEvent' OR (\"ReferenceAggregateId\" IS NOT NULL)");
+                });
+
+            modelBuilder.Entity("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.BankAccount>", b =>
+                {
+                    b.HasOne("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.BankAccount>", null)
                         .WithOne()
-                        .HasForeignKey("EventSourcing.Core.Event<EventSourcing.Core.Tests.BankAccount>", "PartitionId", "AggregateId", "PreviousIndex")
+                        .HasForeignKey("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.BankAccount>", "PartitionId", "AggregateId", "PreviousIndex")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_BankAccountEvents_ConsecutiveIndex");
                 });
@@ -969,11 +1085,20 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .HasConstraintName("FK_SnapshotAggregateEvents_ConsecutiveIndex");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.BankAccount>", b =>
+            modelBuilder.Entity("EventSourcing.Core.Event<EventSourcing.EF.Tests.Mocks.ReferenceAggregate>", b =>
                 {
-                    b.HasOne("EventSourcing.Core.Event<EventSourcing.Core.Tests.BankAccount>", null)
+                    b.HasOne("EventSourcing.Core.Event<EventSourcing.EF.Tests.Mocks.ReferenceAggregate>", null)
                         .WithOne()
-                        .HasForeignKey("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.BankAccount>", "PartitionId", "AggregateId", "Index")
+                        .HasForeignKey("EventSourcing.Core.Event<EventSourcing.EF.Tests.Mocks.ReferenceAggregate>", "PartitionId", "AggregateId", "PreviousIndex")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("FK_ReferenceAggregateEvents_ConsecutiveIndex");
+                });
+
+            modelBuilder.Entity("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.BankAccount>", b =>
+                {
+                    b.HasOne("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.BankAccount>", null)
+                        .WithOne()
+                        .HasForeignKey("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.BankAccount>", "PartitionId", "AggregateId", "Index")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -1010,6 +1135,15 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasOne("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.SnapshotAggregate>", null)
                         .WithOne()
                         .HasForeignKey("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.SnapshotAggregate>", "PartitionId", "AggregateId", "Index")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("EventSourcing.Core.Snapshot<EventSourcing.EF.Tests.Mocks.ReferenceAggregate>", b =>
+                {
+                    b.HasOne("EventSourcing.Core.Event<EventSourcing.EF.Tests.Mocks.ReferenceAggregate>", null)
+                        .WithOne()
+                        .HasForeignKey("EventSourcing.Core.Snapshot<EventSourcing.EF.Tests.Mocks.ReferenceAggregate>", "PartitionId", "AggregateId", "Index")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -1237,6 +1371,23 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                         .IsRequired();
 
                     b.Navigation("MockNestedRecordList");
+                });
+
+            modelBuilder.Entity("EventSourcing.EF.Tests.Mocks.ReferenceEvent", b =>
+                {
+                    b.HasOne("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.EmptyAggregate>", null)
+                        .WithMany()
+                        .HasForeignKey("PartitionId", "EmptyAggregateId", "ZeroIndex")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_ReferenceEvent_EmptyAggregateId");
+
+                    b.HasOne("EventSourcing.Core.Event<EventSourcing.EF.Tests.Mocks.ReferenceAggregate>", null)
+                        .WithMany()
+                        .HasForeignKey("PartitionId", "ReferenceAggregateId", "ZeroIndex")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("FK_ReferenceEvent_ReferenceAggregateId");
                 });
 #pragma warning restore 612, 618
         }
