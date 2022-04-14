@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace EventSourcing.EF.Tests.Postgres.Migrations
+namespace EventSourcing.EF.Tests.SqlServer.Migrations
 {
-    public partial class AddInitialMigration : Migration
+    public partial class AddIntialMigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -15,24 +13,24 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                 name: "BankAccountEvents",
                 columns: table => new
                 {
-                    PartitionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    AggregateId = table.Column<Guid>(type: "uuid", nullable: false),
+                    PartitionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Index = table.Column<long>(type: "bigint", nullable: false),
                     PreviousIndex = table.Column<long>(type: "bigint", nullable: true, computedColumnSql: "CASE WHEN \"Index\" = 0 THEN NULL ELSE \"Index\" - 1 END", stored: true),
                     ZeroIndex = table.Column<long>(type: "bigint", nullable: false, computedColumnSql: "cast(0 as bigint)", stored: true),
-                    Name = table.Column<string>(type: "text", nullable: true),
-                    Iban = table.Column<string>(type: "text", nullable: true),
-                    Amount = table.Column<decimal>(type: "numeric", nullable: true),
-                    DebtorAccount = table.Column<Guid>(type: "uuid", nullable: true),
-                    CreditorAccount = table.Column<Guid>(type: "uuid", nullable: true),
-                    Type = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    AggregateType = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Iban = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    DebtorAccount = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    CreditorAccount = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    Type = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    Timestamp = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_BankAccountEvents", x => new { x.PartitionId, x.AggregateId, x.Index });
-                    table.CheckConstraint("CK_BankAccountEvents_Discriminator", "\"Type\" IN ('Event<BankAccount>', 'BankAccountCreatedEvent', 'BankAccountFundsDepositedEvent', 'BankAccountFundsTransferredEvent', 'BankAccountFundsWithdrawnEvent')");
+                    table.CheckConstraint("CK_BankAccountEvents_Discriminator", "[Type] IN (N'Event<BankAccount>', N'BankAccountCreatedEvent', N'BankAccountFundsDepositedEvent', N'BankAccountFundsTransferredEvent', N'BankAccountFundsWithdrawnEvent')");
                     table.CheckConstraint("CK_BankAccountEvents_NonNegativeIndex", "\"Index\" >= 0");
                     table.CheckConstraint("CK_BankAccountCreatedEvent_NotNull", "NOT \"Type\" = 'BankAccountCreatedEvent' OR (\"Name\" IS NOT NULL AND \"Iban\" IS NOT NULL)");
                     table.CheckConstraint("CK_BankAccountFundsDepositedEvent_NotNull", "NOT \"Type\" = 'BankAccountFundsDepositedEvent' OR (\"Amount\" IS NOT NULL)");
@@ -50,16 +48,16 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                 name: "BankAccountProjection",
                 columns: table => new
                 {
-                    PartitionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    AggregateId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    Iban = table.Column<string>(type: "text", nullable: false),
-                    Type = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    AggregateType = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    FactoryType = table.Column<string>(type: "text", nullable: true),
+                    PartitionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Iban = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    Timestamp = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    FactoryType = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Version = table.Column<long>(type: "bigint", nullable: false),
-                    Hash = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false)
+                    Hash = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -70,19 +68,19 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                 name: "EmptyAggregateEvents",
                 columns: table => new
                 {
-                    PartitionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    AggregateId = table.Column<Guid>(type: "uuid", nullable: false),
+                    PartitionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Index = table.Column<long>(type: "bigint", nullable: false),
                     PreviousIndex = table.Column<long>(type: "bigint", nullable: true, computedColumnSql: "CASE WHEN \"Index\" = 0 THEN NULL ELSE \"Index\" - 1 END", stored: true),
                     ZeroIndex = table.Column<long>(type: "bigint", nullable: false, computedColumnSql: "cast(0 as bigint)", stored: true),
-                    Type = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    AggregateType = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                    Type = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    Timestamp = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_EmptyAggregateEvents", x => new { x.PartitionId, x.AggregateId, x.Index });
-                    table.CheckConstraint("CK_EmptyAggregateEvents_Discriminator", "\"Type\" IN ('Event<EmptyAggregate>', 'EmptyEvent')");
+                    table.CheckConstraint("CK_EmptyAggregateEvents_Discriminator", "[Type] IN (N'Event<EmptyAggregate>', N'EmptyEvent')");
                     table.CheckConstraint("CK_EmptyAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
                     table.ForeignKey(
                         name: "FK_EmptyAggregateEvents_ConsecutiveIndex",
@@ -96,14 +94,14 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                 name: "EmptyProjection",
                 columns: table => new
                 {
-                    PartitionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    AggregateId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Type = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    AggregateType = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    FactoryType = table.Column<string>(type: "text", nullable: true),
+                    PartitionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    Timestamp = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    FactoryType = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Version = table.Column<long>(type: "bigint", nullable: false),
-                    Hash = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false)
+                    Hash = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -114,35 +112,35 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                 name: "MockAggregateEvents",
                 columns: table => new
                 {
-                    PartitionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    AggregateId = table.Column<Guid>(type: "uuid", nullable: false),
+                    PartitionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Index = table.Column<long>(type: "bigint", nullable: false),
                     PreviousIndex = table.Column<long>(type: "bigint", nullable: true, computedColumnSql: "CASE WHEN \"Index\" = 0 THEN NULL ELSE \"Index\" - 1 END", stored: true),
                     ZeroIndex = table.Column<long>(type: "bigint", nullable: false, computedColumnSql: "cast(0 as bigint)", stored: true),
-                    MockBoolean = table.Column<bool>(type: "boolean", nullable: true),
-                    MockString = table.Column<string>(type: "text", nullable: true),
-                    MockNullableString = table.Column<string>(type: "text", nullable: true),
-                    MockDecimal = table.Column<decimal>(type: "numeric", nullable: true),
-                    MockDouble = table.Column<double>(type: "double precision", nullable: true),
-                    MockNullableDouble = table.Column<double>(type: "double precision", nullable: true),
-                    MockEnum = table.Column<int>(type: "integer", nullable: true),
-                    MockFlagEnum = table.Column<byte>(type: "smallint", nullable: true),
-                    MockNestedRecord_MockBoolean = table.Column<bool>(type: "boolean", nullable: true),
-                    MockNestedRecord_MockString = table.Column<string>(type: "text", nullable: true),
-                    MockNestedRecord_MockDecimal = table.Column<decimal>(type: "numeric", nullable: true),
-                    MockNestedRecord_MockDouble = table.Column<double>(type: "double precision", nullable: true),
-                    MockFloatList = table.Column<List<float>>(type: "real[]", nullable: true),
-                    MockStringSet = table.Column<List<string>>(type: "text[]", nullable: true),
-                    Type = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    AggregateType = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                    MockBoolean = table.Column<bool>(type: "bit", nullable: true),
+                    MockString = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    MockNullableString = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    MockDecimal = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    MockDouble = table.Column<double>(type: "float", nullable: true),
+                    MockNullableDouble = table.Column<double>(type: "float", nullable: true),
+                    MockEnum = table.Column<int>(type: "int", nullable: true),
+                    MockFlagEnum = table.Column<byte>(type: "tinyint", nullable: true),
+                    MockNestedRecord_MockBoolean = table.Column<bool>(type: "bit", nullable: true),
+                    MockNestedRecord_MockString = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    MockNestedRecord_MockDecimal = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    MockNestedRecord_MockDouble = table.Column<double>(type: "float", nullable: true),
+                    MockFloatList = table.Column<byte[]>(type: "varbinary(max)", nullable: true),
+                    MockStringSet = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Type = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    Timestamp = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_MockAggregateEvents", x => new { x.PartitionId, x.AggregateId, x.Index });
-                    table.CheckConstraint("CK_MockAggregateEvents_Discriminator", "\"Type\" IN ('Event<MockAggregate>', 'MockEvent')");
+                    table.CheckConstraint("CK_MockAggregateEvents_Discriminator", "[Type] IN (N'Event<MockAggregate>', N'MockEvent')");
                     table.CheckConstraint("CK_MockAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
-                    table.CheckConstraint("CK_MockAggregateEvents_MockEnum_Enum", "\"MockEnum\" IN (0, 1, 2)");
+                    table.CheckConstraint("CK_MockAggregateEvents_MockEnum_Enum", "[MockEnum] IN (0, 1, 2)");
                     table.CheckConstraint("CK_MockEvent_NotNull", "NOT \"Type\" = 'MockEvent' OR (\"MockBoolean\" IS NOT NULL AND \"MockString\" IS NOT NULL AND \"MockDecimal\" IS NOT NULL AND \"MockDouble\" IS NOT NULL AND \"MockEnum\" IS NOT NULL AND \"MockFlagEnum\" IS NOT NULL AND \"MockFloatList\" IS NOT NULL AND \"MockStringSet\" IS NOT NULL)");
                     table.ForeignKey(
                         name: "FK_MockAggregateEvents_ConsecutiveIndex",
@@ -156,52 +154,52 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                 name: "MockAggregateProjection",
                 columns: table => new
                 {
-                    PartitionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    AggregateId = table.Column<Guid>(type: "uuid", nullable: false),
-                    MockBoolean = table.Column<bool>(type: "boolean", nullable: false),
-                    MockString = table.Column<string>(type: "text", nullable: true),
-                    MockNullableString = table.Column<string>(type: "text", nullable: true),
-                    MockDecimal = table.Column<decimal>(type: "numeric", nullable: false),
-                    MockDouble = table.Column<double>(type: "double precision", nullable: false),
-                    MockNullableDouble = table.Column<double>(type: "double precision", nullable: true),
-                    MockEnum = table.Column<int>(type: "integer", nullable: false),
-                    MockFlagEnum = table.Column<byte>(type: "smallint", nullable: false),
-                    MockNestedRecord_MockBoolean = table.Column<bool>(type: "boolean", nullable: false),
-                    MockNestedRecord_MockString = table.Column<string>(type: "text", nullable: true),
-                    MockNestedRecord_MockDecimal = table.Column<decimal>(type: "numeric", nullable: false),
-                    MockNestedRecord_MockDouble = table.Column<double>(type: "double precision", nullable: false),
-                    MockFloatList = table.Column<List<float>>(type: "real[]", nullable: false),
-                    MockStringSet = table.Column<List<string>>(type: "text[]", nullable: false),
-                    Type = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    AggregateType = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    FactoryType = table.Column<string>(type: "text", nullable: true),
+                    PartitionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    MockBoolean = table.Column<bool>(type: "bit", nullable: false),
+                    MockString = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    MockNullableString = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    MockDecimal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    MockDouble = table.Column<double>(type: "float", nullable: false),
+                    MockNullableDouble = table.Column<double>(type: "float", nullable: true),
+                    MockEnum = table.Column<int>(type: "int", nullable: false),
+                    MockFlagEnum = table.Column<byte>(type: "tinyint", nullable: false),
+                    MockNestedRecord_MockBoolean = table.Column<bool>(type: "bit", nullable: false),
+                    MockNestedRecord_MockString = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    MockNestedRecord_MockDecimal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    MockNestedRecord_MockDouble = table.Column<double>(type: "float", nullable: false),
+                    MockFloatList = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
+                    MockStringSet = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    Timestamp = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    FactoryType = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Version = table.Column<long>(type: "bigint", nullable: false),
-                    Hash = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false)
+                    Hash = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_MockAggregateProjection", x => new { x.PartitionId, x.AggregateId });
-                    table.CheckConstraint("CK_MockAggregateProjection_MockEnum_Enum", "\"MockEnum\" IN (0, 1, 2)");
+                    table.CheckConstraint("CK_MockAggregateProjection_MockEnum_Enum", "[MockEnum] IN (0, 1, 2)");
                 });
 
             migrationBuilder.CreateTable(
                 name: "SimpleAggregateEvents",
                 columns: table => new
                 {
-                    PartitionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    AggregateId = table.Column<Guid>(type: "uuid", nullable: false),
+                    PartitionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Index = table.Column<long>(type: "bigint", nullable: false),
                     PreviousIndex = table.Column<long>(type: "bigint", nullable: true, computedColumnSql: "CASE WHEN \"Index\" = 0 THEN NULL ELSE \"Index\" - 1 END", stored: true),
                     ZeroIndex = table.Column<long>(type: "bigint", nullable: false, computedColumnSql: "cast(0 as bigint)", stored: true),
-                    Type = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    AggregateType = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                    Type = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    Timestamp = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_SimpleAggregateEvents", x => new { x.PartitionId, x.AggregateId, x.Index });
-                    table.CheckConstraint("CK_SimpleAggregateEvents_Discriminator", "\"Type\" IN ('Event<SimpleAggregate>', 'SimpleEvent')");
+                    table.CheckConstraint("CK_SimpleAggregateEvents_Discriminator", "[Type] IN (N'Event<SimpleAggregate>', N'SimpleEvent')");
                     table.CheckConstraint("CK_SimpleAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
                     table.ForeignKey(
                         name: "FK_SimpleAggregateEvents_ConsecutiveIndex",
@@ -215,19 +213,19 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                 name: "SnapshotAggregateEvents",
                 columns: table => new
                 {
-                    PartitionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    AggregateId = table.Column<Guid>(type: "uuid", nullable: false),
+                    PartitionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Index = table.Column<long>(type: "bigint", nullable: false),
                     PreviousIndex = table.Column<long>(type: "bigint", nullable: true, computedColumnSql: "CASE WHEN \"Index\" = 0 THEN NULL ELSE \"Index\" - 1 END", stored: true),
                     ZeroIndex = table.Column<long>(type: "bigint", nullable: false, computedColumnSql: "cast(0 as bigint)", stored: true),
-                    Type = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    AggregateType = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                    Type = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    Timestamp = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_SnapshotAggregateEvents", x => new { x.PartitionId, x.AggregateId, x.Index });
-                    table.CheckConstraint("CK_SnapshotAggregateEvents_Discriminator", "\"Type\" IN ('Event<SnapshotAggregate>', 'SnapshotEvent')");
+                    table.CheckConstraint("CK_SnapshotAggregateEvents_Discriminator", "[Type] IN (N'Event<SnapshotAggregate>', N'SnapshotEvent')");
                     table.CheckConstraint("CK_SnapshotAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
                     table.ForeignKey(
                         name: "FK_SnapshotAggregateEvents_ConsecutiveIndex",
@@ -241,24 +239,24 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                 name: "BankAccountSnapshots",
                 columns: table => new
                 {
-                    PartitionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    AggregateId = table.Column<Guid>(type: "uuid", nullable: false),
+                    PartitionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Index = table.Column<long>(type: "bigint", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: true),
-                    Iban = table.Column<string>(type: "text", nullable: true),
-                    Balance = table.Column<decimal>(type: "numeric", nullable: true),
-                    Type = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    AggregateType = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Iban = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Balance = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    Type = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    Timestamp = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_BankAccountSnapshots", x => new { x.PartitionId, x.AggregateId, x.Index });
-                    table.CheckConstraint("CK_BankAccountSnapshots_Discriminator", "\"Type\" IN ('Snapshot<BankAccount>', 'BankAccountSnapshot')");
+                    table.CheckConstraint("CK_BankAccountSnapshots_Discriminator", "[Type] IN (N'Snapshot<BankAccount>', N'BankAccountSnapshot')");
                     table.CheckConstraint("CK_BankAccountSnapshots_NonNegativeIndex", "\"Index\" >= 0");
                     table.CheckConstraint("CK_BankAccountSnapshot_NotNull", "NOT \"Type\" = 'BankAccountSnapshot' OR (\"Name\" IS NOT NULL AND \"Iban\" IS NOT NULL AND \"Balance\" IS NOT NULL)");
                     table.ForeignKey(
-                        name: "FK_BankAccountSnapshots_BankAccountEvents_PartitionId_Aggregat~",
+                        name: "FK_BankAccountSnapshots_BankAccountEvents_PartitionId_AggregateId_Index",
                         columns: x => new { x.PartitionId, x.AggregateId, x.Index },
                         principalTable: "BankAccountEvents",
                         principalColumns: new[] { "PartitionId", "AggregateId", "Index" },
@@ -269,20 +267,20 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                 name: "EmptyAggregateSnapshots",
                 columns: table => new
                 {
-                    PartitionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    AggregateId = table.Column<Guid>(type: "uuid", nullable: false),
+                    PartitionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Index = table.Column<long>(type: "bigint", nullable: false),
-                    Type = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    AggregateType = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                    Type = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    Timestamp = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_EmptyAggregateSnapshots", x => new { x.PartitionId, x.AggregateId, x.Index });
-                    table.CheckConstraint("CK_EmptyAggregateSnapshots_Discriminator", "\"Type\" IN ('Snapshot<EmptyAggregate>', 'EmptySnapshot')");
+                    table.CheckConstraint("CK_EmptyAggregateSnapshots_Discriminator", "[Type] IN (N'Snapshot<EmptyAggregate>', N'EmptySnapshot')");
                     table.CheckConstraint("CK_EmptyAggregateSnapshots_NonNegativeIndex", "\"Index\" >= 0");
                     table.ForeignKey(
-                        name: "FK_EmptyAggregateSnapshots_EmptyAggregateEvents_PartitionId_Ag~",
+                        name: "FK_EmptyAggregateSnapshots_EmptyAggregateEvents_PartitionId_AggregateId_Index",
                         columns: x => new { x.PartitionId, x.AggregateId, x.Index },
                         principalTable: "EmptyAggregateEvents",
                         principalColumns: new[] { "PartitionId", "AggregateId", "Index" },
@@ -290,24 +288,65 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ReferenceAggregateEvents",
+                columns: table => new
+                {
+                    PartitionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Index = table.Column<long>(type: "bigint", nullable: false),
+                    PreviousIndex = table.Column<long>(type: "bigint", nullable: true, computedColumnSql: "CASE WHEN \"Index\" = 0 THEN NULL ELSE \"Index\" - 1 END", stored: true),
+                    ZeroIndex = table.Column<long>(type: "bigint", nullable: false, computedColumnSql: "cast(0 as bigint)", stored: true),
+                    ReferenceAggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    EmptyAggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    Type = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    Timestamp = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ReferenceAggregateEvents", x => new { x.PartitionId, x.AggregateId, x.Index });
+                    table.CheckConstraint("CK_ReferenceAggregateEvents_Discriminator", "[Type] IN (N'Event<ReferenceAggregate>', N'ReferenceEvent')");
+                    table.CheckConstraint("CK_ReferenceAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
+                    table.CheckConstraint("CK_ReferenceEvent_NotNull", "NOT \"Type\" = 'ReferenceEvent' OR (\"ReferenceAggregateId\" IS NOT NULL)");
+                    table.ForeignKey(
+                        name: "FK_ReferenceAggregateEvents_ConsecutiveIndex",
+                        columns: x => new { x.PartitionId, x.AggregateId, x.PreviousIndex },
+                        principalTable: "ReferenceAggregateEvents",
+                        principalColumns: new[] { "PartitionId", "AggregateId", "Index" },
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ReferenceEvent_EmptyAggregateId",
+                        columns: x => new { x.PartitionId, x.EmptyAggregateId, x.ZeroIndex },
+                        principalTable: "EmptyAggregateEvents",
+                        principalColumns: new[] { "PartitionId", "AggregateId", "Index" },
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ReferenceEvent_ReferenceAggregateId",
+                        columns: x => new { x.PartitionId, x.ReferenceAggregateId, x.ZeroIndex },
+                        principalTable: "ReferenceAggregateEvents",
+                        principalColumns: new[] { "PartitionId", "AggregateId", "Index" },
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "MockAggregateEvents_MockNestedRecordList",
                 columns: table => new
                 {
-                    MockEventPartitionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    MockEventAggregateId = table.Column<Guid>(type: "uuid", nullable: false),
+                    MockEventPartitionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    MockEventAggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     MockEventIndex = table.Column<long>(type: "bigint", nullable: false),
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    MockBoolean = table.Column<bool>(type: "boolean", nullable: false),
-                    MockString = table.Column<string>(type: "text", nullable: false),
-                    MockDecimal = table.Column<decimal>(type: "numeric", nullable: false),
-                    MockDouble = table.Column<double>(type: "double precision", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    MockBoolean = table.Column<bool>(type: "bit", nullable: false),
+                    MockString = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    MockDecimal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    MockDouble = table.Column<double>(type: "float", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_MockAggregateEvents_MockNestedRecordList", x => new { x.MockEventPartitionId, x.MockEventAggregateId, x.MockEventIndex, x.Id });
                     table.ForeignKey(
-                        name: "FK_MockAggregateEvents_MockNestedRecordList_MockAggregateEvent~",
+                        name: "FK_MockAggregateEvents_MockNestedRecordList_MockAggregateEvents_MockEventPartitionId_MockEventAggregateId_MockEventIndex",
                         columns: x => new { x.MockEventPartitionId, x.MockEventAggregateId, x.MockEventIndex },
                         principalTable: "MockAggregateEvents",
                         principalColumns: new[] { "PartitionId", "AggregateId", "Index" },
@@ -318,36 +357,36 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                 name: "MockAggregateSnapshots",
                 columns: table => new
                 {
-                    PartitionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    AggregateId = table.Column<Guid>(type: "uuid", nullable: false),
+                    PartitionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Index = table.Column<long>(type: "bigint", nullable: false),
-                    MockBoolean = table.Column<bool>(type: "boolean", nullable: true),
-                    MockString = table.Column<string>(type: "text", nullable: true),
-                    MockNullableString = table.Column<string>(type: "text", nullable: true),
-                    MockDecimal = table.Column<decimal>(type: "numeric", nullable: true),
-                    MockDouble = table.Column<double>(type: "double precision", nullable: true),
-                    MockNullableDouble = table.Column<double>(type: "double precision", nullable: true),
-                    MockEnum = table.Column<int>(type: "integer", nullable: true),
-                    MockFlagEnum = table.Column<byte>(type: "smallint", nullable: true),
-                    MockNestedRecord_MockBoolean = table.Column<bool>(type: "boolean", nullable: true),
-                    MockNestedRecord_MockString = table.Column<string>(type: "text", nullable: true),
-                    MockNestedRecord_MockDecimal = table.Column<decimal>(type: "numeric", nullable: true),
-                    MockNestedRecord_MockDouble = table.Column<double>(type: "double precision", nullable: true),
-                    MockFloatList = table.Column<List<float>>(type: "real[]", nullable: true),
-                    MockStringSet = table.Column<List<string>>(type: "text[]", nullable: true),
-                    Type = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    AggregateType = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                    MockBoolean = table.Column<bool>(type: "bit", nullable: true),
+                    MockString = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    MockNullableString = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    MockDecimal = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    MockDouble = table.Column<double>(type: "float", nullable: true),
+                    MockNullableDouble = table.Column<double>(type: "float", nullable: true),
+                    MockEnum = table.Column<int>(type: "int", nullable: true),
+                    MockFlagEnum = table.Column<byte>(type: "tinyint", nullable: true),
+                    MockNestedRecord_MockBoolean = table.Column<bool>(type: "bit", nullable: true),
+                    MockNestedRecord_MockString = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    MockNestedRecord_MockDecimal = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    MockNestedRecord_MockDouble = table.Column<double>(type: "float", nullable: true),
+                    MockFloatList = table.Column<byte[]>(type: "varbinary(max)", nullable: true),
+                    MockStringSet = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Type = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    Timestamp = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_MockAggregateSnapshots", x => new { x.PartitionId, x.AggregateId, x.Index });
-                    table.CheckConstraint("CK_MockAggregateSnapshots_Discriminator", "\"Type\" IN ('Snapshot<MockAggregate>', 'MockSnapshot')");
+                    table.CheckConstraint("CK_MockAggregateSnapshots_Discriminator", "[Type] IN (N'Snapshot<MockAggregate>', N'MockSnapshot')");
                     table.CheckConstraint("CK_MockAggregateSnapshots_NonNegativeIndex", "\"Index\" >= 0");
-                    table.CheckConstraint("CK_MockAggregateSnapshots_MockEnum_Enum", "\"MockEnum\" IN (0, 1, 2)");
+                    table.CheckConstraint("CK_MockAggregateSnapshots_MockEnum_Enum", "[MockEnum] IN (0, 1, 2)");
                     table.CheckConstraint("CK_MockSnapshot_NotNull", "NOT \"Type\" = 'MockSnapshot' OR (\"MockBoolean\" IS NOT NULL AND \"MockString\" IS NOT NULL AND \"MockDecimal\" IS NOT NULL AND \"MockDouble\" IS NOT NULL AND \"MockEnum\" IS NOT NULL AND \"MockFlagEnum\" IS NOT NULL AND \"MockFloatList\" IS NOT NULL AND \"MockStringSet\" IS NOT NULL)");
                     table.ForeignKey(
-                        name: "FK_MockAggregateSnapshots_MockAggregateEvents_PartitionId_Aggr~",
+                        name: "FK_MockAggregateSnapshots_MockAggregateEvents_PartitionId_AggregateId_Index",
                         columns: x => new { x.PartitionId, x.AggregateId, x.Index },
                         principalTable: "MockAggregateEvents",
                         principalColumns: new[] { "PartitionId", "AggregateId", "Index" },
@@ -358,20 +397,20 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                 name: "MockAggregateProjection_MockNestedRecordList",
                 columns: table => new
                 {
-                    MockAggregateProjectionPartitionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    MockAggregateProjectionAggregateId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    MockBoolean = table.Column<bool>(type: "boolean", nullable: false),
-                    MockString = table.Column<string>(type: "text", nullable: false),
-                    MockDecimal = table.Column<decimal>(type: "numeric", nullable: false),
-                    MockDouble = table.Column<double>(type: "double precision", nullable: false)
+                    MockAggregateProjectionPartitionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    MockAggregateProjectionAggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    MockBoolean = table.Column<bool>(type: "bit", nullable: false),
+                    MockString = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    MockDecimal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    MockDouble = table.Column<double>(type: "float", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_MockAggregateProjection_MockNestedRecordList", x => new { x.MockAggregateProjectionPartitionId, x.MockAggregateProjectionAggregateId, x.Id });
                     table.ForeignKey(
-                        name: "FK_MockAggregateProjection_MockNestedRecordList_MockAggregateP~",
+                        name: "FK_MockAggregateProjection_MockNestedRecordList_MockAggregateProjection_MockAggregateProjectionPartitionId_MockAggregateProject~",
                         columns: x => new { x.MockAggregateProjectionPartitionId, x.MockAggregateProjectionAggregateId },
                         principalTable: "MockAggregateProjection",
                         principalColumns: new[] { "PartitionId", "AggregateId" },
@@ -382,19 +421,19 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                 name: "SimpleAggregateSnapshots",
                 columns: table => new
                 {
-                    PartitionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    AggregateId = table.Column<Guid>(type: "uuid", nullable: false),
+                    PartitionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Index = table.Column<long>(type: "bigint", nullable: false),
-                    Type = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    AggregateType = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                    Type = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    Timestamp = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_SimpleAggregateSnapshots", x => new { x.PartitionId, x.AggregateId, x.Index });
                     table.CheckConstraint("CK_SimpleAggregateSnapshots_NonNegativeIndex", "\"Index\" >= 0");
                     table.ForeignKey(
-                        name: "FK_SimpleAggregateSnapshots_SimpleAggregateEvents_PartitionId_~",
+                        name: "FK_SimpleAggregateSnapshots_SimpleAggregateEvents_PartitionId_AggregateId_Index",
                         columns: x => new { x.PartitionId, x.AggregateId, x.Index },
                         principalTable: "SimpleAggregateEvents",
                         principalColumns: new[] { "PartitionId", "AggregateId", "Index" },
@@ -405,24 +444,47 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                 name: "SnapshotAggregateSnapshots",
                 columns: table => new
                 {
-                    PartitionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    AggregateId = table.Column<Guid>(type: "uuid", nullable: false),
+                    PartitionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Index = table.Column<long>(type: "bigint", nullable: false),
-                    Counter = table.Column<int>(type: "integer", nullable: true),
-                    Type = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    AggregateType = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                    Counter = table.Column<int>(type: "int", nullable: true),
+                    Type = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    Timestamp = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_SnapshotAggregateSnapshots", x => new { x.PartitionId, x.AggregateId, x.Index });
-                    table.CheckConstraint("CK_SnapshotAggregateSnapshots_Discriminator", "\"Type\" IN ('Snapshot<SnapshotAggregate>', 'SnapshotSnapshot')");
+                    table.CheckConstraint("CK_SnapshotAggregateSnapshots_Discriminator", "[Type] IN (N'Snapshot<SnapshotAggregate>', N'SnapshotSnapshot')");
                     table.CheckConstraint("CK_SnapshotAggregateSnapshots_NonNegativeIndex", "\"Index\" >= 0");
                     table.CheckConstraint("CK_SnapshotSnapshot_NotNull", "NOT \"Type\" = 'SnapshotSnapshot' OR (\"Counter\" IS NOT NULL)");
                     table.ForeignKey(
-                        name: "FK_SnapshotAggregateSnapshots_SnapshotAggregateEvents_Partitio~",
+                        name: "FK_SnapshotAggregateSnapshots_SnapshotAggregateEvents_PartitionId_AggregateId_Index",
                         columns: x => new { x.PartitionId, x.AggregateId, x.Index },
                         principalTable: "SnapshotAggregateEvents",
+                        principalColumns: new[] { "PartitionId", "AggregateId", "Index" },
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ReferenceAggregateSnapshots",
+                columns: table => new
+                {
+                    PartitionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Index = table.Column<long>(type: "bigint", nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    AggregateType = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    Timestamp = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ReferenceAggregateSnapshots", x => new { x.PartitionId, x.AggregateId, x.Index });
+                    table.CheckConstraint("CK_ReferenceAggregateSnapshots_NonNegativeIndex", "\"Index\" >= 0");
+                    table.ForeignKey(
+                        name: "FK_ReferenceAggregateSnapshots_ReferenceAggregateEvents_PartitionId_AggregateId_Index",
+                        columns: x => new { x.PartitionId, x.AggregateId, x.Index },
+                        principalTable: "ReferenceAggregateEvents",
                         principalColumns: new[] { "PartitionId", "AggregateId", "Index" },
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -431,21 +493,21 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                 name: "MockAggregateSnapshots_MockNestedRecordList",
                 columns: table => new
                 {
-                    MockSnapshotPartitionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    MockSnapshotAggregateId = table.Column<Guid>(type: "uuid", nullable: false),
+                    MockSnapshotPartitionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    MockSnapshotAggregateId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     MockSnapshotIndex = table.Column<long>(type: "bigint", nullable: false),
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    MockBoolean = table.Column<bool>(type: "boolean", nullable: false),
-                    MockString = table.Column<string>(type: "text", nullable: false),
-                    MockDecimal = table.Column<decimal>(type: "numeric", nullable: false),
-                    MockDouble = table.Column<double>(type: "double precision", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    MockBoolean = table.Column<bool>(type: "bit", nullable: false),
+                    MockString = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    MockDecimal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    MockDouble = table.Column<double>(type: "float", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_MockAggregateSnapshots_MockNestedRecordList", x => new { x.MockSnapshotPartitionId, x.MockSnapshotAggregateId, x.MockSnapshotIndex, x.Id });
                     table.ForeignKey(
-                        name: "FK_MockAggregateSnapshots_MockNestedRecordList_MockAggregateSn~",
+                        name: "FK_MockAggregateSnapshots_MockNestedRecordList_MockAggregateSnapshots_MockSnapshotPartitionId_MockSnapshotAggregateId_MockSnaps~",
                         columns: x => new { x.MockSnapshotPartitionId, x.MockSnapshotAggregateId, x.MockSnapshotIndex },
                         principalTable: "MockAggregateSnapshots",
                         principalColumns: new[] { "PartitionId", "AggregateId", "Index" },
@@ -618,6 +680,51 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                 column: "Type");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ReferenceAggregateEvents_AggregateType",
+                table: "ReferenceAggregateEvents",
+                column: "AggregateType");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReferenceAggregateEvents_PartitionId_AggregateId_PreviousIndex",
+                table: "ReferenceAggregateEvents",
+                columns: new[] { "PartitionId", "AggregateId", "PreviousIndex" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReferenceAggregateEvents_PartitionId_EmptyAggregateId_ZeroIndex",
+                table: "ReferenceAggregateEvents",
+                columns: new[] { "PartitionId", "EmptyAggregateId", "ZeroIndex" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReferenceAggregateEvents_PartitionId_ReferenceAggregateId_ZeroIndex",
+                table: "ReferenceAggregateEvents",
+                columns: new[] { "PartitionId", "ReferenceAggregateId", "ZeroIndex" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReferenceAggregateEvents_Timestamp",
+                table: "ReferenceAggregateEvents",
+                column: "Timestamp");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReferenceAggregateEvents_Type",
+                table: "ReferenceAggregateEvents",
+                column: "Type");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReferenceAggregateSnapshots_AggregateType",
+                table: "ReferenceAggregateSnapshots",
+                column: "AggregateType");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReferenceAggregateSnapshots_Timestamp",
+                table: "ReferenceAggregateSnapshots",
+                column: "Timestamp");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReferenceAggregateSnapshots_Type",
+                table: "ReferenceAggregateSnapshots",
+                column: "Type");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_SimpleAggregateEvents_AggregateType",
                 table: "SimpleAggregateEvents",
                 column: "AggregateType");
@@ -658,7 +765,7 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                 column: "AggregateType");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SnapshotAggregateEvents_PartitionId_AggregateId_PreviousInd~",
+                name: "IX_SnapshotAggregateEvents_PartitionId_AggregateId_PreviousIndex",
                 table: "SnapshotAggregateEvents",
                 columns: new[] { "PartitionId", "AggregateId", "PreviousIndex" });
 
@@ -712,6 +819,9 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                 name: "MockAggregateSnapshots_MockNestedRecordList");
 
             migrationBuilder.DropTable(
+                name: "ReferenceAggregateSnapshots");
+
+            migrationBuilder.DropTable(
                 name: "SimpleAggregateSnapshots");
 
             migrationBuilder.DropTable(
@@ -721,13 +831,13 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
                 name: "BankAccountEvents");
 
             migrationBuilder.DropTable(
-                name: "EmptyAggregateEvents");
-
-            migrationBuilder.DropTable(
                 name: "MockAggregateProjection");
 
             migrationBuilder.DropTable(
                 name: "MockAggregateSnapshots");
+
+            migrationBuilder.DropTable(
+                name: "ReferenceAggregateEvents");
 
             migrationBuilder.DropTable(
                 name: "SimpleAggregateEvents");
@@ -737,6 +847,9 @@ namespace EventSourcing.EF.Tests.Postgres.Migrations
 
             migrationBuilder.DropTable(
                 name: "MockAggregateEvents");
+
+            migrationBuilder.DropTable(
+                name: "EmptyAggregateEvents");
         }
     }
 }

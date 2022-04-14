@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using EventSourcing.Core;
 using EventSourcing.Core.Tests.Mocks;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
@@ -129,5 +130,12 @@ public abstract partial class EntityFrameworkEventSourcingTests
     await context.SaveChangesAsync();
     
     Assert.False(await context.Set<SnapshotSnapshot>().AnyAsync(x => x.AggregateId == aggregate.Id));
+  }
+
+  [Fact]
+  public async Task EventIntegrityTests_Cannot_Add_Snapshot_Without_Corresponding_Event()
+  {
+    var snapshot = new SnapshotSnapshot { AggregateId = Guid.NewGuid(), Index = 0 };
+    await Assert.ThrowsAsync<RecordStoreException>(async () => await RecordStore.AddSnapshotAsync(snapshot));
   }
 }
