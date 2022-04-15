@@ -31,4 +31,40 @@ public abstract partial class EventSourcingTests
         
         Assert.Equal(0, count);
     }
+    
+    [Fact]
+    public async Task RecordTransaction_DeleteAllEvents_Cannot_Can_Delete_And_Add_For_Same_Aggregate_In_One_Transaction()
+    {
+        var aggregateId = Guid.NewGuid();
+        
+        var events = Enumerable.Range(0, 5)
+            .Select<int, Event>( i => new EmptyEvent
+            {
+                AggregateId = aggregateId,
+                AggregateType = nameof(EmptyAggregate),
+                Index = i
+            }).ToList();
+
+        var transaction = RecordStore.CreateTransaction()
+            .AddEvents(new List<Event>
+            {
+                new EmptyEvent
+                {
+                    AggregateId = aggregateId,
+                    AggregateType = nameof(EmptyAggregate),
+                    Index = events.Count
+                }
+            })
+            .DeleteAllEvents<EmptyAggregate>(aggregateId, events.Count);
+
+        await Assert.ThrowsAsync<RecordStoreException>(async () => await transaction.CommitAsync());
+        
+        var count = await RecordStore
+            .GetEvents<EmptyAggregate>()
+            .Where(x => x.AggregateId == aggregateId)
+            .AsAsyncEnumerable()
+            .CountAsync();
+        
+        Assert.Equal(0, count);
+    }
 }
