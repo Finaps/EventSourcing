@@ -16,7 +16,7 @@ public abstract partial class EventSourcingTests
             .AsAsyncEnumerable()
             .SingleAsync();
         
-        var updatedProjection = projectionBefore with { Timestamp = DateTimeOffset.Now };
+        var updatedProjection = projectionBefore with { Timestamp = DateTime.Now };
         
         Assert.NotEqual(projectionBefore.Timestamp, updatedProjection.Timestamp);
         
@@ -29,7 +29,7 @@ public abstract partial class EventSourcingTests
             .Where(x => x.AggregateId == a.Id)
             .AsAsyncEnumerable()
             .SingleAsync();
-    
+        
         Assert.Equal(updatedProjection, result);
     }
 }
