@@ -16,7 +16,7 @@ public abstract partial class EventSourcingTests
             .AsAsyncEnumerable()
             .SingleAsync();
         
-        var updatedProjection = projectionBefore with { Timestamp = DateTime.Today.AddDays(5) };
+        var updatedProjection = projectionBefore with { Timestamp = DateTimeOffset.Now };
         
         Assert.NotEqual(projectionBefore.Timestamp, updatedProjection.Timestamp);
         
@@ -30,6 +30,9 @@ public abstract partial class EventSourcingTests
             .AsAsyncEnumerable()
             .SingleAsync();
         
-        Assert.Equal(updatedProjection.Timestamp.Date, result.Timestamp.Date);
+        Assert.Equal(updatedProjection.Timestamp.DateTime, result.Timestamp.DateTime,
+            
+            // Postgres has 1 ms precision, so accommodate
+            TimeSpan.FromMilliseconds(1));
     }
 }
