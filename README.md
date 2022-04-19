@@ -17,9 +17,8 @@ Table of Contents
 -----------------
 
 1. [Installation](#installation)
-   1. [NuGet Package](#nuget-package)
-   2. [CosmosDB Setup](#cosmos-db-setup)
-   3. [Startup Configuration](#startup-configuration)
+   1. [CosmosDB](#cosmos-db)
+   2. [Entity Framework Core](#entity-framework-core)
 2. [Basic Usage](#basic-usage)
    1. [Define Domain Events](#1-define-domain-events)
    2. [Define Aggregate](#2-define-aggregate)
@@ -30,9 +29,9 @@ Table of Contents
    7. [Point in time Rehydration](#7-point-in-time-rehydration)
    8. [Querying Records](#8-querying-records)
    9. [Creating & Querying Projections](#9-creating--querying-projections)
-3. [Example Project](https://github.com/Finaps/EventSourcing/tree/main/EventSourcing.Example)
-   1. [Example Project Tests](https://github.com/Finaps/EventSourcing/tree/main/EventSourcing.Example.Tests)
-4. [Concepts](#concepts)
+3. [Advanced Usage](#advanced-usage)
+4. [Example Project](#example-project)
+5. [Concepts](#concepts)
    1. [Records](#records)
       1. [Events](#1-events)
       2. [Snapshots](#2-snapshots)
@@ -42,7 +41,9 @@ Table of Contents
 Installation
 ------------
 
-### NuGet Package
+### Cosmos DB
+
+#### Nuget Package
 
 [Finaps.EventSourcing.Cosmos](https://www.nuget.org/packages/Finaps.EventSourcing.Cosmos/) is available on [NuGet](https://www.nuget.org/packages/Finaps.EventSourcing.Cosmos/).
 
@@ -50,20 +51,20 @@ Installation
 > dotnet add package Finaps.EventSourcing.Cosmos
 ```
 
-### Cosmos DB Setup
+#### Database Setup
 
-Finaps.EventSourcing currently only supports [Azure Cosmos DB](https://docs.microsoft.com/en-us/azure/cosmos-db/introduction).
+Finaps.EventSourcing supports [Azure Cosmos DB](https://docs.microsoft.com/en-us/azure/cosmos-db/introduction).
 To create a Cosmos DB Account, Database and Container, checkout the [Microsoft Documentation on Creating Cosmos DB Resources](https://docs.microsoft.com/en-us/azure/cosmos-db/sql/create-cosmosdb-resources-portal).
 
-For local development, once can use the Docker Cosmos Emulator for [Linux/MacOs](https://docs.microsoft.com/en-us/azure/cosmos-db/linux-emulator) or [Windows](https://docs.microsoft.com/en-us/azure/cosmos-db/local-emulator-on-docker-windows).
+For local development, one can use the Docker Cosmos Emulator for [Linux/macOS](https://docs.microsoft.com/en-us/azure/cosmos-db/linux-emulator) or [Windows](https://docs.microsoft.com/en-us/azure/cosmos-db/local-emulator-on-docker-windows).
 
-**Important: When Creating a Cosmos DB Container to use with the Finaps.EventSourcing package, make sure to set ```PartitionKey``` equal to ```/PartitionId```.**
+When Creating a Cosmos DB Container to use with ```Finaps.EventSourcing.Cosmos```, make sure to set ```PartitionKey``` equal to ```/PartitionId```.
 
-### Startup Configuration
+#### ASP.Net Core Configuration
 
-In ```appsettings.json```, add the following configuration
+```json5
+// appsettings.json
 
-```json
 {
   "Cosmos": {
     "ConnectionString": "<Cosmos Connection String>",
@@ -73,9 +74,9 @@ In ```appsettings.json```, add the following configuration
 }
 ```
 
-In your ```Startup.cs```, add the following configuration
-
 ```c#
+// Startup.cs
+
 public void ConfigureServices(IServiceCollection services)
 {
     services.Configure<CosmosEventStoreOptions>(Configuration.GetSection("Cosmos"));
@@ -84,13 +85,78 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-Now you can use the ```IRecordStore``` and ```IAggregateService``` to power your backend!
+Now you can use the ```CosmosRecordStore``` and ```AggregateService``` to power your backend!
+
+### Entity Framework Core
+
+Alongside CosmosDB, support for relational databases is provided using [Entity Framework Core](https://docs.microsoft.com/en-us/ef/core/).
+
+This way, ```Finaps.EventSourcing.Core``` supports [SQL Server](https://docs.microsoft.com/en-us/sql/sql-server) & [PostgreSQL](https://www.postgresql.org/docs/current/index.html).
+
+#### NuGet Packages
+
+[Finaps.EventSourcing.EF](https://www.nuget.org/packages/Finaps.EventSourcing.EF/) is available on [NuGet](https://www.nuget.org/packages/Finaps.EventSourcing.EF/).
+
+```bash
+> dotnet add package Finaps.EventSourcing.EF
+```
+
+And Depending on which database you are using, make sure to install the right provider
+
+```bash
+> dotnet add package Microsoft.EntityFrameworkCore.SqlServer
+
+or
+
+> dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL
+```
+
+#### Database & DBContext Setup
+
+Like most Entity Framework Core applications, the database is managed by [Migrations](https://docs.microsoft.com/en-us/ef/core/managing-schemas/migrations/?tabs=dotnet-core-cli).
+The ```Finaps.EventSourcing.EF``` package adds migrations based on the Records (Events/Snapshots/Projections) you have defined and you are responsible for updating the database using them.
+To access this functionality, you have to configure a [DbContext](https://docs.microsoft.com/en-us/ef/core/dbcontext-configuration/) which inherits from the ```RecordContext``` class.
+You can use the ```OnModelCreating``` method to override or add new Entities to the context.
+
+#### ASP.Net Core Configuration
+
+Your ```DbContext``` is configured in the same way as any other, refer to the [Microsoft docs](https://docs.microsoft.com/en-us/ef/core/dbcontext-configuration/) on how to do this, 
+but your configuration could look something like this: 
+
+```json5
+// appsettings.json
+{
+   "ConnectionStrings": {
+      "RecordStore": "<SQL Server/Postgres Connection String>"
+   }
+}
+```
+
+```c#
+// Startup.cs
+
+public void ConfigureServices(IServiceCollection services)
+{    
+    services.AddDbContext<ViewContext>(options =>
+    {
+      options.UseSqlServer(configuration.GetConnectionString("RecordStore"));
+      // or
+      options.UseNpgsql(configuration.GetConnectionString("RecordStore"));
+    });
+      
+    services.AddScoped<IRecordStore, EntityFrameworkRecordStore>();
+    services.AddScoped<IAggregateService, AggregateService>();
+}
+```
+
+Now you can use the ```EntityFrameworkRecordStore``` and ```AggregateService``` to power your backend!
 
 Basic Usage
 -----------
 
 These examples show how a (very simplified) bank account could be modelled using Finaps.EventSourcing.
-It show how to use three types of ```Records``` this package is concerned with: ```Events```, ```Snapshots``` and ```Projections```.
+It shows how to use the three types of ```Records``` this package is concerned with: ```Events```, ```Snapshots``` and ```Projections```.
+These examples work with both ```Finaps.EventSourcing.Cosmos``` and ```Finaps.EventSourcing.EF```
 
 Checkout the [Example Project](#example-project) for a more thorough example on how this package can be used.
 
@@ -99,23 +165,23 @@ Checkout the [Example Project](#example-project) for a more thorough example on 
 ```Events``` are immutable ```Records``` that describe something that has happened to a particular ```Aggregate```.
 
 ```c#
-public record BankAccountCreatedEvent : Event
+public record BankAccountCreatedEvent : Event<BankAccount>
 {
     public string Name { get; init; }
     public string Iban { get; init; }
 }
 
-public record FundsDepositedEvent : Event
+public record FundsDepositedEvent : Event<BankAccount>
 {
     public decimal Amount { get; init; }
 }
 
-public record FundsWithdrawnEvent : Event
+public record FundsWithdrawnEvent : Event<BankAccount>
 {
     public decimal Amount { get; init; }
 }
 
-public record FundsTransferredEvent : Event
+public record FundsTransferredEvent : Event<BankAccount>
 {
     public Guid DebtorAccount { get; init; }
     public Guid CreditorAccount { get; init; }
@@ -128,7 +194,7 @@ An ```Aggregate``` is an aggregation of one or more ```Events```.
 The ```Aggregate.Apply(Event e)``` method contains the aggregation logic.
 
 ```c#
-public class BankAccount : Aggregate
+public class BankAccount : Aggregate<BankAccount>
 {
     // Properties are only updated by applying events
     public string Name { get; private set; }
@@ -136,7 +202,7 @@ public class BankAccount : Aggregate
     public decimal Balance { get; private set; }
     
     // This method gets called for every added Event
-    protected override void Apply(Event e)
+    protected override void Apply(Event<BankAccount> e)
     {
         // Depending on the type of Event, we update the Aggregate
         switch (e)
@@ -267,7 +333,7 @@ await AggregateService.PersistAsync(new[] { account, anotherAccount });
 
 ### 6. Create & Apply Snapshots
 
-When many Events are stored for a given Aggregate, rehydrating that Aggregate will get less performant.
+When many Events are stored for a given Aggregate, rehydrating that Aggregate will get more expensive.
 The meaning of 'many Events' depends on backend and database hardware, but also your performance requirements.
 When performance impacts are expected (or even better, measured!), ```Snapshots``` can be used to mitigate them.
 
@@ -275,7 +341,7 @@ To use ```Snapshots```, first define a ```Snapshot``` and a ```SnapshotFactory``
 
 ```c#
 // A Snapshot represents the full state of an Aggregate at a given point in time
-public record BankAccountSnapshot : Snapshot
+public record BankAccountSnapshot : Snapshot<BankAccount>
 {
   public string Name { get; init; }
   public string Iban { get; init; }
@@ -301,29 +367,23 @@ public class BankAccountSnapshotFactory : SnapshotFactory<BankAccount, BankAccou
 Finally, we have to apply the ````Snapshot```` in the ```Aggregate.Apply``` method:
 
 ```c#
-public class BankAccount : Aggregate
+public class BankAccount : Aggregate<BankAccount>
 {
     public string Name { get; private set; }
     public string Iban { get; private set; }
     public decimal Balance { get; private set; }
    
-    protected override void Apply(Event e)
+    protected override void Apply(Snapshot<BankAccount> e)
     {
         switch (e)
         {
-          ...
-        
           case BankAccountSnapshot snapshot:
             Name = snapshot.Name;
             Iban = snapshot.Iban;
             Balance = snapshot.Balance;
             break;
         }
-        
-        ...
     }
-    
-    ...
 }
 ```
 
@@ -352,14 +412,14 @@ Some examples of what can be done using the record store:
 
 ```c#
 // Get all Events for a particular Aggregate type
-var events = await RecordStore.Events                       // The RecordStore exposes Events/Snapshots/Projections Queryables
-    .Where(x => x.AggregateType == nameof(BankAccount))     // Linq can be used to query all Record types
-    .OrderBy(x => new { x.AggregateId, x.Index })           // Sort by Aggregate Id and Index
+var events = await RecordStore.GetEvents<BankAccount>()     // The RecordStore exposes Events/Snapshots/Projections Queryables
+    .Where(x => x.AggregateId == myAggregateId)             // Linq can be used to query all Record types
+    .OrderBy(x => x.Index)                                  // Order by Aggregate Index
     .AsAsyncEnumerable()                                    // Call the AsAsyncEnumerable extension method to finalize the query
     .ToListAsync();                                         // Use any System.Linq.Async method to get the results
     
 // Get latest Snapshot for a particular Aggregate
-var result = await RecordStore.Snapshots
+var result = await RecordStore.GetSnapshots<BankAccount>()
     .Where(x => x.AggregateId == myAggregateId)
     .OrderByDescending(x => x.Index)
     .AsAsyncEnumerable()
@@ -413,10 +473,56 @@ var projections = await RecordStore.GetProjections<BankAccountProjection>()
     .ToListAsync();
 ```
 
+Advanced Usage
+--------------
+
+### 1. Aggregate References
+
+**Note: currently this feature is only available in ```Finaps.EventSourcing.EF```**
+
+```Aggregates``` don't usually live in a vacuum, but are related to other ```Aggregates```.
+However, because ```Events``` are the source of truth and ```Aggregates``` are never directly persisted,
+defining foreign keys to ensure data integrity is less trivial than in non-eventsourced systems.
+How do we, for example, ensure that ```PostAggregate.BlogId``` is actually valid?
+
+```c#
+public class Blog : Aggregate<Blog>
+{
+    public string Name { get; private set; }
+}
+
+public class Post : Aggregate<Post>
+{ 
+    public Guid BlogId { get; private set; }
+    public string Content { get; private set; }
+}
+```
+
+We can only do so by validating all ```Events``` that make up a particular post:
+
+```c#
+public record PostCreated : Event<Post>
+{
+    public Guid BlogId { get; init; }
+    public string Content { get; init; }
+}
+```
+
+To solve this, add the following line of code for every Aggregate reference to the ```DbContext.OnModelCreating```:
+
+```c#
+builder.AggregateReference<PostCreated, Blog>(x => x.BlogId);
+```
+
+This creates a one to many relation between the ```PostCreated``` Event and the first Event of the referenced ```Blog```.
+To be precise, it creates a foreign key constraint with foreign key ```PartitionId, BlogId, 0``` and principal key ```PartitionId, AggregateId, Index```.
+
+This technique can be used, alongside other techniques, to increase the data integrity of your application.
+
 Example Project
 ---------------
 
-For a more thorough example, check out the [Example Project](https://github.com/Finaps/EventSourcing/tree/main/EventSourcing.Example) 
+For a more thorough example using the CosmosDB database, check out the [Example Project](https://github.com/Finaps/EventSourcing/tree/main/EventSourcing.Example) 
 and corresponding [Example Tests](https://github.com/Finaps/EventSourcing/tree/main/EventSourcing.Example.Tests).
 
 Concepts
@@ -445,7 +551,7 @@ public abstract record Record
   public Guid AggregateId { get; init; }            // = Aggregate.Id
   public Guid RecordId { get; init; }               // = Guid.NewGuid()
   
-  public DateTimeOffset Timestamp { get; init; }    // Event/Snapshot creation time, Projection update time
+  public DateTimeOffset Timestamp { get; init; }    // Event/Snapshot/Projection creation time
 }
 ```
 
@@ -494,7 +600,7 @@ public record Projection : Record
 
 ##### Updating Projections
 
-Unlike ```Events```, ```projections``` are not a source of truth, but depend on the following data:
+Unlike ```Events```, ```Projections``` are not a source of truth, but depend on the following data:
 1. The ```Event``` stream
 2. The ```Aggregate.Apply``` logic
 3. The ```ProjectionFactory.CreateProjection``` logic
