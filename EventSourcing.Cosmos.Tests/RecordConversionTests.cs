@@ -22,7 +22,8 @@ public class RecordConversionTests
   {
     var converter = new RecordConverter<Event>(new RecordConverterOptions
     {
-      RecordTypes = new List<Type> { typeof(TestEvent) }
+      RecordTypes = new List<Type> { typeof(TestEvent) },
+      ThrowOnMissingNonNullableProperties = true
     });
 
     // Create Record with Missing and Null Values
