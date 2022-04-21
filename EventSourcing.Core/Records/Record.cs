@@ -8,22 +8,22 @@ public enum RecordKind
   /// <summary>
   /// Invalid State: <see cref="Record"/> is not a <see cref="EventSourcing.Core.Event"/>, <see cref="EventSourcing.Core.Snapshot"/> or <see cref="EventSourcing.Core.Projection"/>.
   /// </summary>
-  None,
+  None = 0,
   
   /// <summary>
   /// <see cref="Record"/> is a <see cref="EventSourcing.Core.Event"/>
   /// </summary>
-  Event,
+  Event = 1,
   
   /// <summary>
   /// <see cref="Record"/> is a <see cref="EventSourcing.Core.Snapshot"/>
   /// </summary>
-  Snapshot,
+  Snapshot = 2,
   
   /// <summary>
   /// <see cref="Record"/> is a <see cref="EventSourcing.Core.Projection"/>
   /// </summary>
-  Projection
+  Projection = 3
 }
 
 /// <summary>

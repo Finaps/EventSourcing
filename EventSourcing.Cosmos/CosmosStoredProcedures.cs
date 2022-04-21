@@ -1,3 +1,4 @@
+using EventSourcing.Core;
 using Microsoft.Azure.Cosmos.Scripts;
 
 namespace EventSourcing.Cosmos;
@@ -7,30 +8,58 @@ namespace EventSourcing.Cosmos;
 /// </summary>
 public static class CosmosStoredProcedures
 {
-  private const string BulkDeleteId = "DeleteAggregateAll";
+  private const string DeleteAggregateAllScriptId = "DeleteAggregateAll";
+  private const string DeleteAllEventsScriptId = "DeleteAllEvents";
+  private const string DeleteAllSnapshotsScriptId = "DeleteAllSnapshots";
 
-  public static async Task CreateDeleteAggregateAllProcedure(this Container container)
-  {
-    // Verify code currently stored for DeleteAggregateAll procedure and update only when needed
-    if (await container.VerifyStoredProcedure(BulkDeleteId, StoredProcedures.DeleteAggregateAll))
-      return;
-
-    await container.TryDeleteStoredProcedure(BulkDeleteId);
-    await container.CreateStoredProcedure(BulkDeleteId, StoredProcedures.DeleteAggregateAll);
-  }
-
+  public static async Task CreateDeleteAggregateAllProcedure(this Container container) =>
+    await container.VerifyOrCreateStoredProcedure(DeleteAggregateAllScriptId, StoredProcedures.DeleteAggregateAll);
+  public static async Task CreateDeleteAllEventsProcedure(this Container container) =>
+    await container.VerifyOrCreateStoredProcedure(DeleteAllEventsScriptId, StoredProcedures.DeleteAllEvents);
+  public static async Task CreateDeleteAllSnapshotsProcedure(this Container container) =>
+    await container.VerifyOrCreateStoredProcedure(DeleteAllSnapshotsScriptId, StoredProcedures.DeleteAllSnapshots);
   public static async Task<int> ExecuteDeleteAggregateAllProcedure(this Container container, Guid partitionId,
-    Guid aggregateId)
+    Guid aggregateId) =>
+    await container.ExecuteDeleteProcedure(
+      DeleteAggregateAllScriptId,
+      partitionId,
+      new dynamic[] { container.Id, partitionId.ToString(), aggregateId.ToString() });
+  public static async Task<int> ExecuteDeleteAllEventsProcedure(this Container container, Guid partitionId,
+    Guid aggregateId) =>
+    await container.ExecuteDeleteProcedure(
+      DeleteAllEventsScriptId,
+      partitionId,
+      new dynamic[] { container.Id, partitionId.ToString(), aggregateId.ToString(), (int) RecordKind.Event });
+  public static async Task<int> ExecuteDeleteAllSnapshotsProcedure(this Container container, Guid partitionId,
+    Guid aggregateId) =>
+    await container.ExecuteDeleteProcedure(
+      DeleteAllSnapshotsScriptId,
+      partitionId,
+      new dynamic[] { container.Id, partitionId.ToString(), aggregateId.ToString(), (int) RecordKind.Snapshot });
+  
+  
+  
+  private static async Task VerifyOrCreateStoredProcedure(this Container container, string scriptId, string script)
+  {
+    // Verify code currently stored for given script id and update only when needed
+    if (await container.VerifyStoredProcedure(scriptId, script))
+      return;
+    
+    await container.TryDeleteStoredProcedure(scriptId);
+    await container.CreateStoredProcedure(scriptId, script);
+  }
+  
+  private static async Task<int> ExecuteDeleteProcedure(this Container container, string scriptId, Guid partitionId, dynamic[] parameters)
   {
     var deleted = 0;
-    DeleteAggregateAllResponse response;
+    DeleteResponse response;
 
     do
     {
-      response = (await container.Scripts.ExecuteStoredProcedureAsync<DeleteAggregateAllResponse>(
-        BulkDeleteId,
+      response = (await container.Scripts.ExecuteStoredProcedureAsync<DeleteResponse>(
+        scriptId,
         new PartitionKey($"{partitionId}"),
-        new dynamic[] { container.Id, partitionId.ToString(), aggregateId.ToString() })).Resource;
+        parameters)).Resource;
       deleted += response.deleted;
     } while (response.continuation);
 
@@ -65,7 +94,7 @@ public static class CosmosStoredProcedures
     }
   }
 
-  private class DeleteAggregateAllResponse
+  private class DeleteResponse
   {
     public int deleted { get; set; }
     public bool continuation { get; set; }
