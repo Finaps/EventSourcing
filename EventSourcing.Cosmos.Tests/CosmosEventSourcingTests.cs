@@ -182,4 +182,20 @@ public partial class CosmosEventSourcingTests : EventSourcingTests
         
     Assert.Equal(body, StoredProcedures.DeleteAggregateAll);
   }
+  
+  [Fact]
+  public async Task Correct_String_Is_Stored_As_DeleteAllEvents_Procedure()
+  {
+    var body = await File.ReadAllTextAsync(@"../../../../EventSourcing.Cosmos/StoredProcedures/DeleteAllEvents.js");
+        
+    Assert.Equal(body, StoredProcedures.DeleteAllEvents);
+  }
+  
+  [Fact]
+  public async Task Correct_String_Is_Stored_As_DeleteAllSnapshots_Procedure()
+  {
+    var body = await File.ReadAllTextAsync(@"../../../../EventSourcing.Cosmos/StoredProcedures/DeleteAllSnapshots.js");
+        
+    Assert.Equal(body, StoredProcedures.DeleteAllSnapshots);
+  }
 }
