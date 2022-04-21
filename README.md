@@ -30,13 +30,14 @@ Table of Contents
    8. [Querying Records](#8-querying-records)
    9. [Creating & Querying Projections](#9-creating--querying-projections)
 3. [Advanced Usage](#advanced-usage)
-4. [Example Project](#example-project)
-5. [Concepts](#concepts)
+4. [Concepts](#concepts)
    1. [Records](#records)
       1. [Events](#1-events)
       2. [Snapshots](#2-snapshots)
       3. [Projections](#3-projections)
    2. [Aggregates](#aggregates)
+5. [SQL vs NoSQL](#sql-vs-nosql)
+6. [Example Project](#example-project)
 
 Installation
 ------------
@@ -519,22 +520,16 @@ To be precise, it creates a foreign key constraint with foreign key ```Partition
 
 This technique can be used, alongside other techniques, to increase the data integrity of your application.
 
-Example Project
----------------
-
-For a more thorough example using the CosmosDB database, check out the [Example Project](https://github.com/Finaps/EventSourcing/tree/main/EventSourcing.Example) 
-and corresponding [Example Tests](https://github.com/Finaps/EventSourcing/tree/main/EventSourcing.Example.Tests).
-
 Concepts
 --------
 
 ### Records
 
-This package stores three types of [```Records```]("https://github.com/Finaps/EventSourcing/blob/feature/html-documentation/EventSourcing.Core/Records/Record.cs") using the
-[```IRecordStore```]("https://github.com/Finaps/EventSourcing/blob/feature/html-documentation/EventSourcing.Core/Services/RecordStore/IRecordStore.cs"):
-[```Events```]("https://github.com/Finaps/EventSourcing/blob/feature/html-documentation/EventSourcing.Core/Records/Event.cs"),
-[```Snapshots```]("https://github.com/Finaps/EventSourcing/blob/feature/html-documentation/EventSourcing.Core/Records/Snapshot.cs") and
-[```Projections```]("https://github.com/Finaps/EventSourcing/blob/feature/html-documentation/EventSourcing.Core/Records/Projection.cs").
+This package stores three types of [```Records```]("https://github.com/Finaps/EventSourcing/blob/main/EventSourcing.Core/Records/Record.cs") using the
+[```IRecordStore```]("https://github.com/Finaps/EventSourcing/blob/main/EventSourcing.Core/Services/RecordStore/IRecordStore.cs"):
+[```Events```]("https://github.com/Finaps/EventSourcing/blob/main/EventSourcing.Core/Records/Event.cs"),
+[```Snapshots```]("https://github.com/Finaps/EventSourcing/blob/main/EventSourcing.Core/Records/Snapshot.cs") and
+[```Projections```]("https://github.com/Finaps/EventSourcing/blob/main/EventSourcing.Core/Records/Projection.cs").
 
 ```Records``` are always defined with respect to an ```Aggregate```.
 
@@ -635,3 +630,163 @@ public abstract class Aggregate
   protected abstract void Apply(Event e);       // Logic to apply Events
 }
 ```
+
+SQL vs NoSQL
+------------
+
+```Finaps.EventSourcing.Core``` supports both SQL (SQL Server, Postgres) and NoSQL (CosmosDB) databases.
+While the same API is exposed for all of these, they do have differences in way of working.
+
+### Storage
+
+Consider the following Events:
+
+```c#
+public record BankAccountCreatedEvent : Event<BankAccount>
+{
+  public string Name { get; init; }
+  public string Iban { get; init; }
+}
+
+public record BankAccountFundsDepositedEvent : Event<BankAccount>
+{
+  public decimal Amount { get; init; }
+}
+```
+
+#### NoSQL Record Representation
+
+For NoSQL, ```Events```, ```Snapshots``` and ```Projections``` are stored as JSON in the same collection,
+which allows for great flexibility when it comes to creating, updating and querying them.
+
+The NoSQL JSON representation of the Bank Account Events mentioned above will look like this:
+
+```json5
+[{
+   "AggregateType": "BankAccount",
+   "Type": "BankAccountCreatedEvent",
+   "Kind": 1, // RecordKind.Event
+
+   "id": "Event|f543d76a-3895-48e2-a836-f09d4a00cd7f[0]",
+   "PartitionId": "00000000-0000-0000-0000-000000000000",
+   "AggregateId": "f543d76a-3895-48e2-a836-f09d4a00cd7f",
+   "Index": 0,
+   
+   "Timestamp": "2022-03-07T15:29:19.941474+01:00",
+   
+   "Name": "E. Sourcing",
+   "Iban": "SOME IBAN"
+}, {
+   "AggregateType": "BankAccount",
+   "Type": "FundsDepositedEvent",
+   "Kind": 1, // RecordKind.Event
+   
+   "id": "Event|f543d76a-3895-48e2-a836-f09d4a00cd7f[1]",
+   "PartitionId": "00000000-0000-0000-0000-000000000000",
+   "AggregateId": "f543d76a-3895-48e2-a836-f09d4a00cd7f",
+   "Index": 1,
+
+   "Timestamp": "2022-03-07T15:29:19.942085+01:00",
+   
+   "Amount": 100,
+}]
+```
+
+#### SQL Record Representation
+
+SQL is a bit less flexible when storing ```Events```, ```Snapshots``` and ```Projections```.
+
+[Entity Framework Core Migrations](https://docs.microsoft.com/en-us/ef/core/managing-schemas/migrations/) have to be created and applied every time you create/update ```Event```, ```Snapshot``` and ```Projection``` models.
+
+When storing ```Events``` and ```Snapshots``` in SQL, there are multiple options to consider:
+
+| #   | Option                      | Pros                 | Cons                                                                           |
+|-----|-----------------------------|----------------------|--------------------------------------------------------------------------------|
+| 1   | Table per Event Type        | No redundant columns | Querying multiple Event types is inefficient: requires joining multiple tables |
+| 2   | Table per Aggregate Type    | Efficient querying   | Redundant columns, i.e. not all properties are defined on all Events           |
+| 3   | Table for all Events (JSON) | No Migrations        | Inefficient storage; No way to enable database constraints                     |
+
+This package stores Events in a Table per Aggregate Type using [EF Core's Table per Hierarchy](https://docs.microsoft.com/en-us/ef/core/modeling/inheritance#table-per-hierarchy-and-discriminator-configuration) approach.
+The advantage of this approach is that querying is efficient, since all Events are in one table. The disadvantage is that there will be redundant ```NULL``` columns when they are not applicable for a given Event type.
+
+The SQL Database representation of the Bank Account Events mentioned above will be:
+
+| PartitionId                          | AggregateId                          | Index | AggregateType | Type                            | Timestamp                          | Name    | IBAN      | Amount |
+|--------------------------------------|--------------------------------------|-------|---------------|---------------------------------|------------------------------------|---------|-----------|--------|
+| 00000000-0000-0000-0000-000000000000 | d85e6b59-add6-46bd-bae9-f7aa0f3140e5 | 0     | BankAccount   | BankAccountCreatedEvent         | 2022-04-19 12:16:41.213708 +00:00  | E. Vent | SOME IBAN | NULL   |
+| 00000000-0000-0000-0000-000000000000 | d85e6b59-add6-46bd-bae9-f7aa0f3140e5 | 1     | BankAccount   | BankAccountFundsDepositedEvent  | 2022-04-19 12:16:41.215338 +00:00  | NULL    | NULL      | 100    |
+
+```Projections``` are stored in a unique table per ```Projection``` type.
+
+##### Data Types/Structures
+
+SQL is more strict than NoSQL when it comes to data types/structures.
+The following table shows which features are supported by the supported databases.
+Please keep these limitations in mind when choosing a database and when designing Events/Snapshots/Projections.
+
+| Feature                    | Postgres | SQL Server | CosmosDB | Remarks                                                                              |
+|----------------------------|----------|------------|----------|--------------------------------------------------------------------------------------|
+| Nested classes             | ✓*       | ✓*         | ✓        | *Using EF Core ```EntityTypeBuilder.OwnsOne```                                       |
+| Lists of classes           | ✓*       | ✓*         | ✓        | *Using EF Core ```EntityTypeBuilder.OwnsMany```                                      |
+| Lists of value types       | ✓        | *          | ✓        | *For SQL Server these can be converted to binary and stored as ```(var)binary```     |
+| Lists of string types      | ✓        | *          | ✓        | *For SQL Server these can be joined to a single string and stored as ```(var)char``` |
+| Arbitrary or changing data |          |            | ✓*       | *Anything that can be converted to JSON; Custom JSON converters can be written.      |
+
+The full list of supported data types can be found for [Postgres](https://www.npgsql.org/doc/types/basic.html) and [SQL Server](https://docs.microsoft.com/en-us/dotnet/framework/data/adonet/sql-server-data-type-mappings).
+
+### Integrity
+
+To ensure data integrity in the context of Event Sourcing one has to:
+
+1. validate Events
+2. validate Events w.r.t. Aggregate State
+
+While both can be validated using C# code in e.g. the ```Aggregate.Apply``` method,
+SQL adds the option to validate Events at database level using 
+[Check Constraints](https://github.com/efcore/EFCore.CheckConstraints),
+[Foreign Key Constraints](https://docs.microsoft.com/en-us/ef/core/modeling/relationships)
+and [AggregateReferences](#1-aggregate-references).
+
+### Migrations
+
+When developing applications, updates to Event models are bound to happen.
+Depending on which database powers your EventSourcing (NoSQL ```Finaps.EventSourcing.Cosmos``` or SQL ```Finaps.EventSourcing.EF```),
+special care needs to be taken in order to make these updates backwards compatible.
+
+#### NoSQL
+
+When updating Event models using the ```Finaps.EventSourcing.Cosmos``` package, 
+all existing Events will remain the way they were written to the database initially.
+Your code has to handle both the original as well as the updated Event models.
+The following strategies can be used:
+
+1. When **adding properties** to an Event model, consider making these properties nullable:
+   this will ensure old events without these properties are handled correctly in your application logic.
+   You can also specify a default value for the property right on the Event model.
+
+2. When **removing properties** from an Event model, no special care has to be taken, they will simply be ignored by the JSON conversion.
+
+3. When **drastically changing** your Event model, consider making an entirely new Event model instead and handle both the old and the new in the ```Aggregate.Apply``` method.
+
+4. When **changing data types**, ensure that they map to the same json representation. Be very careful when doing this.
+
+#### SQL
+
+When updating Event models using the ```Finaps.EventSourcing.EF``` package,
+all existing Events will be updated with when applying [Entity Framework Core Migrations](https://docs.microsoft.com/en-us/ef/core/managing-schemas/migrations/).
+Special care has to be taken to not change existing Event data in the database.
+
+For SQL, the NoSQL strategies mentioned above are also applicable, however, there are a few advantages:
+
+5. When **adding constraints**, you can choose to validate them against all existing Events in the database, allowing you to reason over the validity of all Events as a whole.
+
+### Performance
+
+TODO: Performance Testing & Metrics
+
+
+Example Project
+---------------
+
+For a more thorough example using the CosmosDB database, check out the [Example Project](https://github.com/Finaps/EventSourcing/tree/main/EventSourcing.Example)
+and corresponding [Example Tests](https://github.com/Finaps/EventSourcing/tree/main/EventSourcing.Example.Tests).

@@ -16,4 +16,6 @@ public class RecordConverterOptions
   /// When not specified, <see cref="RecordConverter{TRecord}"/> will use all <see cref="IEventMigrator"/> types in assembly.
   /// </summary>
   public List<Type>? MigratorTypes { get; set; }
+
+  public bool ThrowOnMissingNonNullableProperties { get; set; }
 }
