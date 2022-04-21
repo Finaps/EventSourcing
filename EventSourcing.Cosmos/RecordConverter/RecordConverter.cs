@@ -12,6 +12,7 @@ namespace EventSourcing.Core;
 public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : Record
 {
   private readonly RecordTypeCache _recordTypeCache;
+  private readonly bool _throwOnMissingNonNullableProperties;
 
   /// <summary>
   /// Create <see cref="RecordConverter{TRecord}"/>
@@ -23,6 +24,7 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
   public RecordConverter(RecordConverterOptions? options = null)
   {
     _recordTypeCache = new RecordTypeCache(options?.RecordTypes);
+    _throwOnMissingNonNullableProperties = options?.ThrowOnMissingNonNullableProperties ?? false;
   }
 
   /// <summary>
@@ -60,7 +62,9 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
 
     var type = _recordTypeCache.GetRecordType(typeString.GetString()!);
 
-    var missing = _recordTypeCache.GetNonNullableRecordProperties(type)
+    if (!_throwOnMissingNonNullableProperties) return type;
+
+      var missing = _recordTypeCache.GetNonNullableRecordProperties(type)
       .Where(property => !json.TryGetValue(property.Name, out var value) || value.ValueKind == JsonValueKind.Null)
       .Select(property => property.Name)
       .ToList();
