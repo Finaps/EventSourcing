@@ -17,6 +17,8 @@ public class CosmosRecordStore : IRecordStore
   
   private readonly Container _container;
   private bool _isDeleteAggregateProcedureInitialized;
+  private bool _isDeleteAllEventsProcedureInitialized;
+  private bool _isDeleteAllSnapshotsProcedureInitialized;
 
   /// <summary>
   /// Initialize Cosmos Record Store
@@ -108,39 +110,27 @@ public class CosmosRecordStore : IRecordStore
       .CommitAsync(cancellationToken);
 
   /// <inheritdoc />
-  public async Task DeleteAllEventsAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
+  public async Task<int> DeleteAllEventsAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
   {
-    // Get existing Event Indices
-    var index = await GetEvents<TAggregate>()
-      .Where(x => x.PartitionId == partitionId && x.AggregateId == aggregateId)
-      .Select(x => x.Index)
-      .AsAsyncEnumerable()
-      .MaxAsync(cancellationToken);
-    
-    await CreateTransaction(partitionId)
-      .DeleteAllEvents<TAggregate>(aggregateId, index)
-      .CommitAsync(cancellationToken);
+    if (!_isDeleteAllEventsProcedureInitialized)
+    {
+      await _container.CreateDeleteAllEventsProcedure();
+      _isDeleteAllEventsProcedureInitialized = true;
+    }
+
+    return await _container.DeleteAllEvents(partitionId, aggregateId);
   }
 
   /// <inheritdoc />
-  public async Task DeleteAllSnapshotsAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
+  public async Task<int> DeleteAllSnapshotsAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
   {
-    // Get Existing Snapshot Indices
-    var snapshotIndices = await GetSnapshots<TAggregate>()
-      .Where(x => x.PartitionId == partitionId && x.AggregateId == aggregateId)
-      .Select(x => x.Index)
-      .OrderBy(index => index)
-      .AsAsyncEnumerable()
-      .ToListAsync(cancellationToken);
-    
-    // Delete Snapshots
-    foreach (var indices in snapshotIndices.Chunk(MaxTransactionSize))
+    if (!_isDeleteAllSnapshotsProcedureInitialized)
     {
-      var transaction = CreateTransaction(partitionId);
-      foreach (var index in indices)
-        transaction.DeleteSnapshot<TAggregate>(aggregateId, index);
-      await transaction.CommitAsync(cancellationToken);
+      await _container.CreateDeleteAllSnapshotsProcedure();
+      _isDeleteAllSnapshotsProcedureInitialized = true;
     }
+
+    return await _container.DeleteAllSnapshots(partitionId, aggregateId);
   }
 
   /// <inheritdoc />
@@ -164,7 +154,7 @@ public class CosmosRecordStore : IRecordStore
       _isDeleteAggregateProcedureInitialized = true;
     }
 
-    return await _container.ExecuteDeleteAggregateAllProcedure(partitionId, aggregateId);
+    return await _container.DeleteAggregateAll(partitionId, aggregateId);
   }
 
   /// <inheritdoc />
