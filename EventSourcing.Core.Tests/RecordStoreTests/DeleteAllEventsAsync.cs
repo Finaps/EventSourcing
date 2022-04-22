@@ -30,7 +30,7 @@ public abstract partial class EventSourcingTests
     var aggregate = new EmptyAggregate();
     var events = new List<Event>();
     var snapshot = new EmptySnapshot { AggregateId = aggregate.Id, AggregateType = nameof(EmptyAggregate)};
-    var projection = new EmptyProjection { AggregateId = aggregate.Id, AggregateType = nameof(EmptyAggregate)};
+    var projection = new EmptyProjection { AggregateId = aggregate.Id, AggregateType = nameof(EmptyAggregate), Hash = "RANDOM"};
 
     for (var i = 0; i < 3; i++)
       events.Add(aggregate.Apply(new EmptyEvent()));
