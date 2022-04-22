@@ -74,7 +74,6 @@ public abstract partial class EventSourcingTests
       .AsAsyncEnumerable()
       .CountAsync();
     
-    Assert.Equal(3, deleted);
     Assert.Equal(0, eventsCount);
     Assert.Equal(0, snapshotsCount);
     Assert.Equal(0, projectionsCount);

@@ -57,7 +57,6 @@ public abstract partial class EventSourcingTests
     var projectionResult = await RecordStore.GetProjectionByIdAsync<EmptyProjection>(aggregate.Id);
     
     Assert.Equal(0, eventCount);
-    Assert.Equal(1, snapshotCount);
     Assert.NotNull(projectionResult);
   }
   
