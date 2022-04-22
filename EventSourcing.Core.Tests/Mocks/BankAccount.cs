@@ -57,14 +57,18 @@ public class BankAccount : Aggregate<BankAccount>
       case BankAccountFundsWithdrawnEvent withdraw:
         Balance -= withdraw.Amount;
         break;
-      case BankAccountFundsTransferredEvent transfer:
-        if (Id == transfer.DebtorAccount)
-          Balance -= transfer.Amount;
-        else if (Id == transfer.CreditorAccount)
-          Balance += transfer.Amount;
-        else
-          throw new InvalidOperationException("Not debtor nor creditor of this transaction");
+      
+      case BankAccountFundsTransferredEvent transfer when transfer.DebtorAccount == Id:
+        Balance -= transfer.Amount;
         break;
+      case BankAccountFundsTransferredEvent transfer when transfer.CreditorAccount == Id:
+        Balance += transfer.Amount;
+        break;
+      case BankAccountFundsTransferredEvent:
+        throw new InvalidOperationException("Not debtor nor creditor of this transaction");
+      
+      default:
+        throw new ArgumentOutOfRangeException(nameof(e));
     }
 
     if (Balance < 0)

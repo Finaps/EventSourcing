@@ -155,15 +155,15 @@ Now you can use the ```EntityFrameworkRecordStore``` and ```AggregateService``` 
 Basic Usage
 -----------
 
-These examples show how a (very simplified) bank account could be modelled using Finaps.EventSourcing.
-It shows how to use the three types of ```Records``` this package is concerned with: ```Events```, ```Snapshots``` and ```Projections```.
+These examples show how a (very simplified) bank account could be modelled using ```Finaps.EventSourcing```.
+It shows how to use the three types of Records this package is concerned with: Events, Snapshots and Projections.
 These examples work with both ```Finaps.EventSourcing.Cosmos``` and ```Finaps.EventSourcing.EF```
 
 Checkout the [Example Project](#example-project) for a more thorough example on how this package can be used.
 
 ### 1. Define Domain Events
 
-```Events``` are immutable ```Records``` that describe something that has happened to a particular ```Aggregate```.
+Events are immutable Records that describe something that has happened to a particular Aggregate.
 
 ```c#
 public record BankAccountCreatedEvent : Event<BankAccount>
@@ -189,23 +189,23 @@ public record FundsTransferredEvent : Event<BankAccount>
 }
 ```
 
+Note:
+- Events are scoped to a particular Aggregate class, specified by ```Event<TAggregate>```
+- Events should be immutable, hence the ```{ get; init; }``` accessors
+
 ### 2. Define Aggregate
 
-An ```Aggregate``` is an aggregation of one or more ```Events```.
-The ```Aggregate.Apply(Event e)``` method contains the aggregation logic.
+An Aggregate is an aggregation of one or more Events.
 
 ```c#
 public class BankAccount : Aggregate<BankAccount>
 {
-    // Properties are only updated by applying events
     public string Name { get; private set; }
     public string Iban { get; private set; }
     public decimal Balance { get; private set; }
     
-    // This method gets called for every added Event
     protected override void Apply(Event<BankAccount> e)
     {
-        // Depending on the type of Event, we update the Aggregate
         switch (e)
         {
             case BankAccountCreatedEvent created:
@@ -221,33 +221,42 @@ public class BankAccount : Aggregate<BankAccount>
                 Balance -= withdraw.Amount;
                 break;
                 
-            case FundsTransferredEvent transfer:
-                if (Id == transfer.DebtorAccount)
-                    Balance -= transfer.Amount;
-                else if (Id == transfer.CreditorAccount)
-                    Balance += transfer.Amount;
-                else
-                    throw new InvalidOperationException("Not debtor nor creditor of this transaction");
-                break;
+            case BankAccountFundsTransferredEvent transfer when transfer.DebtorAccount == Id:
+                 Balance -= transfer.Amount;
+                 break;
+            case BankAccountFundsTransferredEvent transfer when transfer.CreditorAccount == Id:
+                 Balance += transfer.Amount;
+                 break;
+            case BankAccountFundsTransferredEvent:
+                throw new InvalidOperationException("Not debtor nor creditor of this transaction");
+            
+            default:
+              throw new ArgumentOutOfRangeException(nameof(e));
         }
         
         // An error is thrown if any event would cause the bank account balance to drop below 0
         if (Balance < 0) throw new InvalidOperationException("Not enough funds");
     }
     
-    // Convenience Command for creating this account
-    public void Create(string name, string iban) =>
+   // Convenience Methods //
+   public void Create(string name, string iban) =>
         Apply(new BankAccountCreatedEvent { Name = name, Iban = iban });
-    
-    // Convenience Command for depositing funds to this account
-    public void Deposit(decimal amount) =>
-        Apply(new FundsDepositedEvent { Amount = amount });
-        
-    // Convenience Command for withdrawing funds from this account
-    public void Withdraw(decimal amount) =>
-        Apply(new FundsWithdrawnEvent { Amount = amount });
+   
+   public void Deposit(decimal amount) =>
+        Apply(new BankAccountFundsDepositedEvent { Amount = amount });
+   
+   public void Withdraw(decimal amount) =>
+    Apply(new BankAccountFundsWithdrawnEvent { Amount = amount });
 }
 ```
+
+Note:
+- The ```Aggregate.Apply``` method contains the logic for aggregating Events.
+  - Using C# 7+ pattern matching, logic can be added based on Event type and Aggregate State
+- Aggregate properties should only be updated by applying Events, hence the ```{ get; private set; }``` accessors.
+- Aggregates reference themselves, specified by ```Aggregate<TAggregate>```, 
+  which enables static type checking for the ```Aggregate.Apply(Event<TAggregate>)``` method.
+- Convenience Methods can be added, making it easier to update the Aggregate
 
 ### 3. Create & Persist an Aggregate
 
@@ -255,40 +264,38 @@ public class BankAccount : Aggregate<BankAccount>
 // Create new Bank Account Aggregate
 var account = new BankAccount();
 
-// This will create a new Id
+// This created a new Aggregate.Id
 Assert.NotEqual(Guid.Empty, account.Id);
 
-// But leave all other values default
+// But left all other values default
 Assert.Equal(default, account.Name);
 Assert.Equal(default, account.Iban);
 Assert.Equal(default, account.Balance);
 
-// Create the Bank Account
+// Create the Bank Account by applying an Event
 account.Apply(new BankAccountCreatedEvent { Name = "E. Vent", Iban = "SOME IBAN" });
-// or alternatively, using the convenience method:
-// account.Create("E. Vent", "SOME IBAN");
 
-// Add some funds to this account
+// Add some funds to this account using a convenience method
 account.Deposit(100);
 // which is equivalent to:
 // account.Apply(new FundsDepositedEvent { Amount = 100 });
 
-// Adding Events will call the Apply method, which updates the Aggregate
+// By calling the Apply method, the Aggregat is now updated
 Assert.Equal("E. Vent"  , account.Name);
 Assert.Equal("SOME IBAN", account.Iban);
 Assert.Equal(100        , account.Balance);
 
-// Persist Aggregate, i.e. store the two newly added Events for this BankAccount
+// Finally: Persist the Aggregate
+// This will store the newly added Events for this BankAccount in the ```IRecordStore```
 await AggregateService.PersistAsync(account);
 ```
 
 ### 4. Rehydrate & Update an Aggregate
 
-When you want to update an ```Aggregate``` whose ```Events``` are already stored in the ```RecordStore```,
-you'll first need to rehydrate the ```Aggregate``` from these ```Events```.
+When you want to update an existing Aggregate, you'll first need to rehydrate the Aggregate:
 
 ```c#
-// Rehydrate existing BankAccount, i.e. reapply all stored Events to this BankAccount
+// Rehydrate existing BankAccount, i.e. apply all stored Events to this BankAccount
 var account = await AggregateService.RehydrateAsync<BankAccount>(bankAccountId);
 
 // Then add more funds to the account
@@ -335,10 +342,13 @@ await AggregateService.PersistAsync(new[] { account, anotherAccount });
 ### 6. Create & Apply Snapshots
 
 When many Events are stored for a given Aggregate, rehydrating that Aggregate will get more expensive.
-The meaning of 'many Events' depends on backend and database hardware, but also your performance requirements.
-When performance impacts are expected (or even better, measured!), ```Snapshots``` can be used to mitigate them.
+The meaning of 'many Events' will depend on backend and database hardware, but also your performance requirements.
+When performance impacts are expected (or even better, measured!), Snapshots can be used to mitigate them.
 
-To use ```Snapshots```, first define a ```Snapshot``` and a ```SnapshotFactory```.
+Snapshots work by storing a copy of the Aggregate state every n Events. 
+When rehydrating, the latest Snapshot and all Events after that will be used, instead of applying all Events from scratch.
+
+To use Snapshots, first define a ```Snapshot```:
 
 ```c#
 // A Snapshot represents the full state of an Aggregate at a given point in time
@@ -348,8 +358,16 @@ public record BankAccountSnapshot : Snapshot<BankAccount>
   public string Iban { get; init; }
   public decimal Balance { get; init; }
 }
+```
 
-// The Snapshot Factory is resposible for creating a Snapshot at a given interval
+Note:
+- Like Events, Snapshots are scoped to an Aggregate, specified using ```Snapshot<TAggregate>```
+- Like Events, Snapshots should be immutable, hence the ```{ get; init; }``` accessors.
+
+Next, define a ```SnapshotFactory```:
+
+```c#
+// The Snapshot Factory is resposible for creating a Snapshot at a given Event interval
 public class BankAccountSnapshotFactory : SnapshotFactory<BankAccount, BankAccountSnapshot>
 {
     // Create a snapshot every 100 Events
@@ -365,7 +383,10 @@ public class BankAccountSnapshotFactory : SnapshotFactory<BankAccount, BankAccou
 }
 ```
 
-Finally, we have to apply the ````Snapshot```` in the ```Aggregate.Apply``` method:
+When Persisting an Aggregate using the ```AggregateService``` a ```Snapshot``` will be created when the ```SnapshotInterval``` is exceeded.
+This means that Snapshots will not necessarily be created at exactly ```SnapshotInterval``` increments when applying more Events than one at a time.
+
+After creating the ```Snapshot``` and ```SnapshotFactory```, we have to apply the ````Snapshot```` in the ```Aggregate.Apply``` method:
 
 ```c#
 public class BankAccount : Aggregate<BankAccount>
@@ -388,14 +409,11 @@ public class BankAccount : Aggregate<BankAccount>
 }
 ```
 
-The ```SnapshotFactory``` will create a ```Snapshot``` every 100 ```Events```.
-When rehydrating the ```Aggregate```, the latest ```Snapshot``` will be used to rehydrate the BankAccount faster.
-
 ### 7. Point in time Rehydration
 
-Sometimes we want to get the state of a particular ```Aggregate``` at a given point in time.
-This is where Event Sourcing really shines, since it is as easy as applying all events up to a certain date.
-When using ```Snapshots```, the latest ```Snapshot``` before the given date 
+Sometimes we want to get the historical state of a particular Aggregate at a given point in time.
+This is where Event Sourcing really shines, since it is as easy as applying all Events up to a certain date.
+When using Snapshots, the latest ```Snapshot``` before the given date 
 will be used to speed up these point in time rehydrations as well.
 
 ```c#
@@ -405,9 +423,9 @@ var account = await AggregateService.RehydrateAsync<BankAccount>(bankAccountId, 
 
 ### 8. Querying Records
 
-All previous examples with with the ```AggregateService``` class,
-which provides a high level API for rehydrating and persisting ```Aggregates```.
-To directly work with all ```Record``` types (```Events```, ```Snapshots``` & ```Projections```) one uses the ```RecordStore```.
+All previous examples use the ```AggregateService``` class,
+which provides a high level API for rehydrating and persisting Aggregates.
+To directly interact with ```Record``` types (Events, Snapshots & Projections), one can use the ```IRecordStore```.
 
 Some examples of what can be done using the record store:
 
@@ -417,7 +435,7 @@ var events = await RecordStore.GetEvents<BankAccount>()     // The RecordStore e
     .Where(x => x.AggregateId == myAggregateId)             // Linq can be used to query all Record types
     .OrderBy(x => x.Index)                                  // Order by Aggregate Index
     .AsAsyncEnumerable()                                    // Call the AsAsyncEnumerable extension method to finalize the query
-    .ToListAsync();                                         // Use any System.Linq.Async method to get the results
+    .ToListAsync();                                         // Use any System.Linq.Async method to get the result you want
     
 // Get latest Snapshot for a particular Aggregate
 var result = await RecordStore.GetSnapshots<BankAccount>()
@@ -427,18 +445,18 @@ var result = await RecordStore.GetSnapshots<BankAccount>()
     .FirstAsync();
 ```
 
-For an overview of the supported linq queries, please refer to the
+Not All Linq operations are supported by CosmosDB. For an overview of the supported linq queries in CosmosDB, please refer to the
 [CosmosDB Linq to SQL Translation documentation](https://docs.microsoft.com/en-us/azure/cosmos-db/sql/sql-query-linq-to-sql).
 
 ### 9. Creating & Querying Projections
 
-While working with ```Aggregates```, ```Events``` and ```Snapshots``` is really powerful,
-it is not well suited for querying many Aggregates at one time. This is where ```Projections``` come in.
+While Event Sourcing is really powerful, it is not well suited for querying many Aggregates at one time.
+By creating an easily queryable read-only view of an Aggregate, Projections try to tackle this problem.
 
-Creating ```Projections``` works the same as creating ```Snapshots```:
+Creating Projections works the same as creating Snapshots: just define a ```Projection``` and a ```ProjectionFactory```:
 
 ```c#
-// A Projection represents a 'view' for the current state of the Aggregate
+// A Projection represents the current state of an Aggregate
 public record BankAccountProjection : Projection
 {
     public string Name { get; init; }
@@ -459,10 +477,10 @@ public class BankAccountProjectionFactory : ProjectionFactory<BankAccount, BankA
 }
 ```
 
-Projections are updated whenever the ```Aggregate``` of a particular type are persisted.
-You can make as many projections for a given ```Aggregate``` type as you like.
+Projections are updated whenever the Aggregate of a particular type are persisted.
+You can make as many Projections for a given Aggregate type as you like.
 
-To query ```Projections```, use the ```RecordStore``` API:
+To query Projections, use the ```RecordStore``` API:
 
 ```c#
 // Get first 10 BankAccount Projections, ordered by the Bank Account name
@@ -481,10 +499,11 @@ Advanced Usage
 
 **Note: currently this feature is only available in ```Finaps.EventSourcing.EF```**
 
-```Aggregates``` don't usually live in a vacuum, but are related to other ```Aggregates```.
-However, because ```Events``` are the source of truth and ```Aggregates``` are never directly persisted,
-defining foreign keys to ensure data integrity is less trivial than in non-eventsourced systems.
-How do we, for example, ensure that ```PostAggregate.BlogId``` is actually valid?
+Aggregates don't usually live in a vacuum, but are related to other Aggregates.
+However, because Events are the source of truth and Aggregates are never directly persisted,
+defining foreign keys to ensure data integrity is less trivial than in non-EventSourced systems.
+
+How do we, in the example below, ensure that ```PostAggregate.BlogId``` is actually valid?
 
 ```c#
 public class Blog : Aggregate<Blog>
@@ -499,7 +518,7 @@ public class Post : Aggregate<Post>
 }
 ```
 
-We can only do so by validating all ```Events``` that make up a particular post:
+We can solve this by validating all Events that contain ```BlogId```
 
 ```c#
 public record PostCreated : Event<Post>
@@ -509,14 +528,13 @@ public record PostCreated : Event<Post>
 }
 ```
 
-To solve this, add the following line of code for every Aggregate reference to the ```DbContext.OnModelCreating```:
+To do this, add the following line of code for every Aggregate reference to the ```DbContext.OnModelCreating```:
 
 ```c#
 builder.AggregateReference<PostCreated, Blog>(x => x.BlogId);
 ```
 
-This creates a one to many relation between the ```PostCreated``` Event and the first Event of the referenced ```Blog```.
-To be precise, it creates a foreign key constraint with foreign key ```PartitionId, BlogId, 0``` and principal key ```PartitionId, AggregateId, Index```.
+This creates a relation between the ```PostCreated``` Event and the first Event of the referenced ```Blog```.
 
 This technique can be used, alongside other techniques, to increase the data integrity of your application.
 
@@ -525,13 +543,13 @@ Concepts
 
 ### Records
 
-This package stores three types of [```Records```]("https://github.com/Finaps/EventSourcing/blob/main/EventSourcing.Core/Records/Record.cs") using the
+This package stores three types of [Records]("https://github.com/Finaps/EventSourcing/blob/main/EventSourcing.Core/Records/Record.cs") using the
 [```IRecordStore```]("https://github.com/Finaps/EventSourcing/blob/main/EventSourcing.Core/Services/RecordStore/IRecordStore.cs"):
-[```Events```]("https://github.com/Finaps/EventSourcing/blob/main/EventSourcing.Core/Records/Event.cs"),
-[```Snapshots```]("https://github.com/Finaps/EventSourcing/blob/main/EventSourcing.Core/Records/Snapshot.cs") and
-[```Projections```]("https://github.com/Finaps/EventSourcing/blob/main/EventSourcing.Core/Records/Projection.cs").
+[Events]("https://github.com/Finaps/EventSourcing/blob/main/EventSourcing.Core/Records/Event.cs"),
+[Snapshots]("https://github.com/Finaps/EventSourcing/blob/main/EventSourcing.Core/Records/Snapshot.cs") and
+[Projections]("https://github.com/Finaps/EventSourcing/blob/main/EventSourcing.Core/Records/Projection.cs").
 
-```Records``` are always defined with respect to an ```Aggregate```.
+Records are always defined with respect to an Aggregate.
 
 The abstract base ```Record``` is defined below:
 
@@ -552,8 +570,8 @@ public abstract record Record
 
 #### 1. Events
 
-```Events``` are ```Records``` that describe what happened to an ```Aggregate```.
-They are added to an append only store and form the source of truth for an ```Aggregate```.
+Events are Records that describe what happened to an Aggregate.
+They are added to an append only store and form the source of truth for an Aggregate.
 
 The base ```Event``` is defined below:
 
@@ -566,8 +584,8 @@ public record Event : Record
 
 #### 2. Snapshots
 
-```Snapshots``` are ```Events``` that describe the complete state of an ```Aggregate``` at a particular ```Event``` index.
-```Snapshots``` can be used to speed up the rehydration of ```Aggregates```.
+Snapshots are Events that describe the complete state of an Aggregate at a particular ```Event``` index.
+Snapshots can be used to speed up the rehydration of Aggregates.
 
 The base ```Snapshot``` is defined below:
 
@@ -577,8 +595,8 @@ public record Snapshot : Event;
 
 #### 3. Projections
 
-```Projections``` are ```Records``` that describe the current state of an ```Aggregate``` (and hence the ```Event``` stream).
-```Projections``` can be used to speed up queries, especially those involving many ```Aggregates``` at the same time.
+Projections are Records that describe the current state of an Aggregate (and hence the ```Event``` stream).
+Projections can be used to speed up queries, especially those involving many Aggregates at the same time.
 
 The base ```Projection``` is defined below:
 
@@ -595,29 +613,29 @@ public record Projection : Record
 
 ##### Updating Projections
 
-Unlike ```Events```, ```Projections``` are not a source of truth, but depend on the following data:
+Unlike Events, Projections are not a source of truth, but depend on the following data:
 1. The ```Event``` stream
 2. The ```Aggregate.Apply``` logic
 3. The ```ProjectionFactory.CreateProjection``` logic
 
 In order to accurately reflect the current state, ```Projection```s have to be updated whenever any of these data changes.
 
-The first point, the ```Event``` stream, is trivial to solve: The ```AggregateService``` will simply update the ```Projection``` whenever ```Events``` are persisted.
+The first point, the ```Event``` stream, is trivial to solve: The ```AggregateService``` will simply update the ```Projection``` whenever Events are persisted.
 
 The last two points are less trivial, since they rely on user code.
-To provide a solution, the ```Projection.Hash``` stores a hash representation of the [IL Bytecode]("https://en.wikipedia.org/wiki/Common_Intermediate_Language") of the methods that define ```Projections```.
+To provide a solution, the ```Projection.Hash``` stores a hash representation of the [IL Bytecode]("https://en.wikipedia.org/wiki/Common_Intermediate_Language") of the methods that define Projections.
 When querying projections, we can compare the stored hash to the current hash to see whether the projection was created using up to date code.
 ```Projection.IsUpToDate``` reflects this comparison.
 
 Now we know whether a ```Projection``` is out of date, we can actually update it using the following methods:
 1. Simply ```RehydrateAndPersist``` the aggregate with the corresponding ```AgregateType```, ```PartitionId``` and ```AggregateId```.
-2. Use the ```ProjectionUpdateService``` to bulk update may ```Projections``` at once.
+2. Use the ```ProjectionUpdateService``` to bulk update may Projections at once.
 
 ### Aggregates
 
-```Aggregates``` are the result of applying one or more ```Events```.
+Aggregates are the result of applying one or more Events.
 
-The base ```Aggregate``` is defined below:
+The base Aggregate is defined below:
 
 ```c#
 public abstract class Aggregate
@@ -635,9 +653,13 @@ SQL vs NoSQL
 ------------
 
 ```Finaps.EventSourcing.Core``` supports both SQL (SQL Server, Postgres) and NoSQL (CosmosDB) databases.
-While the same API is exposed for all of these, they do have differences in way of working.
+While the same ```IRecordStore``` API is exposed for all databases, there are differences.
+Through the topics _Storage_, _Integrity_, _Migrations_ and _Performance_ their respective features are covered.
 
 ### Storage
+
+This package stores Events, Snapshots and Projections,
+but the way they are stored differs between NoSQL and SQL databases.
 
 Consider the following Events:
 
@@ -656,8 +678,10 @@ public record BankAccountFundsDepositedEvent : Event<BankAccount>
 
 #### NoSQL Record Representation
 
-For NoSQL, ```Events```, ```Snapshots``` and ```Projections``` are stored as JSON in the same collection,
-which allows for great flexibility when it comes to creating, updating and querying them.
+For NoSQL, Events, Snapshots and Projections are stored as JSON in the same collection,
+which allows for great flexibility when it comes to creating, updating and querying them:
+- No database migrations have to be done
+- Arbitrary or changing data can be stored and queried
 
 The NoSQL JSON representation of the Bank Account Events mentioned above will look like this:
 
@@ -667,7 +691,9 @@ The NoSQL JSON representation of the Bank Account Events mentioned above will lo
    "Type": "BankAccountCreatedEvent",
    "Kind": 1, // RecordKind.Event
 
+   // Unique Id, encoding <Kind>|<AggregateId>[<Index>]
    "id": "Event|f543d76a-3895-48e2-a836-f09d4a00cd7f[0]",
+   
    "PartitionId": "00000000-0000-0000-0000-000000000000",
    "AggregateId": "f543d76a-3895-48e2-a836-f09d4a00cd7f",
    "Index": 0,
@@ -678,10 +704,12 @@ The NoSQL JSON representation of the Bank Account Events mentioned above will lo
    "Iban": "SOME IBAN"
 }, {
    "AggregateType": "BankAccount",
-   "Type": "FundsDepositedEvent",
+   "Type": "BankAccountFundsDepositedEvent",
    "Kind": 1, // RecordKind.Event
-   
+
+   // Unique Id, encoding <Kind>|<AggregateId>[<Index>]
    "id": "Event|f543d76a-3895-48e2-a836-f09d4a00cd7f[1]",
+   
    "PartitionId": "00000000-0000-0000-0000-000000000000",
    "AggregateId": "f543d76a-3895-48e2-a836-f09d4a00cd7f",
    "Index": 1,
@@ -692,22 +720,16 @@ The NoSQL JSON representation of the Bank Account Events mentioned above will lo
 }]
 ```
 
+Snapshots and Projections are stored similarly.
+
 #### SQL Record Representation
 
-SQL is a bit less flexible when storing ```Events```, ```Snapshots``` and ```Projections```.
+SQL is a bit less flexible when storing Events, Snapshots:
 
-[Entity Framework Core Migrations](https://docs.microsoft.com/en-us/ef/core/managing-schemas/migrations/) have to be created and applied every time you create/update ```Event```, ```Snapshot``` and ```Projection``` models.
-
-When storing ```Events``` and ```Snapshots``` in SQL, there are multiple options to consider:
-
-| #   | Option                      | Pros                 | Cons                                                                           |
-|-----|-----------------------------|----------------------|--------------------------------------------------------------------------------|
-| 1   | Table per Event Type        | No redundant columns | Querying multiple Event types is inefficient: requires joining multiple tables |
-| 2   | Table per Aggregate Type    | Efficient querying   | Redundant columns, i.e. not all properties are defined on all Events           |
-| 3   | Table for all Events (JSON) | No Migrations        | Inefficient storage; No way to enable database constraints                     |
-
-This package stores Events in a Table per Aggregate Type using [EF Core's Table per Hierarchy](https://docs.microsoft.com/en-us/ef/core/modeling/inheritance#table-per-hierarchy-and-discriminator-configuration) approach.
-The advantage of this approach is that querying is efficient, since all Events are in one table. The disadvantage is that there will be redundant ```NULL``` columns when they are not applicable for a given Event type.
+- [Entity Framework Core Migrations](https://docs.microsoft.com/en-us/ef/core/managing-schemas/migrations/) have to be created and applied every time you create/update ```Event```, ```Snapshot``` and ```Projection``` models.
+- Events and Snapshots are stored in a table per Aggregate Type using [Table per Hierarchy](https://docs.microsoft.com/en-us/ef/core/modeling/inheritance#table-per-hierarchy-and-discriminator-configuration).
+  - **pro**: querying is efficient, since all Events for a given Aggregate are in one table and no joins are needed to rehydrate an Aggregate.
+  - **con**: there will be redundant ```NULL``` columns when they are not applicable for a given Event Type.
 
 The SQL Database representation of the Bank Account Events mentioned above will be:
 
@@ -716,23 +738,7 @@ The SQL Database representation of the Bank Account Events mentioned above will 
 | 00000000-0000-0000-0000-000000000000 | d85e6b59-add6-46bd-bae9-f7aa0f3140e5 | 0     | BankAccount   | BankAccountCreatedEvent         | 2022-04-19 12:16:41.213708 +00:00  | E. Vent | SOME IBAN | NULL   |
 | 00000000-0000-0000-0000-000000000000 | d85e6b59-add6-46bd-bae9-f7aa0f3140e5 | 1     | BankAccount   | BankAccountFundsDepositedEvent  | 2022-04-19 12:16:41.215338 +00:00  | NULL    | NULL      | 100    |
 
-```Projections``` are stored in a unique table per ```Projection``` type.
-
-##### Data Types/Structures
-
-SQL is more strict than NoSQL when it comes to data types/structures.
-The following table shows which features are supported by the supported databases.
-Please keep these limitations in mind when choosing a database and when designing Events/Snapshots/Projections.
-
-| Feature                    | Postgres | SQL Server | CosmosDB | Remarks                                                                              |
-|----------------------------|----------|------------|----------|--------------------------------------------------------------------------------------|
-| Nested classes             | ✓*       | ✓*         | ✓        | *Using EF Core ```EntityTypeBuilder.OwnsOne```                                       |
-| Lists of classes           | ✓*       | ✓*         | ✓        | *Using EF Core ```EntityTypeBuilder.OwnsMany```                                      |
-| Lists of value types       | ✓        | *          | ✓        | *For SQL Server these can be converted to binary and stored as ```(var)binary```     |
-| Lists of string types      | ✓        | *          | ✓        | *For SQL Server these can be joined to a single string and stored as ```(var)char``` |
-| Arbitrary or changing data |          |            | ✓*       | *Anything that can be converted to JSON; Custom JSON converters can be written.      |
-
-The full list of supported data types can be found for [Postgres](https://www.npgsql.org/doc/types/basic.html) and [SQL Server](https://docs.microsoft.com/en-us/dotnet/framework/data/adonet/sql-server-data-type-mappings).
+Projections are stored in a unique table per ```Projection``` type.
 
 ### Integrity
 
@@ -741,9 +747,10 @@ To ensure data integrity in the context of Event Sourcing one has to:
 1. validate Events
 2. validate Events w.r.t. Aggregate State
 
-While both can be validated using C# code in e.g. the ```Aggregate.Apply``` method,
-SQL adds the option to validate Events at database level using 
+While both validations can be done using C# code in e.g. the ```Aggregate.Apply``` method,
+EF Core adds the option to validate Events at database level using 
 [Check Constraints](https://github.com/efcore/EFCore.CheckConstraints),
+[Unique Constraints](https://docs.microsoft.com/en-us/ef/core/modeling/indexes?tabs=data-annotations#index-uniqueness)
 [Foreign Key Constraints](https://docs.microsoft.com/en-us/ef/core/modeling/relationships)
 and [AggregateReferences](#1-aggregate-references).
 
@@ -751,7 +758,7 @@ and [AggregateReferences](#1-aggregate-references).
 
 When developing applications, updates to Event models are bound to happen.
 Depending on which database powers your EventSourcing (NoSQL ```Finaps.EventSourcing.Cosmos``` or SQL ```Finaps.EventSourcing.EF```),
-special care needs to be taken in order to make these updates backwards compatible.
+special care needs to be taken in order ensure backwards compatibility.
 
 #### NoSQL
 
@@ -760,9 +767,9 @@ all existing Events will remain the way they were written to the database initia
 Your code has to handle both the original as well as the updated Event models.
 The following strategies can be used:
 
-1. When **adding properties** to an Event model, consider making these properties nullable:
-   this will ensure old events without these properties are handled correctly in your application logic.
-   You can also specify a default value for the property right on the Event model.
+1. When **adding properties** to an Event record, consider making these properties [nullable](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/nullable-value-types):
+   this will ensure existing events without these properties are handled correctly in your application logic.
+   You can also specify a default value for the property right on the Event record.
 
 2. When **removing properties** from an Event model, no special care has to be taken, they will simply be ignored by the JSON conversion.
 
@@ -774,11 +781,11 @@ The following strategies can be used:
 
 When updating Event models using the ```Finaps.EventSourcing.EF``` package,
 all existing Events will be updated with when applying [Entity Framework Core Migrations](https://docs.microsoft.com/en-us/ef/core/managing-schemas/migrations/).
-Special care has to be taken to not change existing Event data in the database.
+Special care has to be taken to not change existing Event data in the database when changing Event models.
 
-For SQL, the NoSQL strategies mentioned above are also applicable, however, there are a few advantages:
+For SQL, most NoSQL strategies mentioned above are also applicable, however:
 
-5. When **adding constraints**, you can choose to validate them against all existing Events in the database, allowing you to reason over the validity of all Events as a whole.
+5When **adding constraints**, you can choose to validate them against all existing Events in the database, allowing you to reason over the validity of all Events as a whole.
 
 ### Performance
 
