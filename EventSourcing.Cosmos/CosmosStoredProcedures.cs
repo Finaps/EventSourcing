@@ -6,7 +6,7 @@ namespace EventSourcing.Cosmos;
 /// <summary>
 /// Cosmos Stored Procedures: Extension methods for the Cosmos Container to store and execute stored procedures
 /// </summary>
-public static class CosmosStoredProcedures
+internal static class CosmosStoredProcedures
 {
   private const string DeleteAggregateAllScriptId = "DeleteAggregateAll";
   private const string DeleteAllEventsScriptId = "DeleteAllEvents";
@@ -18,20 +18,17 @@ public static class CosmosStoredProcedures
     await container.VerifyOrCreateStoredProcedure(DeleteAllEventsScriptId, StoredProcedures.DeleteAllEvents);
   public static async Task CreateDeleteAllSnapshotsProcedure(this Container container) =>
     await container.VerifyOrCreateStoredProcedure(DeleteAllSnapshotsScriptId, StoredProcedures.DeleteAllSnapshots);
-  public static async Task<int> ExecuteDeleteAggregateAllProcedure(this Container container, Guid partitionId,
-    Guid aggregateId) =>
+  public static async Task<int> DeleteAggregateAll(this Container container, Guid partitionId, Guid aggregateId) =>
     await container.ExecuteDeleteProcedure(
       DeleteAggregateAllScriptId,
       partitionId,
       new dynamic[] { container.Id, partitionId.ToString(), aggregateId.ToString() });
-  public static async Task<int> ExecuteDeleteAllEventsProcedure(this Container container, Guid partitionId,
-    Guid aggregateId) =>
+  public static async Task<int> DeleteAllEvents(this Container container, Guid partitionId, Guid aggregateId) =>
     await container.ExecuteDeleteProcedure(
       DeleteAllEventsScriptId,
       partitionId,
       new dynamic[] { container.Id, partitionId.ToString(), aggregateId.ToString(), (int) RecordKind.Event });
-  public static async Task<int> ExecuteDeleteAllSnapshotsProcedure(this Container container, Guid partitionId,
-    Guid aggregateId) =>
+  public static async Task<int> DeleteAllSnapshots(this Container container, Guid partitionId, Guid aggregateId) =>
     await container.ExecuteDeleteProcedure(
       DeleteAllSnapshotsScriptId,
       partitionId,
@@ -49,7 +46,7 @@ public static class CosmosStoredProcedures
     await container.CreateStoredProcedure(scriptId, script);
   }
   
-  private static async Task<int> ExecuteDeleteProcedure(this Container container, string scriptId, Guid partitionId, dynamic[] parameters)
+  private static async Task<int> ExecuteDeleteProcedure(this Container container, string deleteScriptId, Guid partitionId, dynamic[] parameters)
   {
     var deleted = 0;
     DeleteResponse response;
@@ -57,7 +54,7 @@ public static class CosmosStoredProcedures
     do
     {
       response = (await container.Scripts.ExecuteStoredProcedureAsync<DeleteResponse>(
-        scriptId,
+        deleteScriptId,
         new PartitionKey($"{partitionId}"),
         parameters)).Resource;
       deleted += response.deleted;

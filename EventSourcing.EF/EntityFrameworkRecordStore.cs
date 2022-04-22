@@ -55,11 +55,11 @@ public class EntityFrameworkRecordStore : IRecordStore
       .CommitAsync(cancellationToken);
 
   /// <inheritdoc />
-  public async Task DeleteAllEventsAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new() =>
+  public async Task<int> DeleteAllEventsAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new() =>
     await Context.DeleteWhereAsync(typeof(TAggregate).EventTable(), partitionId, aggregateId, cancellationToken);
 
   /// <inheritdoc />
-  public async Task DeleteAllSnapshotsAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new() =>
+  public async Task<int> DeleteAllSnapshotsAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new() =>
     await Context.DeleteWhereAsync(typeof(TAggregate).SnapshotTable(), partitionId, aggregateId, cancellationToken);
 
   /// <inheritdoc />

@@ -110,7 +110,7 @@ public class CosmosRecordStore : IRecordStore
       .CommitAsync(cancellationToken);
 
   /// <inheritdoc />
-  public async Task DeleteAllEventsAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
+  public async Task<int> DeleteAllEventsAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
   {
     if (!_isDeleteAllEventsProcedureInitialized)
     {
@@ -118,11 +118,11 @@ public class CosmosRecordStore : IRecordStore
       _isDeleteAllEventsProcedureInitialized = true;
     }
 
-    await _container.ExecuteDeleteAllEventsProcedure(partitionId, aggregateId);
+    return await _container.DeleteAllEvents(partitionId, aggregateId);
   }
 
   /// <inheritdoc />
-  public async Task DeleteAllSnapshotsAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
+  public async Task<int> DeleteAllSnapshotsAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
   {
     if (!_isDeleteAllSnapshotsProcedureInitialized)
     {
@@ -130,7 +130,7 @@ public class CosmosRecordStore : IRecordStore
       _isDeleteAllSnapshotsProcedureInitialized = true;
     }
 
-    await _container.ExecuteDeleteAllSnapshotsProcedure(partitionId, aggregateId);
+    return await _container.DeleteAllSnapshots(partitionId, aggregateId);
   }
 
   /// <inheritdoc />
@@ -154,7 +154,7 @@ public class CosmosRecordStore : IRecordStore
       _isDeleteAggregateProcedureInitialized = true;
     }
 
-    return await _container.ExecuteDeleteAggregateAllProcedure(partitionId, aggregateId);
+    return await _container.DeleteAggregateAll(partitionId, aggregateId);
   }
 
   /// <inheritdoc />

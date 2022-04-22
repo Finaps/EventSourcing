@@ -56,7 +56,7 @@ public abstract partial class EventSourcingTests
 
     // Delete all items created
     var deleted = await RecordStore.DeleteAggregateAsync<EmptyAggregate>(Guid.Empty, aggregate.Id);
-
+    
     var eventsCount = await RecordStore
       .GetEvents<EmptyAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
@@ -73,7 +73,8 @@ public abstract partial class EventSourcingTests
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
-
+    
+    Assert.Equal(3, deleted);
     Assert.Equal(0, eventsCount);
     Assert.Equal(0, snapshotsCount);
     Assert.Equal(0, projectionsCount);
