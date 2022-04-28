@@ -1,8 +1,8 @@
 using System.Linq.Expressions;
-using EventSourcing.Core;
+using Finaps.EventSourcing.Core;
 using Microsoft.Azure.Cosmos.Linq;
 
-namespace EventSourcing.Cosmos;
+namespace Finaps.EventSourcing.Cosmos;
 
 internal class CosmosAsyncQueryable<TResult> : IOrderedQueryable<TResult>, IAsyncEnumerable<TResult>
 {

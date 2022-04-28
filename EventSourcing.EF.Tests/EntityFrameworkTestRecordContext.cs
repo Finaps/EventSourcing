@@ -1,8 +1,8 @@
-using EventSourcing.Core.Tests.Mocks;
-using EventSourcing.EF.Tests.Mocks;
+using Finaps.EventSourcing.Core.Tests.Mocks;
+using Finaps.EventSourcing.EF.Tests.Mocks;
 using Microsoft.EntityFrameworkCore;
 
-namespace EventSourcing.EF.Tests;
+namespace Finaps.EventSourcing.EF.Tests;
 
 public class EntityFrameworkTestRecordContext : RecordContext
 {

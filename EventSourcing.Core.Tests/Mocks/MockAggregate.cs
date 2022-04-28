@@ -1,4 +1,4 @@
-namespace EventSourcing.Core.Tests.Mocks;
+namespace Finaps.EventSourcing.Core.Tests.Mocks;
 
 public enum MockEnum
 {

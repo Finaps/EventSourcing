@@ -1,4 +1,4 @@
-namespace EventSourcing.Example.Domain.Shared;
+namespace Finaps.EventSourcing.Example.Domain.Shared;
 
 public static class Constants
 {

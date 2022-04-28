@@ -1,11 +1,11 @@
 using System.Linq.Expressions;
 using System.Reflection;
-using EventSourcing.Core;
+using Finaps.EventSourcing.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace EventSourcing.EF;
+namespace Finaps.EventSourcing.EF;
 
 public static class ModelBuilderExtensions
 {

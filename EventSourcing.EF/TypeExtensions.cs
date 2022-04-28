@@ -1,8 +1,8 @@
 using System.Collections;
 using System.Reflection;
-using EventSourcing.Core;
+using Finaps.EventSourcing.Core;
 
-namespace EventSourcing.EF;
+namespace Finaps.EventSourcing.EF;
 
 internal static class TypeExtensions
 {

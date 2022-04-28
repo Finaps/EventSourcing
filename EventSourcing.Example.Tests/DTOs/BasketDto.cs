@@ -1,6 +1,6 @@
-using EventSourcing.Example.Domain.Shared;
+using Finaps.EventSourcing.Example.Domain.Shared;
 
-namespace EventSourcing.Example.Tests.DTOs;
+namespace Finaps.EventSourcing.Example.Tests.DTOs;
 
 public class BasketDto
 {

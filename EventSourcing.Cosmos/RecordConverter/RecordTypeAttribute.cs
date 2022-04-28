@@ -1,4 +1,4 @@
-namespace EventSourcing.Core;
+namespace Finaps.EventSourcing.Core;
 
 /// <summary>
 /// Override for <see cref="Record"/>.<see cref="Record.Type"/> property.

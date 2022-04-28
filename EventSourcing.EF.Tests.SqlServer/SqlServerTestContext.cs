@@ -1,9 +1,9 @@
-using EventSourcing.Core.Tests.Mocks;
+using Finaps.EventSourcing.Core.Tests.Mocks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 
-namespace EventSourcing.EF.Tests.SqlServer;
+namespace Finaps.EventSourcing.EF.Tests.SqlServer;
 
 public class SqlServerTestContext : EntityFrameworkTestRecordContext
 {

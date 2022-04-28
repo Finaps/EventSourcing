@@ -1,4 +1,5 @@
-using EventSourcing.Cosmos;
+using Finaps.EventSourcing.Core;
+using Finaps.EventSourcing.Cosmos;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -6,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 
-namespace EventSourcing.Example;
+namespace Finaps.EventSourcing.Example;
 
 public class Startup
 {

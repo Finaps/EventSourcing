@@ -1,4 +1,6 @@
-namespace EventSourcing.Example.Domain.Baskets;
+using Finaps.EventSourcing.Core;
+
+namespace Finaps.EventSourcing.Example.Domain.Baskets;
 
 public record BasketCreatedEvent(TimeSpan ExpirationTime) : Event<Basket>;
 public record ProductAddedToBasketEvent(int Quantity, Guid ProductId ) : Event<Basket>;

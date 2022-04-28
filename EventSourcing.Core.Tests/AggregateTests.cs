@@ -1,4 +1,6 @@
-namespace EventSourcing.Core.Tests;
+using Finaps.EventSourcing.Core.Tests.Mocks;
+
+namespace Finaps.EventSourcing.Core.Tests;
 
 public class AggregateTests
 {

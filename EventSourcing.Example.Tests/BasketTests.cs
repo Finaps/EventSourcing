@@ -1,10 +1,10 @@
 using System.Net;
-using EventSourcing.Example.Domain.Baskets;
-using EventSourcing.Example.Domain.Products;
-using EventSourcing.Example.Tests.DTOs;
+using Finaps.EventSourcing.Example.Domain.Baskets;
+using Finaps.EventSourcing.Example.Domain.Products;
+using Finaps.EventSourcing.Example.Tests.DTOs;
 using Xunit;
 
-namespace EventSourcing.Example.Tests;
+namespace Finaps.EventSourcing.Example.Tests;
 
 public class BasketTests : TestsBase
 {

@@ -1,4 +1,6 @@
-namespace EventSourcing.Example.Domain.Products;
+using Finaps.EventSourcing.Core;
+
+namespace Finaps.EventSourcing.Example.Domain.Products;
 
 public class ProductSnapshotFactory : SnapshotFactory<Product, ProductSnapshot>
 {

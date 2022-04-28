@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.Json;
 
-namespace EventSourcing.Example.Tests;
+namespace Finaps.EventSourcing.Example.Tests;
 
 public static class TestExtensions
 {

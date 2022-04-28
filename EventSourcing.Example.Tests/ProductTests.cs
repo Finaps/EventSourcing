@@ -1,9 +1,9 @@
-﻿using EventSourcing.Core;
-using EventSourcing.Example.Domain.Products;
-using EventSourcing.Example.Tests.DTOs;
+﻿using Finaps.EventSourcing.Core;
+using Finaps.EventSourcing.Example.Domain.Products;
+using Finaps.EventSourcing.Example.Tests.DTOs;
 using Xunit;
 
-namespace EventSourcing.Example.Tests;
+namespace Finaps.EventSourcing.Example.Tests;
 
 public class ProductTests : TestsBase
 {

@@ -1,4 +1,6 @@
-namespace EventSourcing.Example.Domain.Orders;
+using Finaps.EventSourcing.Core;
+
+namespace Finaps.EventSourcing.Example.Domain.Orders;
 
 public class Order : Aggregate<Order>
 {

@@ -1,4 +1,4 @@
-namespace EventSourcing.Core;
+namespace Finaps.EventSourcing.Core;
 
 /// <summary>
 /// Create all <see cref="Snapshot"/>s for a particular <see cref="Aggregate{TAggregate}"/> type

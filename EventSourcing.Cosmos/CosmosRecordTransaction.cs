@@ -1,6 +1,6 @@
-using EventSourcing.Core;
+using Finaps.EventSourcing.Core;
 
-namespace EventSourcing.Cosmos;
+namespace Finaps.EventSourcing.Cosmos;
 
 /// <summary>
 /// ACID <see cref="CosmosRecordTransaction"/> of <see cref="Event"/>s, <see cref="Snapshot"/>s & <see cref="Projection"/>s

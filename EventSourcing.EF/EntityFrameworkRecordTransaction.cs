@@ -1,7 +1,7 @@
-using EventSourcing.Core;
+using Finaps.EventSourcing.Core;
 using Microsoft.EntityFrameworkCore;
 
-namespace EventSourcing.EF;
+namespace Finaps.EventSourcing.EF;
 
 /// <summary>
 /// ACID <see cref="EntityFrameworkRecordTransaction"/> of <see cref="Event"/>s, <see cref="Snapshot"/>s & <see cref="Projection"/>s

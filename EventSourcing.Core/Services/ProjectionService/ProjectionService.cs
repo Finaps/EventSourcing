@@ -1,4 +1,4 @@
-namespace EventSourcing.Core;
+namespace Finaps.EventSourcing.Core;
 
 /// <summary>
 /// Responsible for creating a <see cref="Projection"/> for every <see cref="IProjectionFactory"/> defined for a given <see cref="Aggregate{TAggregate}"/>

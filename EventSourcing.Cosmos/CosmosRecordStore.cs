@@ -1,6 +1,6 @@
-using EventSourcing.Core;
+using Finaps.EventSourcing.Core;
 
-namespace EventSourcing.Cosmos;
+namespace Finaps.EventSourcing.Cosmos;
 
 /// <summary>
 /// Cosmos Record Store: Cosmos Connection for Querying and Storing <see cref="Record"/>s

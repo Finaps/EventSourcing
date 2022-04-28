@@ -1,7 +1,7 @@
-using EventSourcing.Core;
+using Finaps.EventSourcing.Core;
 using Microsoft.Azure.Cosmos.Scripts;
 
-namespace EventSourcing.Cosmos;
+namespace Finaps.EventSourcing.Cosmos;
 
 /// <summary>
 /// Cosmos Stored Procedures: Extension methods for the Cosmos Container to store and execute stored procedures

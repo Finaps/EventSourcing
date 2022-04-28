@@ -1,4 +1,6 @@
-namespace EventSourcing.Example.Domain.Products;
+using Finaps.EventSourcing.Core;
+
+namespace Finaps.EventSourcing.Example.Domain.Products;
 
 public record ProductCreatedEvent(string Name, int Quantity) : Event<Product>;
 public record ProductReservedEvent(int Quantity, Guid BasketId, TimeSpan HeldFor) : Event<Product>;

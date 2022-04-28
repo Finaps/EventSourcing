@@ -1,4 +1,6 @@
-namespace EventSourcing.Core.Tests.SnapshotFactoryTests;
+using Finaps.EventSourcing.Core.Tests.Mocks;
+
+namespace Finaps.EventSourcing.Core.Tests.SnapshotFactoryTests;
 
 public class SnapshotFactoryTests
 {

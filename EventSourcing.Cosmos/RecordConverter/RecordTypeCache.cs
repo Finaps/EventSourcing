@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace EventSourcing.Core;
+namespace Finaps.EventSourcing.Core;
 
 public sealed class RecordTypeCache
 {

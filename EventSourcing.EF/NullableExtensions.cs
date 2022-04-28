@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Reflection;
 
-namespace EventSourcing.EF;
+namespace Finaps.EventSourcing.EF;
 
 internal static class NullableExtensions
 {

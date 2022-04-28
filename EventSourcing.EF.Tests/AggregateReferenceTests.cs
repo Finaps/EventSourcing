@@ -1,11 +1,11 @@
 using System;
 using System.Threading.Tasks;
-using EventSourcing.Core;
-using EventSourcing.Core.Tests.Mocks;
-using EventSourcing.EF.Tests.Mocks;
+using Finaps.EventSourcing.Core;
+using Finaps.EventSourcing.Core.Tests.Mocks;
+using Finaps.EventSourcing.EF.Tests.Mocks;
 using Xunit;
 
-namespace EventSourcing.EF.Tests;
+namespace Finaps.EventSourcing.EF.Tests;
 
 public abstract partial class EntityFrameworkEventSourcingTests
 {

@@ -1,4 +1,4 @@
-namespace EventSourcing.Core;
+namespace Finaps.EventSourcing.Core;
 
 /// <summary>
 /// Create <see cref="Projection"/> for <see cref="Aggregate{TAggregate}"/>

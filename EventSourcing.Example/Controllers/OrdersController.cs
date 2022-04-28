@@ -1,7 +1,8 @@
-using EventSourcing.Example.Domain.Orders;
+using Finaps.EventSourcing.Core;
+using Finaps.EventSourcing.Example.Domain.Orders;
 using Microsoft.AspNetCore.Mvc;
 
-namespace EventSourcing.Example.Controllers;
+namespace Finaps.EventSourcing.Example.Controllers;
 
 [ApiController]
 [Route("[controller]")]

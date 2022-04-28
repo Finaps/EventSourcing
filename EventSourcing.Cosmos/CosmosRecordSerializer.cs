@@ -1,9 +1,9 @@
 using System.IO;
 using System.Text.Json;
 using Azure.Core.Serialization;
-using EventSourcing.Core;
+using Finaps.EventSourcing.Core;
 
-namespace EventSourcing.Cosmos;
+namespace Finaps.EventSourcing.Cosmos;
 
 internal class CosmosRecordSerializer : CosmosSerializer
 {

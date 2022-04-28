@@ -1,4 +1,4 @@
-namespace EventSourcing.Core;
+namespace Finaps.EventSourcing.Core;
 
 /// <summary>
 /// <see cref="Record"/> store<see cref="Event"/>s, <see cref="Snapshot"/>s and <see cref="Projection"/>s

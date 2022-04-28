@@ -2,7 +2,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace EventSourcing.Core;
+namespace Finaps.EventSourcing.Core;
 
 public interface IHashable
 {

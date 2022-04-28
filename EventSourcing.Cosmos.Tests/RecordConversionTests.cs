@@ -5,7 +5,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace EventSourcing.Core.Tests;
+namespace Finaps.EventSourcing.Core.Tests;
 
 public class RecordConversionTests
 {

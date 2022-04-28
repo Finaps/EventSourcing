@@ -1,4 +1,4 @@
-namespace EventSourcing.Core;
+namespace Finaps.EventSourcing.Core;
 
 /// <summary>
 /// Update <see cref="Projection"/>s in bulk, by rehydrating and persisting their source <see cref="Aggregate{TAggregate}"/>s

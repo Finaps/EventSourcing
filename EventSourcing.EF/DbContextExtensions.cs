@@ -1,7 +1,7 @@
-using EventSourcing.Core;
+using Finaps.EventSourcing.Core;
 using Microsoft.EntityFrameworkCore;
 
-namespace EventSourcing.EF;
+namespace Finaps.EventSourcing.EF;
 
 internal static class RecordContextExtensions
 {

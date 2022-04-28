@@ -2,12 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using EventSourcing.Core;
-using EventSourcing.Core.Tests.Mocks;
-using EventSourcing.Cosmos.Tests.Mocks;
+using Finaps.EventSourcing.Core;
+using Finaps.EventSourcing.Core.Tests.Mocks;
+using Finaps.EventSourcing.Cosmos.Tests.Mocks;
 using Xunit;
 
-namespace EventSourcing.Cosmos.Tests;
+namespace Finaps.EventSourcing.Cosmos.Tests;
 
 public partial class CosmosEventSourcingTests
 {

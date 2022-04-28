@@ -1,4 +1,4 @@
-namespace EventSourcing.Core;
+namespace Finaps.EventSourcing.Core;
 
 /// <summary>
 /// Represents an <see cref="Event"/> that happened to an <see cref="Aggregate{TAggregate}"/>.

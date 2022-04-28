@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace EventSourcing.Cosmos;
+namespace Finaps.EventSourcing.Cosmos;
 
 internal static class CosmosExceptionHelpers
 {

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace EventSourcing.EF.Tests.SqlServer.Migrations
+namespace Finaps.EventSourcing.EF.Tests.SqlServer.Migrations
 {
     public partial class AddIntialMigration : Migration
     {
