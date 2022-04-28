@@ -18,7 +18,9 @@ public record Event : Record
   public override string id => $"{Kind.ToString()}|{AggregateId}[{Index}]";
 }
 
+/// <inheritdoc />
 public record Event<TAggregate> : Event where TAggregate : Aggregate, new()
 {
+  /// <inheritdoc />
   public Event() => AggregateType = typeof(TAggregate).Name;
 }

@@ -10,12 +10,9 @@ public class RecordConverterOptions
   /// When not specified, <see cref="RecordConverter{TRecord}"/> will use all <see cref="Record"/> types in assembly.
   /// </summary>
   public List<Type>? RecordTypes { get; set; }
-  
-  /// <summary>
-  /// <see cref="IEventMigrator"/> types to use for migration.
-  /// When not specified, <see cref="RecordConverter{TRecord}"/> will use all <see cref="IEventMigrator"/> types in assembly.
-  /// </summary>
-  public List<Type>? MigratorTypes { get; set; }
 
+  /// <summary>
+  /// If true, RecordConverter will throw exception when not-nullable properties are not included or null in JSON
+  /// </summary>
   public bool ThrowOnMissingNonNullableProperties { get; set; }
 }

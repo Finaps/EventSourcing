@@ -15,7 +15,7 @@ public class RecordTypeAttribute : Attribute
   /// Create <see cref="RecordTypeAttribute"/>
   /// </summary>
   /// <param name="type">Custom <see cref="Record"/>.<see cref="Record.Type"/></param>
-  /// <exception cref="ArgumentException">Thrown when <see cref="type"/> is null or whitespace</exception>
+  /// <exception cref="ArgumentException">Thrown when <c>type</c> is null or whitespace</exception>
   public RecordTypeAttribute(string type)
   {
     if (string.IsNullOrWhiteSpace(type))

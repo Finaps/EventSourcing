@@ -48,9 +48,6 @@ public abstract record Record
   /// <summary>
   /// String representation of Record Type. Defaults to <c>GetType().Name</c>
   /// </summary>
-  /// <remarks>
-  /// Can be overridden using <see cref="RecordTypeAttribute"/>
-  /// </remarks>
   public string Type { get; init; }
   
   /// <summary>
@@ -71,7 +68,7 @@ public abstract record Record
   /// Set to <see cref="Aggregate{TAggregate}"/>.<see cref="Aggregate{TAggregate}.PartitionId"/> when <see cref="Event"/> is added to an Aggregate.
   /// </para>
   /// <para>
-  /// <see cref="PartitionId"/> is mapped directly to CosmosDB's <c>PartitionKey</c>.
+  /// <see cref="Record.PartitionId"/> is mapped directly to CosmosDB's <c>PartitionKey</c>.
   /// See https://docs.microsoft.com/en-us/azure/cosmos-db/partitioning-overview for more information.
   /// </para>
   /// <para>

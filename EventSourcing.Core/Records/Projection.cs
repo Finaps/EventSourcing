@@ -32,7 +32,7 @@ public abstract record Projection : Record
   /// Hash representing the code used to generate this <see cref="Projection"/>
   /// </summary>
   /// <remarks>See <see cref="ProjectionFactory{TAggregate,TProjection}"/>.<see cref="ProjectionFactory{TAggregate,TProjection}.ComputeHash"/> for more information</remarks>
-  public string Hash { get; init; }
+  public string? Hash { get; init; }
 
   /// <summary>
   /// Compares the <see cref="Projection"/>.<see cref="Projection.Hash"/> (i.e. the state of the code at time of <see cref="Projection"/> creation)
@@ -43,5 +43,6 @@ public abstract record Projection : Record
   public bool IsUpToDate =>
     ProjectionCache.Hashes.TryGetValue(FactoryType ?? "", out var hash) && Hash == hash;
 
+  /// <inheritdoc />
   public override string id => $"{Kind}|{Type}|{AggregateId}";
 }

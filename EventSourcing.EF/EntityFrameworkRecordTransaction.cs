@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Finaps.EventSourcing.EF;
 
 /// <summary>
-/// ACID <see cref="EntityFrameworkRecordTransaction"/> of <see cref="Event"/>s, <see cref="Snapshot"/>s & <see cref="Projection"/>s
+/// ACID <see cref="EntityFrameworkRecordTransaction"/> of <see cref="Event"/>s, <see cref="Snapshot"/>s and <see cref="Projection"/>s
 /// </summary>
 public class EntityFrameworkRecordTransaction : IRecordTransaction
 {

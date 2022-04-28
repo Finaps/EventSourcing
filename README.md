@@ -166,32 +166,20 @@ Checkout the [Example Project](#example-project) for a more thorough example on 
 Events are immutable Records that describe something that has happened to a particular Aggregate.
 
 ```c#
-public record BankAccountCreatedEvent : Event<BankAccount>
-{
-    public string Name { get; init; }
-    public string Iban { get; init; }
-}
+public record BankAccountCreatedEvent(string Name, string Iban) : Event<BankAccount>;
 
-public record FundsDepositedEvent : Event<BankAccount>
-{
-    public decimal Amount { get; init; }
-}
+public record FundsDepositedEvent(decimal Amount) : Event<BankAccount>;
 
-public record FundsWithdrawnEvent : Event<BankAccount>
-{
-    public decimal Amount { get; init; }
-}
+public record FundsWithdrawnEvent(decimal Amount) : Event<BankAccount>;
 
-public record FundsTransferredEvent : Event<BankAccount>
-{
-    public Guid DebtorAccount { get; init; }
-    public Guid CreditorAccount { get; init; }
-}
+public record FundsTransferredEvent(decimal Amount, Guid DebtorAccount, Guid CreditorAccon : Event<BankAccount>;
 ```
 
 Note:
 - Events are scoped to a particular Aggregate class, specified by ```Event<TAggregate>```
-- Events should be immutable, hence the ```{ get; init; }``` accessors
+- Events should be immutable, so either:
+  - use [positional records](https://docs.microsoft.com/en-us/dotnet/csharp/whats-new/tutorials/records)**
+  - use ```{ get; init; }``` accessors
 
 ### 2. Define Aggregate
 
@@ -237,16 +225,6 @@ public class BankAccount : Aggregate<BankAccount>
         // An error is thrown if any event would cause the bank account balance to drop below 0
         if (Balance < 0) throw new InvalidOperationException("Not enough funds");
     }
-    
-   // Convenience Methods //
-   public void Create(string name, string iban) =>
-        Apply(new BankAccountCreatedEvent { Name = name, Iban = iban });
-   
-   public void Deposit(decimal amount) =>
-        Apply(new BankAccountFundsDepositedEvent { Amount = amount });
-   
-   public void Withdraw(decimal amount) =>
-    Apply(new BankAccountFundsWithdrawnEvent { Amount = amount });
 }
 ```
 
@@ -256,7 +234,6 @@ Note:
 - Aggregate properties should only be updated by applying Events, hence the ```{ get; private set; }``` accessors.
 - Aggregates reference themselves, specified by ```Aggregate<TAggregate>```, 
   which enables static type checking for the ```Aggregate.Apply(Event<TAggregate>)``` method.
-- Convenience Methods can be added, making it easier to update the Aggregate
 
 ### 3. Create & Persist an Aggregate
 
@@ -273,12 +250,10 @@ Assert.Equal(default, account.Iban);
 Assert.Equal(default, account.Balance);
 
 // Create the Bank Account by applying an Event
-account.Apply(new BankAccountCreatedEvent { Name = "E. Vent", Iban = "SOME IBAN" });
+account.Apply(new BankAccountCreatedEvent("E. Vent", "SOME IBAN");
 
 // Add some funds to this account using a convenience method
-account.Deposit(100);
-// which is equivalent to:
-// account.Apply(new FundsDepositedEvent { Amount = 100 });
+account.Apply(new FundsDepositedEvent(100));
 
 // By calling the Apply method, the Aggregat is now updated
 Assert.Equal("E. Vent"  , account.Name);
@@ -299,7 +274,7 @@ When you want to update an existing Aggregate, you'll first need to rehydrate th
 var account = await AggregateService.RehydrateAsync<BankAccount>(bankAccountId);
 
 // Then add more funds to the account
-account.Deposit(50);
+account.Apply(new FundsDepositedEvent(50));
 
 // Finally, Persist Aggregate. i.e. store the newly added Event(s)
 await AggregateService.PersistAsync(account);
@@ -308,7 +283,8 @@ await AggregateService.PersistAsync(account);
 or alternatively, the three lines of code above can be replaced with the shorthand notation:
 
 ```c#
-await AggregateService.RehydrateAndPersistAsync<BankAccount>(bankAccountId, account => account.Deposit(50));
+await AggregateService.RehydrateAndPersistAsync<BankAccount>(bankAccountId,
+    account => account.Apply(new FundsDepositedEvent(50));
 ```
 
 ### 5. Update Aggregates in a Transaction
@@ -321,15 +297,11 @@ Here's where transactions come into play:
 ```c#
 // Create another BankAccount
 var anotherAccount = new BankAccount();
-anotherAccount.Create("S. Ourcing", "ANOTHER IBAN");
+
+anotherAccount.Apply(new BankAccountCreatedEvent("S. Ourcing", "ANOTHER IBAN");
 
 // Define a transfer of funds
-var transfer = new FundsTransferredEvent
-{
-      DebtorAccount = account.Id,
-      CreditorAccount = anotherAccount.Id,
-      Amount = 20
-};
+var transfer = new FundsTransferredEvent(20, account.Id, anotherAccount.Id);
 
 // Add this Event to both Aggregates
 account.Apply(transfer);
@@ -352,17 +324,12 @@ To use Snapshots, first define a ```Snapshot```:
 
 ```c#
 // A Snapshot represents the full state of an Aggregate at a given point in time
-public record BankAccountSnapshot : Snapshot<BankAccount>
-{
-  public string Name { get; init; }
-  public string Iban { get; init; }
-  public decimal Balance { get; init; }
-}
+public record BankAccountSnapshot(string Name, string Iban, decimal Balance) : Snapshot<BankAccount>;
 ```
 
 Note:
 - Like Events, Snapshots are scoped to an Aggregate, specified using ```Snapshot<TAggregate>```
-- Like Events, Snapshots should be immutable, hence the ```{ get; init; }``` accessors.
+- Like Events, Snapshots should be immutable: use _positional records_ or ```{ get; init; }``` accessors.
 
 Next, define a ```SnapshotFactory```:
 
@@ -374,12 +341,8 @@ public class BankAccountSnapshotFactory : SnapshotFactory<BankAccount, BankAccou
     public override long SnapshotInterval => 100;
     
     // Create a Snapshot from the Aggregate
-    protected override BankAccountSnapshot CreateSnapshot(BankAccount aggregate) => new BankAccountSnapshot()
-    {
-        Name = aggregate.Name,
-        Iban = aggregate.Iban,
-        Balance = aggregate.Balance
-    };
+    protected override BankAccountSnapshot CreateSnapshot(BankAccount aggregate) => 
+        new BankAccountSnapshot(aggregate.Name, aggregate.Iban, aggregate.Balance);
 }
 ```
 
@@ -457,11 +420,7 @@ Creating Projections works the same as creating Snapshots: just define a ```Proj
 
 ```c#
 // A Projection represents the current state of an Aggregate
-public record BankAccountProjection : Projection
-{
-    public string Name { get; init; }
-    public string Iban { get; init; }
-}
+public record BankAccountProjection(string Name, string Iban) : Projection;
 
 // The Projection factory is responsible for creating a Projection every time the Aggregate is persisted 
 public class BankAccountProjectionFactory : ProjectionFactory<BankAccount, BankAccountProjection>
@@ -469,11 +428,8 @@ public class BankAccountProjectionFactory : ProjectionFactory<BankAccount, BankA
     // This particular projection could be used for e.g. an overview page
     // We left out 'Balance' (privacy reasons) and made 'Name' uppercase
     // Any transformation could be done here, e.g. to make frontend consumption easier/faster
-    protected override BankAccountProjection CreateProjection(BankAccount aggregate) => new BankAccountProjection()
-    {
-        Name = aggregate.Name.ToUpper(),
-        Iban = aggregate.Iban
-    };
+    protected override BankAccountProjection CreateProjection(BankAccount aggregate) => 
+        new BankAccountProjection(aggregate.Name.ToUpper(), aggregate.Iban);
 }
 ```
 
@@ -521,11 +477,7 @@ public class Post : Aggregate<Post>
 We can solve this by validating all Events that contain ```BlogId```
 
 ```c#
-public record PostCreated : Event<Post>
-{
-    public Guid BlogId { get; init; }
-    public string Content { get; init; }
-}
+public record PostCreated(Guid BlogId, string Content) : Event<Post>;
 ```
 
 To do this, add the following line of code for every Aggregate reference to the ```DbContext.OnModelCreating```:
@@ -664,16 +616,9 @@ but the way they are stored differs between NoSQL and SQL databases.
 Consider the following Events:
 
 ```c#
-public record BankAccountCreatedEvent : Event<BankAccount>
-{
-  public string Name { get; init; }
-  public string Iban { get; init; }
-}
+public record BankAccountCreatedEvent(string Name, string Iban) : Event<BankAccount>;
 
-public record BankAccountFundsDepositedEvent : Event<BankAccount>
-{
-  public decimal Amount { get; init; }
-}
+public record BankAccountFundsDepositedEvent(decimal Amount) : Event<BankAccount>;
 ```
 
 #### NoSQL Record Representation

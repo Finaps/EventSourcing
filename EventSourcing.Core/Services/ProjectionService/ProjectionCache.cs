@@ -1,6 +1,6 @@
 namespace Finaps.EventSourcing.Core;
 
-public static class ProjectionCache
+internal static class ProjectionCache
 {
   private static readonly List<Aggregate> Aggregates = AppDomain.CurrentDomain
     .GetAssemblies()
@@ -28,6 +28,6 @@ public static class ProjectionCache
     .ToDictionary(x => x.Key, x => x.First());
 
   public static readonly Dictionary<string, string> Hashes = Factories
-    .Select(x => new IHashable[] { x, (IHashable)Activator.CreateInstance(x.AggregateType) })
+    .Select(x => new IHashable[] { x, (IHashable)Activator.CreateInstance(x.AggregateType)! })
     .ToDictionary(x => x.First().GetType().Name, x => IHashable.CombineHashes(x.Select(y => y.ComputeHash()).ToArray()));
 }

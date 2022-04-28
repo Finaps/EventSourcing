@@ -3,7 +3,7 @@ using Finaps.EventSourcing.Core;
 namespace Finaps.EventSourcing.Cosmos;
 
 /// <summary>
-/// ACID <see cref="CosmosRecordTransaction"/> of <see cref="Event"/>s, <see cref="Snapshot"/>s & <see cref="Projection"/>s
+/// ACID <see cref="CosmosRecordTransaction"/> of <see cref="Event"/>s, <see cref="Snapshot"/>s and <see cref="Projection"/>s
 /// </summary>
 public class CosmosRecordTransaction : IRecordTransaction
 {

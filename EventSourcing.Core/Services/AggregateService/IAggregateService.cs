@@ -12,7 +12,7 @@ public interface IAggregateService
   /// <param name="aggregateId">Unique identifier of <see cref="Aggregate{TAggregate}"/> to rehydrate</param>
   /// <param name="cancellationToken">Cancellation Token</param>
   /// <typeparam name="TAggregate">Type of <see cref="Aggregate{TAggregate}"/></typeparam>
-  /// <returns><see cref="Aggregate{TAggregate}"/> of type <see cref="TAggregate"/> or <c>null</c> when not found</returns>
+  /// <returns><see cref="Aggregate{TAggregate}"/> of type <c>TAggregate</c> or <c>null</c> when not found</returns>
   Task<TAggregate?> RehydrateAsync<TAggregate>(Guid partitionId, Guid aggregateId,
     CancellationToken cancellationToken = default) where TAggregate : Aggregate, new();
   
@@ -24,7 +24,7 @@ public interface IAggregateService
   /// <param name="date">Date up to which to rehydrate <see cref="Aggregate{TAggregate}"/></param>
   /// <param name="cancellationToken">Cancellation Token</param>
   /// <typeparam name="TAggregate">Type of <see cref="Aggregate{TAggregate}"/></typeparam>
-  /// <returns><see cref="Aggregate{TAggregate}"/> of type <see cref="TAggregate"/> as it was on <c>date</c> or null when not found</returns>
+  /// <returns><see cref="Aggregate{TAggregate}"/> of type <c>TAggregate</c> as it was on <c>date</c> or null when not found</returns>
   Task<TAggregate?> RehydrateAsync<TAggregate>(Guid partitionId, Guid aggregateId, DateTimeOffset date,
     CancellationToken cancellationToken = default) where TAggregate : Aggregate, new();
   
@@ -70,7 +70,7 @@ public interface IAggregateService
   /// <param name="aggregateId">Unique identifier of <see cref="Aggregate{TAggregate}"/> to rehydrate</param>
   /// <param name="cancellationToken">Cancellation Token</param>
   /// <typeparam name="TAggregate">Type of <see cref="Aggregate{TAggregate}"/></typeparam>
-  /// <returns><see cref="Aggregate{TAggregate}"/> of type <see cref="TAggregate"/> or null when not found</returns>
+  /// <returns><see cref="Aggregate{TAggregate}"/> of type <c>TAggregate</c> or null when not found</returns>
   public async Task<TAggregate?> RehydrateAsync<TAggregate>(Guid aggregateId,
     CancellationToken cancellationToken = default) where TAggregate : Aggregate, new() =>
     await RehydrateAsync<TAggregate>(Guid.Empty, aggregateId, cancellationToken);
@@ -82,7 +82,7 @@ public interface IAggregateService
   /// <param name="date">Date up to which to rehydrate <see cref="Aggregate{TAggregate}"/></param>
   /// <param name="cancellationToken">Cancellation Token</param>
   /// <typeparam name="TAggregate">Type of <see cref="Aggregate{TAggregate}"/></typeparam>
-  /// <returns><see cref="Aggregate{TAggregate}"/> of type <see cref="TAggregate"/> as it was on <c>date</c> or null when not found</returns>
+  /// <returns><see cref="Aggregate{TAggregate}"/> of type <c>TAggregate</c> as it was on <c>date</c> or null when not found</returns>
   public async Task<TAggregate?> RehydrateAsync<TAggregate>(Guid aggregateId, DateTimeOffset date,
     CancellationToken cancellationToken = default) where TAggregate : Aggregate, new() =>
     await RehydrateAsync<TAggregate>(Guid.Empty, aggregateId, date, cancellationToken);
@@ -95,7 +95,7 @@ public interface IAggregateService
   /// <param name="action"><c>Action</c> to take before Persisting</param>
   /// <param name="cancellationToken">Cancellation Token</param>
   /// <typeparam name="TAggregate">Type of <see cref="Aggregate{TAggregate}"/></typeparam>
-  /// <returns><see cref="Aggregate{TAggregate}"/> of type <see cref="TAggregate"/> or null when not found</returns>
+  /// <returns><see cref="Aggregate{TAggregate}"/> of type <c>TAggregate</c> or null when not found</returns>
   public async Task<TAggregate> RehydrateAndPersistAsync<TAggregate>(Guid partitionId, Guid aggregateId, Action<TAggregate> action,
     CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
   {
@@ -115,7 +115,7 @@ public interface IAggregateService
   /// <param name="action"><c>Action</c> to take before Persisting</param>
   /// <param name="cancellationToken">Cancellation Token</param>
   /// <typeparam name="TAggregate">Type of <see cref="Aggregate{TAggregate}"/></typeparam>
-  /// <returns><see cref="Aggregate{TAggregate}"/> of type <see cref="TAggregate"/> or null when not found</returns>
+  /// <returns><see cref="Aggregate{TAggregate}"/> of type <c>TAggregate</c> or null when not found</returns>
   public async Task<TAggregate> RehydrateAndPersistAsync<TAggregate>(Guid aggregateId, Action<TAggregate> action,
     CancellationToken cancellationToken = default) where TAggregate : Aggregate, new() =>
     await RehydrateAndPersistAsync(Guid.Empty, aggregateId, action, cancellationToken);

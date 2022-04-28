@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace Finaps.EventSourcing.Core;
 
-public sealed class RecordTypeCache
+internal sealed class RecordTypeCache
 {
     // Static RecordTypes cache
     private static readonly List<Type> AssemblyRecordTypes = AppDomain.CurrentDomain

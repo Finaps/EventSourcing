@@ -207,14 +207,12 @@ public class RecordContext : DbContext
   }
 
   /// <summary>
-  /// See get all public, non-abstract types with a default constructor assignable from <see cref="T"/>
+  /// See get all public, non-abstract types with a default constructor assignable from <c>T</c>
   /// </summary>
   /// <typeparam name="T"><see cref="Type"/></typeparam>
   /// <returns></returns>
   private static List<Type> GetAssemblyTypes<T>() => AppDomain.CurrentDomain
     .GetAssemblies().SelectMany(x => x.GetTypes())
-    .Where(type => typeof(T).IsAssignableFrom(type) && type.IsPublic && type.IsClass && !type.IsAbstract &&
-                   !type.IsGenericType &&
-                   type.GetConstructor(Type.EmptyTypes) != null)
+    .Where(type => typeof(T).IsAssignableFrom(type) && type.IsPublic && type.IsClass && !type.IsAbstract && !type.IsGenericType)
     .ToList();
 }

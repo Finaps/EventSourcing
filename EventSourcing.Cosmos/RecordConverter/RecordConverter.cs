@@ -19,7 +19,7 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
   /// </summary>
   /// <param name="options">
   /// Optional <see cref="RecordConverterOptions"/> to override the <see cref="Record"/> types
-  /// and <see cref="IEventMigrator"/> types that are used for deserialization and migrating.
+  /// that are used for deserialization and migrating.
   /// </param>
   public RecordConverter(RecordConverterOptions? options = null)
   {

@@ -1,7 +1,7 @@
 namespace Finaps.EventSourcing.Core;
 
 /// <summary>
-/// Provides Extension Methods to work with IQueryable & IAsyncEnumerable types
+/// Provides Extension Methods to work with IQueryable and IAsyncEnumerable types
 /// </summary>
 public static class QueryableExtensions
 {

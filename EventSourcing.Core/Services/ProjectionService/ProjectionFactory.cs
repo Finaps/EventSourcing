@@ -3,7 +3,7 @@ using System.Reflection;
 namespace Finaps.EventSourcing.Core;
 
 /// <summary>
-/// Create <see cref="TProjection"/> for <see cref="TAggregate"/>
+/// Create <c>TProjection</c> for <c>TAggregate</c>
 /// </summary>
 /// <typeparam name="TAggregate"><see cref="Aggregate{TAggregate}"/> type</typeparam>
 /// <typeparam name="TProjection"><see cref="Projection"/> type</typeparam>
@@ -31,17 +31,19 @@ public abstract class ProjectionFactory<TAggregate, TProjection> : IProjectionFa
   };
   
   /// <summary>
-  /// Create <see cref="TProjection"/> for <see cref="TAggregate"/>
+  /// Create <c>TProjection</c> for <c>TAggregate</c>
   /// </summary>
-  /// <param name="aggregate">Source <see cref="TAggregate"/></param>
-  /// <returns>Resulting <see cref="TProjection"/> of <see cref="TAggregate"/></returns>
+  /// <param name="aggregate">Source <c>TAggregate</c></param>
+  /// <returns>Resulting <c>TProjection</c> of <c>TAggregate</c></returns>
   protected abstract TProjection CreateProjection(TAggregate aggregate);
 
   /// <summary>
-  /// Compute hash for <see cref="TProjection"/>
+  /// Compute hash for <c>TProjection</c>
   /// </summary>
   /// <remarks>
-  /// By default, the IL bytecode of the T<see cref="Aggregate{TAggregate}"/>.<see cref="Aggregate{TAggregate}.Apply"/>
+  /// By default, the IL bytecode of the
+  /// <see cref="Aggregate{TAggregate}"/>.<see cref="Aggregate{TAggregate}.Apply(Event{TAggregate})"/>,
+  /// <see cref="Aggregate{TAggregate}"/>.<see cref="Aggregate{TAggregate}.Apply(Snapshot{TAggregate})"/>
   /// and the <see cref="IProjectionFactory"/>.<see cref="IProjectionFactory.CreateProjection"/> methods,
   /// responsible for generating the T<see cref="Projection"/>, are used to create the hash.
   /// </remarks>

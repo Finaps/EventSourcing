@@ -7,8 +7,19 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Finaps.EventSourcing.EF;
 
+/// <summary>
+/// Finaps.EventSourcing specific extensions for EF Core ModelBuilder
+/// </summary>
 public static class ModelBuilderExtensions
 {
+  /// <summary>
+  /// Create a relation between an Event and the first Event of another Aggregate
+  /// </summary>
+  /// <param name="builder"><see cref="ModelBuilder"/></param>
+  /// <param name="navigation">Navigation to property that maps to related <c>AggregateId</c></param>
+  /// <typeparam name="TEvent">Dependent Event Type</typeparam>
+  /// <typeparam name="TAggregate">Principal Aggregate Type</typeparam>
+  /// <returns><see cref="ReferenceCollectionBuilder"/> such that the reference can be further configured</returns>
   public static ReferenceCollectionBuilder<Event<TAggregate>, TEvent> AggregateReference<TEvent, TAggregate>(
     this ModelBuilder builder, Expression<Func<TEvent, Guid?>> navigation) 
     where TEvent : Event where TAggregate : Aggregate, new()
