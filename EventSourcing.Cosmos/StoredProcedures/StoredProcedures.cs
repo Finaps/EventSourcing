@@ -2,7 +2,9 @@ namespace Finaps.EventSourcing.Cosmos;
 
 public static class StoredProcedures
 {
-    // String of the JS function deleteAggregateAll that is uploaded as a stored procedure
+    /// <summary>
+    /// String of the JS function deleteAggregateAll that is uploaded as a stored procedure
+    /// </summary>
     public const string DeleteAggregateAll = @"/**
  * A Cosmos DB stored procedure that bulk deletes documents for a given partitionId and aggregateId.<br/>
  * Note: You may need to execute this sproc multiple times (depending whether the sproc is able to delete every document within the execution timeout limit).
@@ -121,7 +123,9 @@ function deleteAggregateAll(containerId, partitionId, aggregateId) {
     
     ";
     
-    // String of the JS function deleteAllEvents that is uploaded as a stored procedure
+    /// <summary>
+    /// String of the JS function deleteAllEvents that is uploaded as a stored procedure
+    /// </summary>
     public const string DeleteAllEvents = @"/**
  * A Cosmos DB stored procedure that bulk deletes documents for a given partitionId and aggregateId.<br/>
  * Note: You may need to execute this sproc multiple times (depending whether the sproc is able to delete every document within the execution timeout limit).
@@ -243,7 +247,9 @@ function deleteAllEvents(containerId, partitionId, aggregateId, recordKind) {
     
     ";
     
-    // String of the JS function deleteAllSnapshots that is uploaded as a stored procedure
+    /// <summary>
+    /// String of the JS function deleteAllSnapshots that is uploaded as a stored procedure
+    /// </summary>
     public const string DeleteAllSnapshots = @"/**
  * A Cosmos DB stored procedure that bulk deletes documents for a given partitionId and aggregateId.<br/>
  * Note: You may need to execute this sproc multiple times (depending whether the sproc is able to delete every document within the execution timeout limit).

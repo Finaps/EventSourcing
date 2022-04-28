@@ -9,7 +9,7 @@ public static class RecordValidation
   /// Validate Snapshot
   /// </summary>
   /// <param name="partitionId">Partition Id <see cref="Snapshot"/> is expected to have</param>
-  /// <param name="snapshot"><see cref="Snapshot"/> to validate</param>
+  /// <param name="s"><see cref="Snapshot"/> to validate</param>
   public static void ValidateSnapshot(Guid partitionId, Snapshot s)
   {
     if (s.PartitionId != partitionId)
@@ -25,7 +25,7 @@ public static class RecordValidation
   /// Validate Snapshot
   /// </summary>
   /// <param name="partitionId">Partition Id <see cref="Snapshot"/> is expected to have</param>
-  /// <param name="snapshot"><see cref="Snapshot"/> to validate</param>
+  /// <param name="e"><see cref="Event"/> to validate</param>
   public static void ValidateEvent(Guid partitionId, Event e)
   {
     if (e.PartitionId != partitionId)

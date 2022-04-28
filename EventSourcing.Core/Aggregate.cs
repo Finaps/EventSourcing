@@ -7,11 +7,12 @@ namespace Finaps.EventSourcing.Core;
 /// </summary>
 /// <remarks>
 /// <para>
-/// To create a new Aggregate type, subclass <see cref="Aggregate{TAggregate}"/> and implement the <see cref="Apply"/> method
-/// for every applicable <see cref="Event"/>.
+/// To create a new Aggregate type, subclass <see cref="Aggregate{TAggregate}"/> and implement the
+/// <see cref="Aggregate{TAggregate}.Apply(Event{TAggregate})"/> method for every applicable <see cref="Event"/>.
 /// </para>
 /// <para>
-/// Aggregates should only be updated by adding <see cref="Event"/>s to it using the <see cref="Apply{TEvent}"/> method.
+/// Aggregates should only be updated by adding <see cref="Event"/>s to it using the
+/// <see cref="Aggregate{TAggregate}.Apply(Event{TAggregate})"/> method.
 /// </para>
 /// <para>
 /// To Persist and Rehydrate Aggregates, please refer to the <see cref="IAggregateService"/>.
@@ -79,11 +80,6 @@ public abstract class Aggregate : IHashable
   /// <para>
   /// The <see cref="IAggregateService"/> expects Aggregates to always have a default constructor.
   /// </para>
-  /// <para>
-  /// To create/update this Aggregate, rather than defining a custom constructor,
-  /// Add <see cref="Event"/>s to it using the <see cref="Apply{TEvent}"/> method
-  /// and resolve them using the <see cref="Apply"/> method.
-  /// </para>
   /// </remarks>
   internal Aggregate()
   {
@@ -92,30 +88,25 @@ public abstract class Aggregate : IHashable
   }
 
   internal abstract Task RehydrateAsync(Snapshot? snapshot, IAsyncEnumerable<Event> events, CancellationToken cancellationToken = default);
+  
+  /// <summary>
+  /// Compute Hash representing the logic of the Apply methods (Event and Snapshot).
+  /// The hash is used to determine if projections created from this <see cref="Aggregate{TAggregate}"/> are up to date.
+  /// </summary>
+  /// <remarks>
+  /// If the Apply methods (Event and Snapshot) rely on domain logic not directly present in their bodies,
+  /// consider overwriting <see cref="ComputeHash"/> to include the dependent methods in the hash calculation.
+  /// </remarks>
+  /// <seealso cref="Projection"/>
+  /// <seealso cref="ProjectionFactory{TAggregate,TProjection}"/>
+  /// <seealso cref="IHashable"/>
+  /// <returns>String representing the Apply(Event) and Apply(Snapshot) methods</returns>
   public virtual string ComputeHash() => "";
 }
 
-/// <summary>
-/// An <see cref="Aggregate{TAggregate}"/> represents an aggregation of one or more <see cref="Event"/>s.
-/// </summary>
-/// <remarks>
-/// <para>
-/// To create a new Aggregate type, subclass <see cref="Aggregate{TAggregate}"/> and implement the <see cref="Apply"/> method
-/// for every applicable <see cref="Event"/>.
-/// </para>
-/// <para>
-/// Aggregates should only be updated by adding <see cref="Event"/>s to it using the <see cref="Apply{TEvent}"/> method.
-/// </para>
-/// <para>
-/// To Persist and Rehydrate Aggregates, please refer to the <see cref="IAggregateService"/>.
-/// </para>
-/// </remarks>
-/// <seealso cref="Event"/>
-/// <seealso cref="IAggregateService"/>
+/// <inheritdoc />
 public abstract class Aggregate<TAggregate> : Aggregate where TAggregate : Aggregate, new()
 {
-  protected Aggregate() {}
-  
   internal override async Task RehydrateAsync(Snapshot? snapshot, IAsyncEnumerable<Event> events, CancellationToken cancellationToken = default)
   {
     if (snapshot != null) 
@@ -136,7 +127,7 @@ public abstract class Aggregate<TAggregate> : Aggregate where TAggregate : Aggre
   /// <typeparam name="TEvent"><see cref="Event"/> Type</typeparam>
   /// <returns>
   /// Copy of added <see cref="Event"/> with updated
-  /// <see cref="Event.PartitionId"/>, <see cref="Event.AggregateId"/>, <see cref="Event.AggregateType"/> and <see cref="Event.Index"/>
+  /// <see cref="Record.PartitionId"/>, <see cref="Record.AggregateId"/>, <see cref="Record.AggregateType"/> and <see cref="Event.Index"/>
   /// </returns>
   /// <exception cref="ArgumentException">Thrown when an invalid <see cref="Event"/> is added.</exception>
   /// <exception cref="ArgumentException">Thrown when a <see cref="Snapshot"/> is added.</exception>
@@ -162,24 +153,19 @@ public abstract class Aggregate<TAggregate> : Aggregate where TAggregate : Aggre
   /// Use this method to add aggregation logic to your aggregate.
   /// </remarks>
   /// <example>
-  /// <code>
-  /// protected override void Apply(Event e)
-  /// {
-  ///  switch (e)
-  ///  {
-  ///   case EventType1 e1:
-  ///     // Update according to e1
-  ///     break;
-  ///   case EventType2 e2:
-  ///     // Update according to e2
-  ///     break;
-  ///   }
-  /// }
-  /// </code>
   /// </example>
   /// <param name="e"><see cref="Event"/> to apply</param>
   protected abstract void Apply(Event<TAggregate> e);
 
+  /// <summary>
+  /// Apply <see cref="Event"/> to <see cref="Aggregate{TAggregate}"/>
+  /// </summary>
+  /// <remarks>
+  /// Use this method to add aggregation logic to your aggregate.
+  /// </remarks>
+  /// <example>
+  /// </example>
+  /// <param name="s"><see cref="Snapshot"/> to apply</param>
   protected virtual void Apply(Snapshot<TAggregate> s) { }
 
   private void ValidateAndApply(Event e)
@@ -203,19 +189,7 @@ public abstract class Aggregate<TAggregate> : Aggregate where TAggregate : Aggre
     Version = s.Index + 1;
   }
 
-  /// <summary>
-  /// Compute Hash representing the logic of this <see cref="Aggregate{TAggregate}"/>.<see cref="Aggregate{TAggregate}.Apply"/> method.
-  /// The hash is used to determine if projections created from this <see cref="Aggregate{TAggregate}"/> are up to date.
-  /// </summary>
-  /// <remarks>
-  /// If the <see cref="Aggregate{TAggregate}"/>.<see cref="Aggregate{TAggregate}.Apply"/> method relies on domain logic not directly present in
-  /// the <see cref="Aggregate{TAggregate}"/>.<see cref="Aggregate{TAggregate}.Apply"/> body, consider overwriting <see cref="ComputeHash"/> to
-  /// include the dependent methods in the hash calculation.
-  /// </remarks>
-  /// <seealso cref="Projection"/>
-  /// <seealso cref="ProjectionFactory{TAggregate,TProjection}"/>
-  /// <seealso cref="IHashable"/>
-  /// <returns></returns>
+  /// <inheritdoc />
   public override string ComputeHash() => IHashable.CombineHashes(
     IHashable.ComputeMethodHash(GetType().GetMethod(nameof(Apply),
       types: new[] { typeof(Event<TAggregate>) },

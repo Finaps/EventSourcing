@@ -1,45 +1,23 @@
 namespace Finaps.EventSourcing.Core.Tests.Mocks;
 
-public abstract record BankAccountEvent : Event<BankAccount>;
+public record BankAccountCreatedEvent(string Name, string Iban) : Event<BankAccount>;
 
-public record BankAccountCreatedEvent : BankAccountEvent
-{
-  public string Name { get; init; }
-  public string Iban { get; init; }
-}
+public abstract record BankAccountFundsEvent(decimal Amount) : Event<BankAccount>;
 
-public abstract record BankAccountFundsEvent : BankAccountEvent
-{
-  public decimal Amount { get; init; }
-}
+public record BankAccountFundsDepositedEvent(decimal Amount) : BankAccountFundsEvent(Amount);
 
-public record BankAccountFundsDepositedEvent : BankAccountFundsEvent;
+public record BankAccountFundsWithdrawnEvent(decimal Amount) : BankAccountFundsEvent(Amount);
 
-public record BankAccountFundsWithdrawnEvent : BankAccountFundsEvent;
+public record BankAccountFundsTransferredEvent(decimal Amount, Guid DebtorAccount, Guid CreditorAccount) : BankAccountFundsEvent(Amount);
 
-public record BankAccountFundsTransferredEvent : BankAccountFundsEvent
-{
-  public Guid DebtorAccount { get; init; }
-  public Guid CreditorAccount { get; init; }
-}
+public record BankAccountSnapshot(string Name, string Iban, decimal Balance) : Snapshot<BankAccount>;
 
-public record BankAccountSnapshot : Snapshot<BankAccount>
-{
-  public string Name { get; init; }
-  public string Iban { get; init; }
-  public decimal Balance { get; init; }
-}
-
-public record BankAccountProjection : Projection
-{
-  public string Name { get; init; }
-  public string Iban { get; init; }
-}
+public record BankAccountProjection(string Name, string Iban) : Projection;
 
 public class BankAccount : Aggregate<BankAccount>
 {
-  public string Name { get; private set; }
-  public string Iban { get; private set; }
+  public string? Name { get; private set; }
+  public string? Iban { get; private set; }
   public decimal Balance { get; private set; }
 
   protected override void Apply(Event<BankAccount> e)
@@ -86,34 +64,18 @@ public class BankAccount : Aggregate<BankAccount>
         break;
     }
   }
-
-  public void Create(string name, string iban) =>
-    Apply(new BankAccountCreatedEvent { Name = name, Iban = iban });
-
-  public void Deposit(decimal amount) =>
-    Apply(new BankAccountFundsDepositedEvent { Amount = amount });
-
-  public void Withdraw(decimal amount) =>
-    Apply(new BankAccountFundsWithdrawnEvent { Amount = amount });
 }
 
 public class BankAccountSnapshotFactory : SnapshotFactory<BankAccount, BankAccountSnapshot>
 {
   public override long SnapshotInterval => 10;
 
-  protected override BankAccountSnapshot CreateSnapshot(BankAccount aggregate) => new BankAccountSnapshot()
-  {
-    Name = aggregate.Name,
-    Iban = aggregate.Iban,
-    Balance = aggregate.Balance
-  };
+  protected override BankAccountSnapshot CreateSnapshot(BankAccount aggregate) =>
+    new (Name: aggregate.Name!, Iban: aggregate.Iban!, Balance: aggregate.Balance);
 }
 
 public class BankAccountProjectionFactory : ProjectionFactory<BankAccount, BankAccountProjection>
 {
-  protected override BankAccountProjection CreateProjection(BankAccount aggregate) => new BankAccountProjection()
-  {
-    Name = aggregate.Name.ToUpper(),
-    Iban = aggregate.Iban
-  };
+  protected override BankAccountProjection CreateProjection(BankAccount aggregate) =>
+    new (aggregate.Name?.ToUpper()!, aggregate.Iban!);
 }

@@ -28,7 +28,9 @@ public record Snapshot : Record
   public override string id => $"{Kind.ToString()}|{AggregateId}[{Index}]";
 }
 
+/// <inheritdoc />
 public record Snapshot<TAggregate> : Snapshot where TAggregate : Aggregate, new()
 {
+  /// <inheritdoc />
   public Snapshot() => AggregateType = typeof(TAggregate).Name;
 }

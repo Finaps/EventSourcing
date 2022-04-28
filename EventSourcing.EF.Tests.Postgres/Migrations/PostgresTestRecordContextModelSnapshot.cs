@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
+namespace EventSourcing.EF.Tests.Postgres.Migrations
 {
     [DbContext(typeof(PostgresTestRecordContext))]
     partial class PostgresTestRecordContextModelSnapshot : ModelSnapshot
@@ -23,7 +23,7 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.BankAccount>", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.BankAccount>", b =>
                 {
                     b.Property<Guid>("PartitionId")
                         .HasColumnType("uuid");
@@ -76,7 +76,7 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_BankAccountEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.EmptyAggregate>", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.EmptyAggregate>", b =>
                 {
                     b.Property<Guid>("PartitionId")
                         .HasColumnType("uuid");
@@ -129,7 +129,7 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_EmptyAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.MockAggregate>", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.MockAggregate>", b =>
                 {
                     b.Property<Guid>("PartitionId")
                         .HasColumnType("uuid");
@@ -182,7 +182,7 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_MockAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.SimpleAggregate>", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.SimpleAggregate>", b =>
                 {
                     b.Property<Guid>("PartitionId")
                         .HasColumnType("uuid");
@@ -235,7 +235,7 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_SimpleAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.SnapshotAggregate>", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.SnapshotAggregate>", b =>
                 {
                     b.Property<Guid>("PartitionId")
                         .HasColumnType("uuid");
@@ -288,7 +288,7 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_SnapshotAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Event<EventSourcing.EF.Tests.Mocks.ReferenceAggregate>", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.EF.Tests.Mocks.ReferenceAggregate>", b =>
                 {
                     b.Property<Guid>("PartitionId")
                         .HasColumnType("uuid");
@@ -341,7 +341,7 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_ReferenceAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.BankAccount>", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Snapshot<Finaps.EventSourcing.Core.Tests.Mocks.BankAccount>", b =>
                 {
                     b.Property<Guid>("PartitionId")
                         .HasColumnType("uuid");
@@ -382,7 +382,7 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_BankAccountSnapshots_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.EmptyAggregate>", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Snapshot<Finaps.EventSourcing.Core.Tests.Mocks.EmptyAggregate>", b =>
                 {
                     b.Property<Guid>("PartitionId")
                         .HasColumnType("uuid");
@@ -423,7 +423,7 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_EmptyAggregateSnapshots_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.MockAggregate>", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Snapshot<Finaps.EventSourcing.Core.Tests.Mocks.MockAggregate>", b =>
                 {
                     b.Property<Guid>("PartitionId")
                         .HasColumnType("uuid");
@@ -464,7 +464,7 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_MockAggregateSnapshots_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.SimpleAggregate>", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Snapshot<Finaps.EventSourcing.Core.Tests.Mocks.SimpleAggregate>", b =>
                 {
                     b.Property<Guid>("PartitionId")
                         .HasColumnType("uuid");
@@ -501,7 +501,7 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_SimpleAggregateSnapshots_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.SnapshotAggregate>", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Snapshot<Finaps.EventSourcing.Core.Tests.Mocks.SnapshotAggregate>", b =>
                 {
                     b.Property<Guid>("PartitionId")
                         .HasColumnType("uuid");
@@ -542,7 +542,7 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_SnapshotAggregateSnapshots_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Snapshot<EventSourcing.EF.Tests.Mocks.ReferenceAggregate>", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Snapshot<Finaps.EventSourcing.EF.Tests.Mocks.ReferenceAggregate>", b =>
                 {
                     b.Property<Guid>("PartitionId")
                         .HasColumnType("uuid");
@@ -579,7 +579,7 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_ReferenceAggregateSnapshots_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.BankAccountProjection", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Tests.Mocks.BankAccountProjection", b =>
                 {
                     b.Property<Guid>("PartitionId")
                         .HasColumnType("uuid");
@@ -596,7 +596,6 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Hash")
-                        .IsRequired()
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");
 
@@ -632,7 +631,7 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     b.ToTable("BankAccountProjection");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.EmptyProjection", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Tests.Mocks.EmptyProjection", b =>
                 {
                     b.Property<Guid>("PartitionId")
                         .HasColumnType("uuid");
@@ -649,7 +648,6 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Hash")
-                        .IsRequired()
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");
 
@@ -677,7 +675,7 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     b.ToTable("EmptyProjection");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.MockAggregateProjection", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Tests.Mocks.MockAggregateProjection", b =>
                 {
                     b.Property<Guid>("PartitionId")
                         .HasColumnType("uuid");
@@ -694,7 +692,6 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Hash")
-                        .IsRequired()
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");
 
@@ -756,9 +753,9 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_MockAggregateProjection_MockEnum_Enum", "\"MockEnum\" IN (0, 1, 2)");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.BankAccountCreatedEvent", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Tests.Mocks.BankAccountCreatedEvent", b =>
                 {
-                    b.HasBaseType("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.BankAccount>");
+                    b.HasBaseType("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.BankAccount>");
 
                     b.Property<string>("Iban")
                         .IsRequired()
@@ -777,9 +774,9 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_BankAccountCreatedEvent_NotNull", "NOT \"Type\" = 'BankAccountCreatedEvent' OR (\"Name\" IS NOT NULL AND \"Iban\" IS NOT NULL)");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.BankAccountFundsDepositedEvent", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Tests.Mocks.BankAccountFundsDepositedEvent", b =>
                 {
-                    b.HasBaseType("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.BankAccount>");
+                    b.HasBaseType("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.BankAccount>");
 
                     b.Property<decimal>("Amount")
                         .ValueGeneratedOnUpdateSometimes()
@@ -794,9 +791,9 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_BankAccountFundsDepositedEvent_NotNull", "NOT \"Type\" = 'BankAccountFundsDepositedEvent' OR (\"Amount\" IS NOT NULL)");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.BankAccountFundsTransferredEvent", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Tests.Mocks.BankAccountFundsTransferredEvent", b =>
                 {
-                    b.HasBaseType("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.BankAccount>");
+                    b.HasBaseType("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.BankAccount>");
 
                     b.Property<decimal>("Amount")
                         .ValueGeneratedOnUpdateSometimes()
@@ -817,9 +814,9 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_BankAccountFundsTransferredEvent_NotNull", "NOT \"Type\" = 'BankAccountFundsTransferredEvent' OR (\"DebtorAccount\" IS NOT NULL AND \"CreditorAccount\" IS NOT NULL AND \"Amount\" IS NOT NULL)");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.BankAccountFundsWithdrawnEvent", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Tests.Mocks.BankAccountFundsWithdrawnEvent", b =>
                 {
-                    b.HasBaseType("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.BankAccount>");
+                    b.HasBaseType("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.BankAccount>");
 
                     b.Property<decimal>("Amount")
                         .ValueGeneratedOnUpdateSometimes()
@@ -834,9 +831,9 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_BankAccountFundsWithdrawnEvent_NotNull", "NOT \"Type\" = 'BankAccountFundsWithdrawnEvent' OR (\"Amount\" IS NOT NULL)");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.BankAccountSnapshot", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Tests.Mocks.BankAccountSnapshot", b =>
                 {
-                    b.HasBaseType("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.BankAccount>");
+                    b.HasBaseType("Finaps.EventSourcing.Core.Snapshot<Finaps.EventSourcing.Core.Tests.Mocks.BankAccount>");
 
                     b.Property<decimal>("Balance")
                         .HasColumnType("numeric");
@@ -858,9 +855,9 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_BankAccountSnapshot_NotNull", "NOT \"Type\" = 'BankAccountSnapshot' OR (\"Name\" IS NOT NULL AND \"Iban\" IS NOT NULL AND \"Balance\" IS NOT NULL)");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.EmptyEvent", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Tests.Mocks.EmptyEvent", b =>
                 {
-                    b.HasBaseType("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.EmptyAggregate>");
+                    b.HasBaseType("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.EmptyAggregate>");
 
                     b.HasDiscriminator().HasValue("EmptyEvent");
 
@@ -869,9 +866,9 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_EmptyAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.EmptySnapshot", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Tests.Mocks.EmptySnapshot", b =>
                 {
-                    b.HasBaseType("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.EmptyAggregate>");
+                    b.HasBaseType("Finaps.EventSourcing.Core.Snapshot<Finaps.EventSourcing.Core.Tests.Mocks.EmptyAggregate>");
 
                     b.HasDiscriminator().HasValue("EmptySnapshot");
 
@@ -880,9 +877,9 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_EmptyAggregateSnapshots_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.MockEvent", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Tests.Mocks.MockEvent", b =>
                 {
-                    b.HasBaseType("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.MockAggregate>");
+                    b.HasBaseType("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.MockAggregate>");
 
                     b.Property<bool>("MockBoolean")
                         .HasColumnType("boolean");
@@ -928,9 +925,9 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_MockEvent_NotNull", "NOT \"Type\" = 'MockEvent' OR (\"MockBoolean\" IS NOT NULL AND \"MockString\" IS NOT NULL AND \"MockDecimal\" IS NOT NULL AND \"MockDouble\" IS NOT NULL AND \"MockEnum\" IS NOT NULL AND \"MockFlagEnum\" IS NOT NULL AND \"MockFloatList\" IS NOT NULL AND \"MockStringSet\" IS NOT NULL)");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.MockSnapshot", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Tests.Mocks.MockSnapshot", b =>
                 {
-                    b.HasBaseType("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.MockAggregate>");
+                    b.HasBaseType("Finaps.EventSourcing.Core.Snapshot<Finaps.EventSourcing.Core.Tests.Mocks.MockAggregate>");
 
                     b.Property<bool>("MockBoolean")
                         .HasColumnType("boolean");
@@ -976,9 +973,9 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_MockSnapshot_NotNull", "NOT \"Type\" = 'MockSnapshot' OR (\"MockBoolean\" IS NOT NULL AND \"MockString\" IS NOT NULL AND \"MockDecimal\" IS NOT NULL AND \"MockDouble\" IS NOT NULL AND \"MockEnum\" IS NOT NULL AND \"MockFlagEnum\" IS NOT NULL AND \"MockFloatList\" IS NOT NULL AND \"MockStringSet\" IS NOT NULL)");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.SimpleEvent", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Tests.Mocks.SimpleEvent", b =>
                 {
-                    b.HasBaseType("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.SimpleAggregate>");
+                    b.HasBaseType("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.SimpleAggregate>");
 
                     b.HasDiscriminator().HasValue("SimpleEvent");
 
@@ -987,9 +984,9 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_SimpleAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.SnapshotEvent", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Tests.Mocks.SnapshotEvent", b =>
                 {
-                    b.HasBaseType("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.SnapshotAggregate>");
+                    b.HasBaseType("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.SnapshotAggregate>");
 
                     b.HasDiscriminator().HasValue("SnapshotEvent");
 
@@ -998,9 +995,9 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_SnapshotAggregateEvents_NonNegativeIndex", "\"Index\" >= 0");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.SnapshotSnapshot", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Tests.Mocks.SnapshotSnapshot", b =>
                 {
-                    b.HasBaseType("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.SnapshotAggregate>");
+                    b.HasBaseType("Finaps.EventSourcing.Core.Snapshot<Finaps.EventSourcing.Core.Tests.Mocks.SnapshotAggregate>");
 
                     b.Property<int>("Counter")
                         .HasColumnType("integer");
@@ -1014,9 +1011,9 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_SnapshotSnapshot_NotNull", "NOT \"Type\" = 'SnapshotSnapshot' OR (\"Counter\" IS NOT NULL)");
                 });
 
-            modelBuilder.Entity("EventSourcing.EF.Tests.Mocks.ReferenceEvent", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.EF.Tests.Mocks.ReferenceEvent", b =>
                 {
-                    b.HasBaseType("EventSourcing.Core.Event<EventSourcing.EF.Tests.Mocks.ReferenceAggregate>");
+                    b.HasBaseType("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.EF.Tests.Mocks.ReferenceAggregate>");
 
                     b.Property<Guid?>("EmptyAggregateId")
                         .IsRequired()
@@ -1038,117 +1035,117 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     b.HasCheckConstraint("CK_ReferenceEvent_NotNull", "NOT \"Type\" = 'ReferenceEvent' OR (\"ReferenceAggregateId\" IS NOT NULL)");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.BankAccount>", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.BankAccount>", b =>
                 {
-                    b.HasOne("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.BankAccount>", null)
+                    b.HasOne("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.BankAccount>", null)
                         .WithOne()
-                        .HasForeignKey("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.BankAccount>", "PartitionId", "AggregateId", "PreviousIndex")
+                        .HasForeignKey("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.BankAccount>", "PartitionId", "AggregateId", "PreviousIndex")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_BankAccountEvents_ConsecutiveIndex");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.EmptyAggregate>", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.EmptyAggregate>", b =>
                 {
-                    b.HasOne("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.EmptyAggregate>", null)
+                    b.HasOne("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.EmptyAggregate>", null)
                         .WithOne()
-                        .HasForeignKey("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.EmptyAggregate>", "PartitionId", "AggregateId", "PreviousIndex")
+                        .HasForeignKey("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.EmptyAggregate>", "PartitionId", "AggregateId", "PreviousIndex")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_EmptyAggregateEvents_ConsecutiveIndex");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.MockAggregate>", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.MockAggregate>", b =>
                 {
-                    b.HasOne("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.MockAggregate>", null)
+                    b.HasOne("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.MockAggregate>", null)
                         .WithOne()
-                        .HasForeignKey("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.MockAggregate>", "PartitionId", "AggregateId", "PreviousIndex")
+                        .HasForeignKey("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.MockAggregate>", "PartitionId", "AggregateId", "PreviousIndex")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_MockAggregateEvents_ConsecutiveIndex");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.SimpleAggregate>", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.SimpleAggregate>", b =>
                 {
-                    b.HasOne("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.SimpleAggregate>", null)
+                    b.HasOne("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.SimpleAggregate>", null)
                         .WithOne()
-                        .HasForeignKey("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.SimpleAggregate>", "PartitionId", "AggregateId", "PreviousIndex")
+                        .HasForeignKey("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.SimpleAggregate>", "PartitionId", "AggregateId", "PreviousIndex")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_SimpleAggregateEvents_ConsecutiveIndex");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.SnapshotAggregate>", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.SnapshotAggregate>", b =>
                 {
-                    b.HasOne("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.SnapshotAggregate>", null)
+                    b.HasOne("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.SnapshotAggregate>", null)
                         .WithOne()
-                        .HasForeignKey("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.SnapshotAggregate>", "PartitionId", "AggregateId", "PreviousIndex")
+                        .HasForeignKey("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.SnapshotAggregate>", "PartitionId", "AggregateId", "PreviousIndex")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_SnapshotAggregateEvents_ConsecutiveIndex");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Event<EventSourcing.EF.Tests.Mocks.ReferenceAggregate>", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.EF.Tests.Mocks.ReferenceAggregate>", b =>
                 {
-                    b.HasOne("EventSourcing.Core.Event<EventSourcing.EF.Tests.Mocks.ReferenceAggregate>", null)
+                    b.HasOne("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.EF.Tests.Mocks.ReferenceAggregate>", null)
                         .WithOne()
-                        .HasForeignKey("EventSourcing.Core.Event<EventSourcing.EF.Tests.Mocks.ReferenceAggregate>", "PartitionId", "AggregateId", "PreviousIndex")
+                        .HasForeignKey("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.EF.Tests.Mocks.ReferenceAggregate>", "PartitionId", "AggregateId", "PreviousIndex")
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_ReferenceAggregateEvents_ConsecutiveIndex");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.BankAccount>", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Snapshot<Finaps.EventSourcing.Core.Tests.Mocks.BankAccount>", b =>
                 {
-                    b.HasOne("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.BankAccount>", null)
+                    b.HasOne("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.BankAccount>", null)
                         .WithOne()
-                        .HasForeignKey("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.BankAccount>", "PartitionId", "AggregateId", "Index")
+                        .HasForeignKey("Finaps.EventSourcing.Core.Snapshot<Finaps.EventSourcing.Core.Tests.Mocks.BankAccount>", "PartitionId", "AggregateId", "Index")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.EmptyAggregate>", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Snapshot<Finaps.EventSourcing.Core.Tests.Mocks.EmptyAggregate>", b =>
                 {
-                    b.HasOne("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.EmptyAggregate>", null)
+                    b.HasOne("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.EmptyAggregate>", null)
                         .WithOne()
-                        .HasForeignKey("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.EmptyAggregate>", "PartitionId", "AggregateId", "Index")
+                        .HasForeignKey("Finaps.EventSourcing.Core.Snapshot<Finaps.EventSourcing.Core.Tests.Mocks.EmptyAggregate>", "PartitionId", "AggregateId", "Index")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.MockAggregate>", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Snapshot<Finaps.EventSourcing.Core.Tests.Mocks.MockAggregate>", b =>
                 {
-                    b.HasOne("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.MockAggregate>", null)
+                    b.HasOne("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.MockAggregate>", null)
                         .WithOne()
-                        .HasForeignKey("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.MockAggregate>", "PartitionId", "AggregateId", "Index")
+                        .HasForeignKey("Finaps.EventSourcing.Core.Snapshot<Finaps.EventSourcing.Core.Tests.Mocks.MockAggregate>", "PartitionId", "AggregateId", "Index")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.SimpleAggregate>", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Snapshot<Finaps.EventSourcing.Core.Tests.Mocks.SimpleAggregate>", b =>
                 {
-                    b.HasOne("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.SimpleAggregate>", null)
+                    b.HasOne("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.SimpleAggregate>", null)
                         .WithOne()
-                        .HasForeignKey("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.SimpleAggregate>", "PartitionId", "AggregateId", "Index")
+                        .HasForeignKey("Finaps.EventSourcing.Core.Snapshot<Finaps.EventSourcing.Core.Tests.Mocks.SimpleAggregate>", "PartitionId", "AggregateId", "Index")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.SnapshotAggregate>", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Snapshot<Finaps.EventSourcing.Core.Tests.Mocks.SnapshotAggregate>", b =>
                 {
-                    b.HasOne("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.SnapshotAggregate>", null)
+                    b.HasOne("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.SnapshotAggregate>", null)
                         .WithOne()
-                        .HasForeignKey("EventSourcing.Core.Snapshot<EventSourcing.Core.Tests.Mocks.SnapshotAggregate>", "PartitionId", "AggregateId", "Index")
+                        .HasForeignKey("Finaps.EventSourcing.Core.Snapshot<Finaps.EventSourcing.Core.Tests.Mocks.SnapshotAggregate>", "PartitionId", "AggregateId", "Index")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Snapshot<EventSourcing.EF.Tests.Mocks.ReferenceAggregate>", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Snapshot<Finaps.EventSourcing.EF.Tests.Mocks.ReferenceAggregate>", b =>
                 {
-                    b.HasOne("EventSourcing.Core.Event<EventSourcing.EF.Tests.Mocks.ReferenceAggregate>", null)
+                    b.HasOne("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.EF.Tests.Mocks.ReferenceAggregate>", null)
                         .WithOne()
-                        .HasForeignKey("EventSourcing.Core.Snapshot<EventSourcing.EF.Tests.Mocks.ReferenceAggregate>", "PartitionId", "AggregateId", "Index")
+                        .HasForeignKey("Finaps.EventSourcing.Core.Snapshot<Finaps.EventSourcing.EF.Tests.Mocks.ReferenceAggregate>", "PartitionId", "AggregateId", "Index")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.MockAggregateProjection", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Tests.Mocks.MockAggregateProjection", b =>
                 {
-                    b.OwnsOne("EventSourcing.Core.Tests.Mocks.MockNestedRecord", "MockNestedRecord", b1 =>
+                    b.OwnsOne("Finaps.EventSourcing.Core.Tests.Mocks.MockNestedRecord", "MockNestedRecord", b1 =>
                         {
                             b1.Property<Guid>("MockAggregateProjectionPartitionId")
                                 .HasColumnType("uuid");
@@ -1176,7 +1173,7 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                                 .HasForeignKey("MockAggregateProjectionPartitionId", "MockAggregateProjectionAggregateId");
                         });
 
-                    b.OwnsMany("EventSourcing.Core.Tests.Mocks.MockNestedRecordItem", "MockNestedRecordList", b1 =>
+                    b.OwnsMany("Finaps.EventSourcing.Core.Tests.Mocks.MockNestedRecordItem", "MockNestedRecordList", b1 =>
                         {
                             b1.Property<Guid>("MockAggregateProjectionPartitionId")
                                 .HasColumnType("uuid");
@@ -1217,9 +1214,9 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     b.Navigation("MockNestedRecordList");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.MockEvent", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Tests.Mocks.MockEvent", b =>
                 {
-                    b.OwnsOne("EventSourcing.Core.Tests.Mocks.MockNestedRecord", "MockNestedRecord", b1 =>
+                    b.OwnsOne("Finaps.EventSourcing.Core.Tests.Mocks.MockNestedRecord", "MockNestedRecord", b1 =>
                         {
                             b1.Property<Guid>("MockEventPartitionId")
                                 .HasColumnType("uuid");
@@ -1250,7 +1247,7 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                                 .HasForeignKey("MockEventPartitionId", "MockEventAggregateId", "MockEventIndex");
                         });
 
-                    b.OwnsMany("EventSourcing.Core.Tests.Mocks.MockNestedRecordItem", "MockNestedRecordList", b1 =>
+                    b.OwnsMany("Finaps.EventSourcing.Core.Tests.Mocks.MockNestedRecordItem", "MockNestedRecordList", b1 =>
                         {
                             b1.Property<Guid>("MockEventPartitionId")
                                 .HasColumnType("uuid");
@@ -1294,9 +1291,9 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     b.Navigation("MockNestedRecordList");
                 });
 
-            modelBuilder.Entity("EventSourcing.Core.Tests.Mocks.MockSnapshot", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.Core.Tests.Mocks.MockSnapshot", b =>
                 {
-                    b.OwnsOne("EventSourcing.Core.Tests.Mocks.MockNestedRecord", "MockNestedRecord", b1 =>
+                    b.OwnsOne("Finaps.EventSourcing.Core.Tests.Mocks.MockNestedRecord", "MockNestedRecord", b1 =>
                         {
                             b1.Property<Guid>("MockSnapshotPartitionId")
                                 .HasColumnType("uuid");
@@ -1327,7 +1324,7 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                                 .HasForeignKey("MockSnapshotPartitionId", "MockSnapshotAggregateId", "MockSnapshotIndex");
                         });
 
-                    b.OwnsMany("EventSourcing.Core.Tests.Mocks.MockNestedRecordItem", "MockNestedRecordList", b1 =>
+                    b.OwnsMany("Finaps.EventSourcing.Core.Tests.Mocks.MockNestedRecordItem", "MockNestedRecordList", b1 =>
                         {
                             b1.Property<Guid>("MockSnapshotPartitionId")
                                 .HasColumnType("uuid");
@@ -1371,16 +1368,16 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     b.Navigation("MockNestedRecordList");
                 });
 
-            modelBuilder.Entity("EventSourcing.EF.Tests.Mocks.ReferenceEvent", b =>
+            modelBuilder.Entity("Finaps.EventSourcing.EF.Tests.Mocks.ReferenceEvent", b =>
                 {
-                    b.HasOne("EventSourcing.Core.Event<EventSourcing.Core.Tests.Mocks.EmptyAggregate>", null)
+                    b.HasOne("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.Core.Tests.Mocks.EmptyAggregate>", null)
                         .WithMany()
                         .HasForeignKey("PartitionId", "EmptyAggregateId", "ZeroIndex")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_ReferenceEvent_EmptyAggregateId");
 
-                    b.HasOne("EventSourcing.Core.Event<EventSourcing.EF.Tests.Mocks.ReferenceAggregate>", null)
+                    b.HasOne("Finaps.EventSourcing.Core.Event<Finaps.EventSourcing.EF.Tests.Mocks.ReferenceAggregate>", null)
                         .WithMany()
                         .HasForeignKey("PartitionId", "ReferenceAggregateId", "ZeroIndex")
                         .OnDelete(DeleteBehavior.Restrict)

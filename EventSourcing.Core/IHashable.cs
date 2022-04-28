@@ -4,8 +4,14 @@ using System.Text;
 
 namespace Finaps.EventSourcing.Core;
 
+/// <summary>
+/// Represents an Object whose logic can be represented as a hash
+/// </summary>
 public interface IHashable
 {
+  /// <summary>
+  /// Length of MD5 Hash
+  /// </summary>
   const int HashLength = 32;
   
   /// <summary>
@@ -15,10 +21,10 @@ public interface IHashable
   string ComputeHash();
 
   /// <summary>
-  /// Compute hash for Method IL bytecode. Whenever the '<see cref="method"/>' source code changes, this hash changes.
+  /// Compute hash for Method IL bytecode. Whenever the method's source code changes, this hash changes.
   /// </summary>
   /// <remarks>Be aware this method does not recursively capture IL bytecode.
-  /// i.e. if the contents of a method used inside of '<see cref="method"/>' changes,
+  /// i.e. if the contents of a method used inside of the 'method' parameter changes,
   /// the bytecode and thus hash will stay the same.
   /// Use <see cref="CombineHashes"/> to combine the hashes of multiple methods if desired.
   /// </remarks>

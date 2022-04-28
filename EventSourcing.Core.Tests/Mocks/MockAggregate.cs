@@ -36,7 +36,7 @@ public record MockNestedRecordItem
 public interface IMock
 {
   public bool MockBoolean { get; }
-  public string MockString { get; }
+  public string? MockString { get; }
   public string? MockNullableString { get; }
   public decimal MockDecimal { get; }
   public double MockDouble { get; }

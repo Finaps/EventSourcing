@@ -5,7 +5,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
+namespace EventSourcing.EF.Tests.Postgres.Migrations
 {
     public partial class AddInitialMigration : Migration
     {
@@ -59,7 +59,7 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     FactoryType = table.Column<string>(type: "text", nullable: true),
                     Version = table.Column<long>(type: "bigint", nullable: false),
-                    Hash = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false)
+                    Hash = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -103,7 +103,7 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     FactoryType = table.Column<string>(type: "text", nullable: true),
                     Version = table.Column<long>(type: "bigint", nullable: false),
-                    Hash = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false)
+                    Hash = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -177,7 +177,7 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
                     Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     FactoryType = table.Column<string>(type: "text", nullable: true),
                     Version = table.Column<long>(type: "bigint", nullable: false),
-                    Hash = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false)
+                    Hash = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: true)
                 },
                 constraints: table =>
                 {
