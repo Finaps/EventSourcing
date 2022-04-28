@@ -1,6 +1,6 @@
 namespace Finaps.EventSourcing.Cosmos;
 
-public static class StoredProcedures
+internal static class StoredProcedures
 {
     /// <summary>
     /// String of the JS function deleteAggregateAll that is uploaded as a stored procedure
