@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace EventSourcing.Core;
+namespace Finaps.EventSourcing.Core;
 
 /// <summary>
 /// Create <see cref="TProjection"/> for <see cref="TAggregate"/>

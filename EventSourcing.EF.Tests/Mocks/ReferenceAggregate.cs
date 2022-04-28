@@ -1,7 +1,7 @@
 using System;
-using EventSourcing.Core;
+using Finaps.EventSourcing.Core;
 
-namespace EventSourcing.EF.Tests.Mocks;
+namespace Finaps.EventSourcing.EF.Tests.Mocks;
 
 public record ReferenceEvent : Event<ReferenceAggregate>
 {

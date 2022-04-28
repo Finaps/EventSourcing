@@ -5,7 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace EventSourcing.Example.Tests;
+namespace Finaps.EventSourcing.Example.Tests;
 
 public class TestsBase : IAsyncLifetime
 {

@@ -5,4 +5,4 @@ global using System.Collections.Generic;
 
 global using Xunit;
 
-global using EventSourcing.Core.Tests.Mocks;
+global using Finaps.EventSourcing.Core.Tests.Mocks;

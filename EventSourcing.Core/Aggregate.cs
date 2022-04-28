@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace EventSourcing.Core;
+namespace Finaps.EventSourcing.Core;
 
 /// <summary>
 /// An <see cref="Aggregate{TAggregate}"/> represents an aggregation of one or more <see cref="Event"/>s.

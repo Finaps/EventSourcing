@@ -1,4 +1,4 @@
-namespace EventSourcing.Core;
+namespace Finaps.EventSourcing.Core;
 
 /// <summary>
 /// Create <see cref="TSnapshot"/> for <see cref="TAggregate"/>

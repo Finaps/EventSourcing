@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 
-namespace EventSourcing.Example;
+namespace Finaps.EventSourcing.Example;
 
 public class Program
 {

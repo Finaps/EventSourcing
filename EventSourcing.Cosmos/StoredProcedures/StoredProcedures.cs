@@ -1,4 +1,4 @@
-namespace EventSourcing.Cosmos;
+namespace Finaps.EventSourcing.Cosmos;
 
 public static class StoredProcedures
 {

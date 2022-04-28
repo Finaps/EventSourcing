@@ -1,4 +1,4 @@
-namespace EventSourcing.Core;
+namespace Finaps.EventSourcing.Core;
 
 /// <summary>
 /// Provides Extension Methods to work with IQueryable & IAsyncEnumerable types

@@ -1,6 +1,6 @@
-using EventSourcing.Example.Domain.Products;
+using Finaps.EventSourcing.Example.Domain.Products;
 
-namespace EventSourcing.Example.Tests.DTOs;
+namespace Finaps.EventSourcing.Example.Tests.DTOs;
 
 public class ProductDto
 {

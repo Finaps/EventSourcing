@@ -1,7 +1,8 @@
 using System.Linq;
-using EventSourcing.Example.Domain.Shared;
+using Finaps.EventSourcing.Core;
+using Finaps.EventSourcing.Example.Domain.Shared;
 
-namespace EventSourcing.Example.Domain.Products;
+namespace Finaps.EventSourcing.Example.Domain.Products;
 
 public class Product : Aggregate<Product>
 {

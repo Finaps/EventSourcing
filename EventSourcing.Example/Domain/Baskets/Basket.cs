@@ -1,7 +1,8 @@
 using System.Linq;
-using EventSourcing.Example.Domain.Shared;
+using Finaps.EventSourcing.Core;
+using Finaps.EventSourcing.Example.Domain.Shared;
 
-namespace EventSourcing.Example.Domain.Baskets;
+namespace Finaps.EventSourcing.Example.Domain.Baskets;
 
 public class Basket : Aggregate<Basket>
 {

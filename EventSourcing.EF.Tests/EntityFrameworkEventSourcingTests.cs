@@ -1,6 +1,6 @@
-using EventSourcing.Core.Tests;
+using Finaps.EventSourcing.Core.Tests;
 
-namespace EventSourcing.EF.Tests;
+namespace Finaps.EventSourcing.EF.Tests;
 
 public abstract partial class EntityFrameworkEventSourcingTests : EventSourcingTests
 {

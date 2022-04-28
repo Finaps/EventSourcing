@@ -1,4 +1,4 @@
-namespace EventSourcing.Example.Tests.DTOs;
+namespace Finaps.EventSourcing.Example.Tests.DTOs;
 
 public class OrderDto
 {

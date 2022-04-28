@@ -1,6 +1,6 @@
-using EventSourcing.Core;
+using Finaps.EventSourcing.Core;
 
-namespace EventSourcing.EF;
+namespace Finaps.EventSourcing.EF;
 
 /// <summary>
 /// Entity Framework Record Store: Entity Framework Connection for Querying and Storing <see cref="Record"/>s

@@ -1,12 +1,12 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using EventSourcing.Core;
-using EventSourcing.Core.Tests.Mocks;
+using Finaps.EventSourcing.Core;
+using Finaps.EventSourcing.Core.Tests.Mocks;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
-namespace EventSourcing.EF.Tests;
+namespace Finaps.EventSourcing.EF.Tests;
 
 public abstract partial class EntityFrameworkEventSourcingTests
 {

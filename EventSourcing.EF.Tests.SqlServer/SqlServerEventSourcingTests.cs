@@ -1,8 +1,8 @@
 using System;
-using EventSourcing.Core;
-using EventSourcing.Core.Tests;
+using Finaps.EventSourcing.Core.Tests;
+using Finaps.EventSourcing.Core;
 
-namespace EventSourcing.EF.Tests.SqlServer;
+namespace Finaps.EventSourcing.EF.Tests.SqlServer;
 
 public class SqlServerEventSourcingTests : EntityFrameworkEventSourcingTests
 {

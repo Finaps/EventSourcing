@@ -5,7 +5,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace EventSourcing.EF.Tests.Postgres.Migrations
+namespace Finaps.EventSourcing.EF.Tests.Postgres.Migrations
 {
     public partial class AddInitialMigration : Migration
     {

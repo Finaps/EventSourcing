@@ -1,10 +1,11 @@
 using System.Linq;
-using EventSourcing.Example.Domain.Baskets;
-using EventSourcing.Example.Domain.Orders;
-using EventSourcing.Example.Domain.Products;
+using Finaps.EventSourcing.Core;
+using Finaps.EventSourcing.Example.Domain.Baskets;
+using Finaps.EventSourcing.Example.Domain.Orders;
+using Finaps.EventSourcing.Example.Domain.Products;
 using Microsoft.AspNetCore.Mvc;
 
-namespace EventSourcing.Example.Controllers;
+namespace Finaps.EventSourcing.Example.Controllers;
 
 [ApiController]
 [Route("[controller]")]

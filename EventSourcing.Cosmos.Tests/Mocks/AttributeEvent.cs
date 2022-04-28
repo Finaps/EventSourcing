@@ -1,7 +1,7 @@
-using EventSourcing.Core;
-using EventSourcing.Core.Tests.Mocks;
+using Finaps.EventSourcing.Core;
+using Finaps.EventSourcing.Core.Tests.Mocks;
 
-namespace EventSourcing.Cosmos.Tests.Mocks;
+namespace Finaps.EventSourcing.Cosmos.Tests.Mocks;
 
 [RecordType("CustomEventName")]
 public record AttributeEvent : Event<EmptyAggregate>

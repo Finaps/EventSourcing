@@ -1,4 +1,4 @@
-namespace EventSourcing.Cosmos;
+namespace Finaps.EventSourcing.Cosmos;
 
 internal static class ContainerExtensions
 {

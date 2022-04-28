@@ -1,4 +1,4 @@
-namespace EventSourcing.Core;
+namespace Finaps.EventSourcing.Core;
 
 /// <summary>
 /// Allows Rehydrating and Persisting <see cref="Aggregate{TAggregate}"/>s from <see cref="Event"/> streams

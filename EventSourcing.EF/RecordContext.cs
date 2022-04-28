@@ -1,7 +1,7 @@
-using EventSourcing.Core;
+using Finaps.EventSourcing.Core;
 using Microsoft.EntityFrameworkCore;
 
-namespace EventSourcing.EF;
+namespace Finaps.EventSourcing.EF;
 
 /// <summary>
 /// <see cref="DbContext"/> for Finaps.EventSourcing <see cref="Record"/> Types

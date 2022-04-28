@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using EventSourcing.Core;
-using EventSourcing.Core.Tests;
-using EventSourcing.Core.Tests.Mocks;
+using Finaps.EventSourcing.Core;
+using Finaps.EventSourcing.Core.Tests;
+using Finaps.EventSourcing.Core.Tests.Mocks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Xunit;
 
-namespace EventSourcing.Cosmos.Tests;
+namespace Finaps.EventSourcing.Cosmos.Tests;
 
 public partial class CosmosEventSourcingTests : EventSourcingTests
 {

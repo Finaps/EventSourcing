@@ -4,7 +4,7 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace EventSourcing.EF.Tests.SqlServer;
+namespace Finaps.EventSourcing.EF.Tests.SqlServer;
 
 public static class PropertyBuilderExtensions
 {
