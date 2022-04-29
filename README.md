@@ -109,6 +109,18 @@ public void ConfigureServices(IServiceCollection services)
 
 Now you can use the ```EntityFrameworkRecordStore``` and ```AggregateService``` to power your backend!
 
+#### DateTimeOffset in Postgres 
+
+Because all records use the ```DateTimeOffset``` data type for ```Record.Timestamp``` and 
+[Postgres does not support storing offsets natively](https://www.npgsql.org/doc/types/datetime.html),
+we have to explicitly tell Postgres it should store ```DateTimeOffset``` as UTC without offset information.
+
+This can be done by creating a [Custom Value Conversion in EF Core](https://docs.microsoft.com/en-us/ef/core/modeling/value-conversions?tabs=data-annotations) or by calling:
+
+```c#
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+```
+
 ### Cosmos DB
 
 #### Nuget Package
