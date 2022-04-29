@@ -101,8 +101,10 @@ public void ConfigureServices(IServiceCollection services)
       // or
       options.UseNpgsql(configuration.GetConnectionString("RecordStore"));
     });
+    
+    services.AddScoped<IRecordStore>(x => 
+        new EntityFrameworkRecordStore(x.GetService<MyEntityFrameworkRecordContext>()));
       
-    services.AddScoped<IRecordStore, EntityFrameworkRecordStore>();
     services.AddScoped<IAggregateService, AggregateService>();
 }
 ```
