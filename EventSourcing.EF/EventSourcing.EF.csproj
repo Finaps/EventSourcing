@@ -2,8 +2,17 @@
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
+        <OutputType>Library</OutputType>
+        <PackageId>Finaps.EventSourcing.EF</PackageId>
+        <Version>0.3.0</Version>
+        <Authors>Niels Disveld, Bram Kraaijeveld</Authors>
+        <Company>Finaps B.V.</Company>
+        <RepositoryUrl>https://github.com/Finaps/EventSourcing</RepositoryUrl>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+        <PackageDescription>Entity Framework Core Backend for Finaps.EventSourcing</PackageDescription>
         <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
 
     <ItemGroup>

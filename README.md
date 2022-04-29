@@ -1,24 +1,27 @@
 # Finaps.EventSourcing
 
-![Finaps.EventSourcing.Core](https://img.shields.io/nuget/v/Finaps.EventSourcing.Core?label=Finaps.EventSourcing.Core&style=flat-square)
+![Finaps.EventSourcing.EF](https://img.shields.io/nuget/v/Finaps.EventSourcing.EF?label=Finaps.EventSourcing.EF&style=flat-square)
 ![Finaps.EventSourcing.Cosmos](https://img.shields.io/nuget/v/Finaps.EventSourcing.Cosmos?label=Finaps.EventSourcing.Cosmos&style=flat-square)
+![Finaps.EventSourcing.Core](https://img.shields.io/nuget/v/Finaps.EventSourcing.Core?label=Finaps.EventSourcing.Core&style=flat-square)
 
 Event Sourcing for .NET 6!
 --------------------------
 
-Finaps.EventSourcing is an implementation of the [Event Sourcing Pattern](https://docs.microsoft.com/en-us/azure/architecture/patterns/event-sourcing) in .Net 6
-with a focus on Validity, Clarity & Performance. The Finaps.EventSourcing package is available under the [Apache Licence 2.0](https://github.com/Finaps/EventSourcing/blob/main/LICENSE).
-
-Currently only Azure Cosmos DB is supported. More implementations will follow in the future.
-
 **This repository is WIP**. Breaking API changes are likely to occur before version 1.0.0.
+
+```Finaps.EventSourcing``` is an implementation of the [Event Sourcing Pattern](https://docs.microsoft.com/en-us/azure/architecture/patterns/event-sourcing) in .NET 6
+with a focus on _Validity_, _Clarity_ & _Performance_.
+
+```Finaps.EventSourcing``` supports SQL Server, Postgres and Azure Cosmos DB databases.
+
+All Finaps.EventSourcing packages are available under the [Apache Licence 2.0](https://github.com/Finaps/EventSourcing/blob/main/LICENSE).
 
 Table of Contents
 -----------------
 
 1. [Installation](#installation)
-   1. [CosmosDB](#cosmos-db)
-   2. [Entity Framework Core](#entity-framework-core)
+   1. [Entity Framework Core](#entity-framework-core)
+   2. [CosmosDB](#cosmos-db)
 2. [Basic Usage](#basic-usage)
    1. [Define Domain Events](#1-define-domain-events)
    2. [Define Aggregate](#2-define-aggregate)
@@ -41,6 +44,70 @@ Table of Contents
 
 Installation
 ------------
+
+### Entity Framework Core
+
+Alongside CosmosDB, support for relational databases is provided using [Entity Framework Core](https://docs.microsoft.com/en-us/ef/core/).
+
+Through EF Core, ```Finaps.EventSourcing``` supports [SQL Server](https://docs.microsoft.com/en-us/sql/sql-server) & [PostgreSQL](https://www.postgresql.org/docs/current/index.html) databases.
+
+#### NuGet Packages
+
+[Finaps.EventSourcing.EF](https://www.nuget.org/packages/Finaps.EventSourcing.EF/) is available on [NuGet](https://www.nuget.org/packages/Finaps.EventSourcing.EF/).
+
+```bash
+> dotnet add package Finaps.EventSourcing.EF
+```
+
+And Depending on which database you are using, make sure to install the right provider
+
+```bash
+> dotnet add package Microsoft.EntityFrameworkCore.SqlServer
+
+or
+
+> dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL
+```
+
+#### Database & DBContext Setup
+
+Like most Entity Framework Core applications, the database is managed by [Migrations](https://docs.microsoft.com/en-us/ef/core/managing-schemas/migrations/?tabs=dotnet-core-cli).
+The ```Finaps.EventSourcing.EF``` package adds migrations based on the Records (Events/Snapshots/Projections) you have defined and you are responsible for updating the database using them.
+To access this functionality, you have to configure a [DbContext](https://docs.microsoft.com/en-us/ef/core/dbcontext-configuration/) which inherits from the ```RecordContext``` class.
+You can use the ```OnModelCreating``` method to override or add new Entities to the context.
+
+#### ASP.Net Core Configuration
+
+Your ```DbContext``` is configured in the same way as any other, refer to the [Microsoft docs](https://docs.microsoft.com/en-us/ef/core/dbcontext-configuration/) on how to do this,
+but your configuration could look something like this:
+
+```json5
+// appsettings.json
+{
+   "ConnectionStrings": {
+      "RecordStore": "<SQL Server/Postgres Connection String>"
+   }
+}
+```
+
+```c#
+// Startup.cs
+
+public void ConfigureServices(IServiceCollection services)
+{    
+    services.AddDbContext<ViewContext>(options =>
+    {
+      options.UseSqlServer(configuration.GetConnectionString("RecordStore"));
+      // or
+      options.UseNpgsql(configuration.GetConnectionString("RecordStore"));
+    });
+      
+    services.AddScoped<IRecordStore, EntityFrameworkRecordStore>();
+    services.AddScoped<IAggregateService, AggregateService>();
+}
+```
+
+Now you can use the ```EntityFrameworkRecordStore``` and ```AggregateService``` to power your backend!
 
 ### Cosmos DB
 
@@ -87,70 +154,6 @@ public void ConfigureServices(IServiceCollection services)
 ```
 
 Now you can use the ```CosmosRecordStore``` and ```AggregateService``` to power your backend!
-
-### Entity Framework Core
-
-Alongside CosmosDB, support for relational databases is provided using [Entity Framework Core](https://docs.microsoft.com/en-us/ef/core/).
-
-This way, ```Finaps.EventSourcing.Core``` supports [SQL Server](https://docs.microsoft.com/en-us/sql/sql-server) & [PostgreSQL](https://www.postgresql.org/docs/current/index.html).
-
-#### NuGet Packages
-
-[Finaps.EventSourcing.EF](https://www.nuget.org/packages/Finaps.EventSourcing.EF/) is available on [NuGet](https://www.nuget.org/packages/Finaps.EventSourcing.EF/).
-
-```bash
-> dotnet add package Finaps.EventSourcing.EF
-```
-
-And Depending on which database you are using, make sure to install the right provider
-
-```bash
-> dotnet add package Microsoft.EntityFrameworkCore.SqlServer
-
-or
-
-> dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL
-```
-
-#### Database & DBContext Setup
-
-Like most Entity Framework Core applications, the database is managed by [Migrations](https://docs.microsoft.com/en-us/ef/core/managing-schemas/migrations/?tabs=dotnet-core-cli).
-The ```Finaps.EventSourcing.EF``` package adds migrations based on the Records (Events/Snapshots/Projections) you have defined and you are responsible for updating the database using them.
-To access this functionality, you have to configure a [DbContext](https://docs.microsoft.com/en-us/ef/core/dbcontext-configuration/) which inherits from the ```RecordContext``` class.
-You can use the ```OnModelCreating``` method to override or add new Entities to the context.
-
-#### ASP.Net Core Configuration
-
-Your ```DbContext``` is configured in the same way as any other, refer to the [Microsoft docs](https://docs.microsoft.com/en-us/ef/core/dbcontext-configuration/) on how to do this, 
-but your configuration could look something like this: 
-
-```json5
-// appsettings.json
-{
-   "ConnectionStrings": {
-      "RecordStore": "<SQL Server/Postgres Connection String>"
-   }
-}
-```
-
-```c#
-// Startup.cs
-
-public void ConfigureServices(IServiceCollection services)
-{    
-    services.AddDbContext<ViewContext>(options =>
-    {
-      options.UseSqlServer(configuration.GetConnectionString("RecordStore"));
-      // or
-      options.UseNpgsql(configuration.GetConnectionString("RecordStore"));
-    });
-      
-    services.AddScoped<IRecordStore, EntityFrameworkRecordStore>();
-    services.AddScoped<IAggregateService, AggregateService>();
-}
-```
-
-Now you can use the ```EntityFrameworkRecordStore``` and ```AggregateService``` to power your backend!
 
 Basic Usage
 -----------
