@@ -102,7 +102,7 @@ public void ConfigureServices(IServiceCollection services)
       options.UseNpgsql(configuration.GetConnectionString("RecordStore"));
     });
       
-    services.AddScoped<IRecordStore, EntityFrameworkRecordStore>();
+    services.AddScoped<IRecordStore, YourEntityFrameworkRecordStore>();
     services.AddScoped<IAggregateService, AggregateService>();
 }
 ```
