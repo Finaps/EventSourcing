@@ -1,7 +1,10 @@
-using Finaps.EventSourcing.Core;
 using Finaps.EventSourcing.Cosmos;
+using Finaps.EventSourcing.EF;
+using Finaps.EventSourcing.Example.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -33,9 +36,18 @@ public class Startup
     });
       
     // Configure Cosmos connections
-    services.Configure<CosmosRecordStoreOptions>(Configuration.GetSection("Cosmos"));
-    services.AddSingleton<IRecordStore, CosmosRecordStore>();
-    services.AddSingleton<IAggregateService, AggregateService>();
+    // services.Configure<CosmosRecordStoreOptions>(Configuration.GetSection("Cosmos"));
+    // services.AddSingleton<IRecordStore, CosmosRecordStore>();
+    
+    // Configure EF connection
+    services.AddDbContext<RecordContext, ExampleContext>(options =>
+    {
+      options.UseNpgsql(Configuration.GetConnectionString("RecordStore"));
+    });
+    services.AddScoped<IRecordStore, EntityFrameworkRecordStore>();
+    
+    // Configure AggregateService
+    services.AddScoped<IAggregateService, AggregateService>();
   }
 
   // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

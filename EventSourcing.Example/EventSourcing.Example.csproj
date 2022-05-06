@@ -6,12 +6,18 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.4">
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+          <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.4" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\EventSourcing.Core\EventSourcing.Core.csproj" />
       <ProjectReference Include="..\EventSourcing.Cosmos\EventSourcing.Cosmos.csproj" />
+        <ProjectReference Include="..\EventSourcing.EF\EventSourcing.EF.csproj" />
     </ItemGroup>
 
 </Project>

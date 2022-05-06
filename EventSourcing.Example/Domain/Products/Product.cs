@@ -1,12 +1,11 @@
 using System.Linq;
-using Finaps.EventSourcing.Core;
 using Finaps.EventSourcing.Example.Domain.Shared;
 
 namespace Finaps.EventSourcing.Example.Domain.Products;
 
 public class Product : Aggregate<Product>
 {
-    public string Name { get; private set; }
+    public string? Name { get; private set; }
     public int Quantity { get; private set; }
     public List<Reservation> Reservations { get; private set; } = new();
 
@@ -45,7 +44,7 @@ public class Product : Aggregate<Product>
             case ProductSnapshot snapshot:
                 Name = snapshot.Name;
                 Quantity = snapshot.Quantity;
-                Reservations = snapshot.Reservations;
+                Reservations = snapshot.Reservations.ToList();
                 break;
         }
     }
