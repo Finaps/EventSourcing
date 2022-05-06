@@ -11,6 +11,9 @@ public class ExampleContext : RecordContext
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+        
+        // Prevents an DateTimeOffset issue for Postgres
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
         builder.Entity<ProductSnapshot>(entity =>
         {

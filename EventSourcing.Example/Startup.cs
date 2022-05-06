@@ -45,7 +45,6 @@ public class Startup
       options.UseNpgsql(Configuration.GetConnectionString("RecordStore"));
     });
     services.AddScoped<IRecordStore, EntityFrameworkRecordStore>();
-    AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
     
     // Configure AggregateService
     services.AddScoped<IAggregateService, AggregateService>();
