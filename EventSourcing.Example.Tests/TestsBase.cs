@@ -20,7 +20,7 @@ public class TestsBase : IAsyncLifetime
     var path = Assembly.GetAssembly(typeof(Startup))?.Location;
     var hostBuilder = new WebHostBuilder()
       .UseContentRoot(Path.GetDirectoryName(path)!)
-      .ConfigureAppConfiguration(builder => builder.AddJsonFile("appsettings.local.json", true))
+      .ConfigureAppConfiguration(builder => builder.AddJsonFile("appsettings.json", true))
       .UseStartup<Startup>();
     return new TestServer(hostBuilder);
   }
