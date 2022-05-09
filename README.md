@@ -95,15 +95,14 @@ but your configuration could look something like this:
 
 public void ConfigureServices(IServiceCollection services)
 {    
-    services.AddDbContext<MyEntityFrameworkRecordContext>(options =>
+    services.AddDbContext<RecordContext, MyEntityFrameworkRecordContext>((options =>
     {
       options.UseSqlServer(configuration.GetConnectionString("RecordStore"));
       // or
       options.UseNpgsql(configuration.GetConnectionString("RecordStore"));
     });
     
-    services.AddScoped<IRecordStore>(x => 
-        new EntityFrameworkRecordStore(x.GetService<MyEntityFrameworkRecordContext>()));
+    services.AddScoped<IRecordStore, EntityFrameworkRecordStore>();
       
     services.AddScoped<IAggregateService, AggregateService>();
 }
