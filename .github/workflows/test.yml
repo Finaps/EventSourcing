@@ -57,4 +57,3 @@ jobs:
         Cosmos__ConnectionString: ${{ secrets.COSMOS_CONNECTIONSTRING }}
         Cosmos__Database: ${{ secrets.COSMOS_DATABASE }}
         Cosmos__Container: ${{ secrets.COSMOS_CONTAINER }}
-        ConnectionStrings__RecordStore: "User ID=postgres;Password=Pass@word;Host=localhost;Port=6543;Database=RecordStore;CommandTimeout=30;Include Error Detail=true"
