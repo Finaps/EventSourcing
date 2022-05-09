@@ -1,4 +1,5 @@
 ﻿using Finaps.EventSourcing.Core;
+using Finaps.EventSourcing.Example.Controllers;
 using Finaps.EventSourcing.Example.Domain.Products;
 using Finaps.EventSourcing.Example.Tests.DTOs;
 using Xunit;

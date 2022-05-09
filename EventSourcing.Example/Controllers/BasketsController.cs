@@ -1,11 +1,13 @@
 using System.Linq;
-using Finaps.EventSourcing.Core;
 using Finaps.EventSourcing.Example.Domain.Baskets;
 using Finaps.EventSourcing.Example.Domain.Orders;
 using Finaps.EventSourcing.Example.Domain.Products;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Finaps.EventSourcing.Example.Controllers;
+
+// Basket requests
+public record AddProductToBasket(Guid ProductId, int Quantity);
 
 [ApiController]
 [Route("[controller]")]

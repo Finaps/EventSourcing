@@ -144,14 +144,12 @@ public class RecordContext : DbContext
     foreach (var type in events.Values.SelectMany(types => types))
       builder
         .Entity(type)
-        .HasCheckConstraint($"CK_{type.Name}_NotNull", type.GetNotNullCheckConstraint())
         .HasDiscriminator<string>(nameof(Event.Type));
     
     // Add all Snapshots to their respective Snapshot<TAggregate> hierarchies
     foreach (var type in snapshots.Values.SelectMany(types => types))
       builder
         .Entity(type)
-        .HasCheckConstraint($"CK_{type.Name}_NotNull", type.GetNotNullCheckConstraint())
         .HasDiscriminator<string>(nameof(Snapshot.Type));
 
     // Add all Projections as separate tables

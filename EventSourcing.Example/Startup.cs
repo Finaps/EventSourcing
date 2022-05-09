@@ -1,9 +1,7 @@
-using Finaps.EventSourcing.Cosmos;
 using Finaps.EventSourcing.EF;
 using Finaps.EventSourcing.Example.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,7 +33,8 @@ public class Startup
       c.SwaggerDoc("v1", new OpenApiInfo { Title = "EventSourcing.Example", Version = "v1" });
     });
       
-    // Configure Cosmos connections
+    // Configure Cosmos connection
+    
     // services.Configure<CosmosRecordStoreOptions>(Configuration.GetSection("Cosmos"));
     // services.AddSingleton<IRecordStore, CosmosRecordStore>();
     

@@ -1,4 +1,3 @@
-using Finaps.EventSourcing.Core;
 using Finaps.EventSourcing.Example.Domain.Orders;
 using Microsoft.AspNetCore.Mvc;
 

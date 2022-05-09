@@ -1,8 +1,11 @@
-using Finaps.EventSourcing.Core;
 using Finaps.EventSourcing.Example.Domain.Products;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Finaps.EventSourcing.Example.Controllers;
+
+// Product requests
+public record CreateProduct(string Name, int Quantity);
+public record AddStock(int Quantity);
 
 [ApiController]
 [Route("[controller]")]
