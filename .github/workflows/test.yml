@@ -47,6 +47,7 @@ jobs:
         dotnet tool restore
         dotnet ef database update -p EventSourcing.EF.Tests.Postgres
         dotnet ef database update -p EventSourcing.EF.Tests.SqlServer
+        dotnet ef database update -p EventSourcing.EF.Example.Tests
       env:
         ASPNETCORE_ENVIRONMENT: Development
 
