@@ -1,7 +1,4 @@
 using System;
-using Finaps.EventSourcing.Core;
-using Finaps.EventSourcing.Core.Tests;
-using Finaps.EventSourcing.Core.Tests.Mocks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
