@@ -4,17 +4,10 @@ namespace Finaps.EventSourcing.Example.Domain.Products;
 // do not influence the current state (e.g. ProductReservedEvent)
 public record ProductSnapshot : Snapshot<Product>
 {
-    public string? Name { get; }
-    public int Quantity { get; }
-    public readonly ICollection<Reservation>? Reservations;
+    public string? Name { get; init; }
+    public int Quantity { get; init; }
+    public ICollection<Reservation>? Reservations { get; init; }
 
-    public ProductSnapshot(string? name, int quantity, ICollection<Reservation> reservations)
-    {
-        Name = name;
-        Quantity = quantity;
-        Reservations = reservations;
-    }
-    
     // Parameterless constructor is needed by EF for records containing nested entities
-    private ProductSnapshot() { }
+    public ProductSnapshot() { }
 }
