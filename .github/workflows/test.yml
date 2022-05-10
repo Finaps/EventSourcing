@@ -45,8 +45,13 @@ jobs:
       run: |
         dotnet tool install --global dotnet-ef
         dotnet tool restore
+        
+        dotnet ef migrations add AddInitialMigration -p EventSourcing.EF.Tests.Postgres
         dotnet ef database update -p EventSourcing.EF.Tests.Postgres
+        
+        dotnet ef migrations add AddInitialMigration -p EventSourcing.EF.Tests.SqlServer
         dotnet ef database update -p EventSourcing.EF.Tests.SqlServer
+        
         dotnet ef database update -p EventSourcing.Example
       env:
         ASPNETCORE_ENVIRONMENT: Development

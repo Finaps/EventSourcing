@@ -7,6 +7,10 @@ docs
 .idea
 appsettings.local.json
 
+# These will get generated in the automated tests
+EventSourcing.EF.Tests.Postgres/Migrations
+EventSourcing.EF.Tests.SqlServer/Migrations
+
 # User-specific files
 *.rsuser
 *.suo
