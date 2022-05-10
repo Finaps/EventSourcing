@@ -23,7 +23,7 @@ jobs:
         image: mcr.microsoft.com/mssql/server:2019-CU15-ubuntu-20.04
         env:
           ACCEPT_EULA: Y
-          SA_PASSWORD: Pass@word # You should set this to a secrete and reference it here
+          SA_PASSWORD: Pass@word
         ports:
           - 2544:1433
 
@@ -40,21 +40,26 @@ jobs:
 
     - name: Build
       run: dotnet build --no-restore
-
-    - name: Update EF Core Databases
+      
+    - name: Install Entity Framework Tool
       run: |
         dotnet tool install --global dotnet-ef
         dotnet tool restore
         
-        dotnet ef migrations add AddInitialMigration -p EventSourcing.EF.Tests.Postgres
-        dotnet ef database update -p EventSourcing.EF.Tests.Postgres
-        
-        dotnet ef migrations add AddInitialMigration -p EventSourcing.EF.Tests.SqlServer
-        dotnet ef database update -p EventSourcing.EF.Tests.SqlServer
-        
-        dotnet ef database update -p EventSourcing.Example
-      env:
-        ASPNETCORE_ENVIRONMENT: Development
+    - name: Migrate EventSourcing.EF.Tests.Postgres
+      run: dotnet ef migrations add AddInitialMigration -p EventSourcing.EF.Tests.Postgres
+
+    - name: Update EventSourcing.EF.Tests.Postgres
+      run: dotnet ef database update -p EventSourcing.EF.Tests.Postgres
+      
+    - name: Migrate EventSourcing.EF.Tests.SqlServer
+      run: dotnet ef migrations add AddInitialMigration -p EventSourcing.EF.Tests.SqlServer
+      
+    - name: Update EventSourcing.EF.Tests.SqlServer
+      run: dotnet ef database update -p EventSourcing.EF.Tests.SqlServer
+      
+    - name: Update EventSourcing.Example
+      run: dotnet ef database update -p EventSourcing.Example
 
     - name: Test
       run: dotnet test --no-build --verbosity normal
