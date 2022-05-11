@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Finaps.EventSourcing.Example.Tests;
 
-public abstract class BasketTests : TestsBase
+public class BasketTests : TestsBase
 {
     private const string ProductName = "TestProduct";
     private const int ProductQuantity = 10;
