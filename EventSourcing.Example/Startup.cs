@@ -33,21 +33,19 @@ public class Startup
     {
       c.SwaggerDoc("v1", new OpenApiInfo { Title = "EventSourcing.Example", Version = "v1" });
     });
-      
+
     // Configure Cosmos connection
-    
-    // services.Configure<CosmosRecordStoreOptions>(Configuration.GetSection("Cosmos"));
-    // services.AddSingleton<IRecordStore, CosmosRecordStore>();
-    
+
+    // services.AddEventSourcing(Configuration.GetSection("Cosmos"));
+
     // Configure EF connection
     services.AddDbContext<RecordContext, ExampleContext>(options =>
     {
       options.UseNpgsql(Configuration.GetConnectionString("RecordStore"));
     });
-    services.AddScoped<IRecordStore, EntityFrameworkRecordStore>();
-    
-    // Configure AggregateService
-    services.AddScoped<IAggregateService, AggregateService>();
+
+    //Add required eventsourcing services 
+    services.AddEventSourcing<ExampleContext>();
   }
 
   // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

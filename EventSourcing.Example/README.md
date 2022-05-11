@@ -9,10 +9,9 @@ The project is a simple AspNetCore service containing code that mostly describes
 
 Infrastructure
 -------
-The following two lines are added in ``` Startup.cs``` to set up the infrastructure to store and query events from the Cosmos DB:
+The following line is added to ``` Startup.cs``` to set up the infrastructure to store and query events from the Cosmos DB:
 ```c#
-services.Configure<CosmosRecordStoreOptions>(Configuration.GetSection("Cosmos"));
-services.AddSingleton<IRecordStore, CosmosRecordStore>();
+services.AddEventSourcing(Configuration.GetSection("Cosmos"));
 ```
 For the recalculating state, persisting and validating the aggregates the following line is also added to inject the ```AggregateService```:
 ```c#

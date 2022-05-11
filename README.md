@@ -19,28 +19,48 @@ All Finaps.EventSourcing packages are available under the [Apache Licence 2.0](h
 Table of Contents
 -----------------
 
-1. [Installation](#installation)
-   1. [Entity Framework Core](#entity-framework-core)
-   2. [CosmosDB](#cosmos-db)
-2. [Basic Usage](#basic-usage)
-   1. [Define Domain Events](#1-define-domain-events)
-   2. [Define Aggregate](#2-define-aggregate)
-   3. [Create & Persist an Aggregate](#3-create--persist-an-aggregate)
-   4. [Rehydrate & Update an Aggregate](#4-rehydrate--update-an-aggregate)
-   5. [Update Aggregates in a Transaction](#5-update-aggregates-in-a-transaction)
-   6. [Create & Apply Snapshots](#6-create--apply-snapshots)
-   7. [Point in time Rehydration](#7-point-in-time-rehydration)
-   8. [Querying Records](#8-querying-records)
-   9. [Creating & Querying Projections](#9-creating--querying-projections)
-3. [Advanced Usage](#advanced-usage)
-4. [Concepts](#concepts)
-   1. [Records](#records)
-      1. [Events](#1-events)
-      2. [Snapshots](#2-snapshots)
-      3. [Projections](#3-projections)
-   2. [Aggregates](#aggregates)
-5. [SQL vs NoSQL](#sql-vs-nosql)
-6. [Example Project](#example-project)
+- [Finaps.EventSourcing](#finapseventsourcing)
+  - [Event Sourcing for .NET 6!](#event-sourcing-for-net-6)
+  - [Table of Contents](#table-of-contents)
+  - [Installation](#installation)
+    - [Entity Framework Core](#entity-framework-core)
+      - [NuGet Packages](#nuget-packages)
+      - [Database & DBContext Setup](#database--dbcontext-setup)
+      - [ASP.Net Core Configuration](#aspnet-core-configuration)
+      - [DateTimeOffset in Postgres](#datetimeoffset-in-postgres)
+    - [Cosmos DB](#cosmos-db)
+      - [Nuget Package](#nuget-package)
+      - [Database Setup](#database-setup)
+      - [ASP.Net Core Configuration](#aspnet-core-configuration-1)
+  - [Basic Usage](#basic-usage)
+    - [1. Define Domain Events](#1-define-domain-events)
+    - [2. Define Aggregate](#2-define-aggregate)
+    - [3. Create & Persist an Aggregate](#3-create--persist-an-aggregate)
+    - [4. Rehydrate & Update an Aggregate](#4-rehydrate--update-an-aggregate)
+    - [5. Update Aggregates in a Transaction](#5-update-aggregates-in-a-transaction)
+    - [6. Create & Apply Snapshots](#6-create--apply-snapshots)
+    - [7. Point in time Rehydration](#7-point-in-time-rehydration)
+    - [8. Querying Records](#8-querying-records)
+    - [9. Creating & Querying Projections](#9-creating--querying-projections)
+  - [Advanced Usage](#advanced-usage)
+    - [1. Aggregate References](#1-aggregate-references)
+  - [Concepts](#concepts)
+    - [Records](#records)
+      - [1. Events](#1-events)
+      - [2. Snapshots](#2-snapshots)
+      - [3. Projections](#3-projections)
+        - [Updating Projections](#updating-projections)
+    - [Aggregates](#aggregates)
+  - [SQL vs NoSQL](#sql-vs-nosql)
+    - [Storage](#storage)
+      - [NoSQL Record Representation](#nosql-record-representation)
+      - [SQL Record Representation](#sql-record-representation)
+    - [Integrity](#integrity)
+    - [Migrations](#migrations)
+      - [NoSQL](#nosql)
+      - [SQL](#sql)
+    - [Performance](#performance)
+  - [Example Project](#example-project)
 
 Installation
 ------------
@@ -92,7 +112,6 @@ but your configuration could look something like this:
 
 ```c#
 // Startup.cs
-
 public void ConfigureServices(IServiceCollection services)
 {    
     services.AddDbContext<RecordContext, MyEntityFrameworkRecordContext>((options =>
@@ -101,10 +120,8 @@ public void ConfigureServices(IServiceCollection services)
       // or
       options.UseNpgsql(configuration.GetConnectionString("RecordStore"));
     });
-    
-    services.AddScoped<IRecordStore, EntityFrameworkRecordStore>();
-      
-    services.AddScoped<IAggregateService, AggregateService>();
+
+    services.AddEventSourcing<MyEntityFrameworkRecordContext>();
 }
 ```
 
@@ -157,12 +174,9 @@ When Creating a Cosmos DB Container to use with ```Finaps.EventSourcing.Cosmos``
 
 ```c#
 // Startup.cs
-
 public void ConfigureServices(IServiceCollection services)
 {
-    services.Configure<CosmosEventStoreOptions>(Configuration.GetSection("Cosmos"));
-    services.AddSingleton<IRecordStore, CosmosRecordStore>();
-    services.AddSingleton<IAggregateService, AggregateService>();
+    services.AddEventSourcing(Configuration.GetSection("Cosmos"));
 }
 ```
 
