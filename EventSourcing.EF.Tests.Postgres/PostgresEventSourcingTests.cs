@@ -1,5 +1,4 @@
 using System;
-using Finaps.EventSourcing.Core.Tests;
 using Finaps.EventSourcing.Core;
 
 namespace Finaps.EventSourcing.EF.Tests.Postgres;
