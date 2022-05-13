@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Reflection;
 using Finaps.EventSourcing.Example;
@@ -11,6 +12,7 @@ public static class CosmosTestServer
 {
     public static TestServer GetServer()
     {
+      Environment.SetEnvironmentVariable("UseCosmos", "true");
       var path = Assembly.GetAssembly(typeof(CosmosTestServer))?.Location;
       var hostBuilder = new WebHostBuilder()
         .UseContentRoot(Path.GetDirectoryName(path)!)
