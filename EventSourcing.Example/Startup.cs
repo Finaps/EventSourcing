@@ -21,7 +21,6 @@ public class Startup
       .AddJsonFile("appsettings.local.json", true)
       .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true)
       .AddJsonFile($"appsettings.json", false)
-      .AddEnvironmentVariables()
       .Build();
   }
 
