@@ -1,20 +1,21 @@
 using System.Net;
 using Finaps.EventSourcing.Example.Controllers;
 using Finaps.EventSourcing.Example.Tests.DTOs;
+using Microsoft.AspNetCore.TestHost;
 using Xunit;
 
 namespace Finaps.EventSourcing.Example.Tests;
 
-public class BasketTests : TestsBase
+public abstract class BasketTests : TestsBase
 {
     private const string ProductName = "TestProduct";
     private const int ProductQuantity = 10;
-    private readonly HttpClient _client = Server.CreateClient();
+    protected BasketTests(TestServer server) : base(server) { }
     
     [Fact]
     public async Task Can_Create_Basket()
     {
-        var response = await _client.PostAsync("baskets", null);
+        var response = await Client.PostAsync("baskets", null);
         var basketId = await response.ToGuid();
 
         Assert.NotEqual(Guid.Empty, basketId);
@@ -23,8 +24,8 @@ public class BasketTests : TestsBase
     [Fact]
     public async Task Can_Get_Basket()
     {
-        var basketId = await (await _client.PostAsync("baskets", null)).ToGuid();
-        var response = await _client.GetAsync($"baskets/{basketId}");
+        var basketId = await (await Client.PostAsync("baskets", null)).ToGuid();
+        var response = await Client.GetAsync($"baskets/{basketId}");
         var basket = await response.AsDto<BasketDto>();
         
         Assert.NotNull(basket);
@@ -35,10 +36,10 @@ public class BasketTests : TestsBase
     [Fact]
     public async Task Can_Add_Item_To_Basket()
     {
-        var basketId = await (await _client.PostAsync("baskets", null)).ToGuid();
-        var productId = await (await _client.PostAsync("products", new CreateProduct(ProductName, ProductQuantity).AsHttpContent())).ToGuid();
-        await _client.PostAsync($"baskets/{basketId}/addItem", new AddProductToBasket(productId, 1).AsHttpContent());
-        var response = await _client.GetAsync($"baskets/{basketId}");
+        var basketId = await (await Client.PostAsync("baskets", null)).ToGuid();
+        var productId = await (await Client.PostAsync("products", new CreateProduct(ProductName, ProductQuantity).AsHttpContent())).ToGuid();
+        await Client.PostAsync($"baskets/{basketId}/addItem", new AddProductToBasket(productId, 1).AsHttpContent());
+        var response = await Client.GetAsync($"baskets/{basketId}");
         var basket = await response.AsDto<BasketDto>();
         
         Assert.NotNull(basket);
@@ -53,12 +54,12 @@ public class BasketTests : TestsBase
         var product2Name = "TestProduct2";
         var product2Quantity = 5;
         
-        var basketId = await (await _client.PostAsync("baskets", null)).ToGuid();
-        var product1Id = await (await _client.PostAsync("products", new CreateProduct(ProductName, ProductQuantity).AsHttpContent())).ToGuid();
-        var product2Id = await (await _client.PostAsync("products", new CreateProduct(product2Name, product2Quantity).AsHttpContent())).ToGuid();
-        await _client.PostAsync($"baskets/{basketId}/addItem", new AddProductToBasket(product1Id, 1).AsHttpContent());
-        await _client.PostAsync($"baskets/{basketId}/addItem", new AddProductToBasket(product2Id, 2).AsHttpContent());
-        var response = await _client.GetAsync($"baskets/{basketId}");
+        var basketId = await (await Client.PostAsync("baskets", null)).ToGuid();
+        var product1Id = await (await Client.PostAsync("products", new CreateProduct(ProductName, ProductQuantity).AsHttpContent())).ToGuid();
+        var product2Id = await (await Client.PostAsync("products", new CreateProduct(product2Name, product2Quantity).AsHttpContent())).ToGuid();
+        await Client.PostAsync($"baskets/{basketId}/addItem", new AddProductToBasket(product1Id, 1).AsHttpContent());
+        await Client.PostAsync($"baskets/{basketId}/addItem", new AddProductToBasket(product2Id, 2).AsHttpContent());
+        var response = await Client.GetAsync($"baskets/{basketId}");
         var basket = await response.AsDto<BasketDto>();
         
         Assert.NotNull(basket);
@@ -70,13 +71,13 @@ public class BasketTests : TestsBase
     [Fact]
     public async Task Cannot_Add_Item_With_Insufficient_Stock()
     {
-        var basketId = await (await _client.PostAsync("baskets", null)).ToGuid();
-        var productId = await (await _client.PostAsync("products", new CreateProduct(ProductName, ProductQuantity).AsHttpContent())).ToGuid();
-        var response = await _client.PostAsync($"baskets/{basketId}/addItem", new AddProductToBasket(productId, ProductQuantity + 1).AsHttpContent());
+        var basketId = await (await Client.PostAsync("baskets", null)).ToGuid();
+        var productId = await (await Client.PostAsync("products", new CreateProduct(ProductName, ProductQuantity).AsHttpContent())).ToGuid();
+        var response = await Client.PostAsync($"baskets/{basketId}/addItem", new AddProductToBasket(productId, ProductQuantity + 1).AsHttpContent());
         
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
-        var response2 = await _client.GetAsync($"products/{productId}");
+        var response2 = await Client.GetAsync($"products/{productId}");
         var product = await response2.AsDto<ProductDto>();
         
         Assert.Empty(product!.Reservations);
@@ -85,13 +86,13 @@ public class BasketTests : TestsBase
     [Fact]
     public async Task Product_Is_Reserved_After_Added_To_Basket()
     {
-        var basketId = await (await _client.PostAsync("baskets", null)).ToGuid();
-        var productId = await (await _client.PostAsync("products", new CreateProduct(ProductName, ProductQuantity).AsHttpContent())).ToGuid();
-        var response = await _client.PostAsync($"baskets/{basketId}/addItem", new AddProductToBasket(productId,1).AsHttpContent());
+        var basketId = await (await Client.PostAsync("baskets", null)).ToGuid();
+        var productId = await (await Client.PostAsync("products", new CreateProduct(ProductName, ProductQuantity).AsHttpContent())).ToGuid();
+        var response = await Client.PostAsync($"baskets/{basketId}/addItem", new AddProductToBasket(productId,1).AsHttpContent());
         
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var response2 = await _client.GetAsync($"products/{productId}");
+        var response2 = await Client.GetAsync($"products/{productId}");
         var product = await response2.AsDto<ProductDto>();
         
         Assert.NotEmpty(product!.Reservations);
@@ -102,10 +103,10 @@ public class BasketTests : TestsBase
     [Fact]
     public async Task Can_Checkout_Basket()
     {
-        var basketId = await (await _client.PostAsync("baskets", null)).ToGuid();
-        var productId = await (await _client.PostAsync("products", new CreateProduct(ProductName, ProductQuantity).AsHttpContent())).ToGuid();
-        await _client.PostAsync($"baskets/{basketId}/addItem", new AddProductToBasket(productId,1).AsHttpContent());
-        var response = await _client.PostAsync($"baskets/{basketId}/checkout", null);
+        var basketId = await (await Client.PostAsync("baskets", null)).ToGuid();
+        var productId = await (await Client.PostAsync("products", new CreateProduct(ProductName, ProductQuantity).AsHttpContent())).ToGuid();
+        await Client.PostAsync($"baskets/{basketId}/addItem", new AddProductToBasket(productId,1).AsHttpContent());
+        var response = await Client.PostAsync($"baskets/{basketId}/checkout", null);
         var order = await response.AsDto<OrderDto>();
         
         Assert.NotNull(order);
@@ -115,11 +116,11 @@ public class BasketTests : TestsBase
     [Fact]
     public async Task Product_Stock_Is_Update_After_Checkout()
     {
-        var basketId = await (await _client.PostAsync("baskets", null)).ToGuid();
-        var productId = await (await _client.PostAsync("products", new CreateProduct(ProductName, ProductQuantity).AsHttpContent())).ToGuid();
-        await _client.PostAsync($"baskets/{basketId}/addItem", new AddProductToBasket(productId,1).AsHttpContent());
-        await _client.PostAsync($"baskets/{basketId}/checkout", null);
-        var response = await _client.GetAsync($"products/{productId}");
+        var basketId = await (await Client.PostAsync("baskets", null)).ToGuid();
+        var productId = await (await Client.PostAsync("products", new CreateProduct(ProductName, ProductQuantity).AsHttpContent())).ToGuid();
+        await Client.PostAsync($"baskets/{basketId}/addItem", new AddProductToBasket(productId,1).AsHttpContent());
+        await Client.PostAsync($"baskets/{basketId}/checkout", null);
+        var response = await Client.GetAsync($"products/{productId}");
         var product = await response.AsDto<ProductDto>();
         
         Assert.NotNull(product);
