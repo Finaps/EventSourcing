@@ -8,7 +8,7 @@ namespace EventSourcing.Example.Tests.Postgres;
 public class PostgresInfrastructureTests
 {
     [Fact]
-    public void Cosmos_RecordStore_Is_Initialized()
+    public void EF_RecordStore_Is_Initialized()
     {
         var recordStore = PostgresTestServer.GetServer().Services.GetService<IRecordStore>();
         
