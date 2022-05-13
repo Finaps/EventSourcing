@@ -26,12 +26,4 @@
       <ProjectReference Include="..\EventSourcing.Example\EventSourcing.Example.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-        <Content Include="appsettings.local.json">
-            <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-        </Content>
-    </ItemGroup>
-
 </Project>
