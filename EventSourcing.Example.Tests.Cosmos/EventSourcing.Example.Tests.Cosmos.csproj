@@ -24,12 +24,4 @@
       <ProjectReference Include="..\EventSourcing.Example.Tests\EventSourcing.Example.Tests.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Content Include="appsettings.local.json">
-        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      </Content>
-    </ItemGroup>
-
 </Project>
