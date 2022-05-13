@@ -1,7 +1,4 @@
-using System.Reflection;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -9,22 +6,19 @@ namespace Finaps.EventSourcing.Example.Tests;
 
 public class TestsBase : IAsyncLifetime
 {
+  private readonly TestServer Server;
+
+  protected readonly HttpClient Client;
+  protected TService? GetService<TService>() => Server.Services.GetService<TService>();
   // Control the number of concurrent Tests
   private static readonly SemaphoreSlim Semaphore = new(8);
+
+  protected TestsBase(TestServer server)
+  {
+    Server = server;
+    Client = Server.CreateClient();
+  }
+
   public async Task InitializeAsync() => await Semaphore.WaitAsync();
   public Task DisposeAsync() => Task.FromResult(Semaphore.Release());
-  public static readonly TestServer Server = GetServer();
-  protected static TService? GetService<TService>() => Server.Services.GetService<TService>();
-  private static TestServer GetServer()
-  {
-    var path = Assembly.GetAssembly(typeof(Startup))?.Location;
-    var hostBuilder = new WebHostBuilder()
-      .UseContentRoot(Path.GetDirectoryName(path)!)
-      .ConfigureAppConfiguration(builder => builder
-        .AddJsonFile("appsettings.json", true)
-        .AddJsonFile("appsettings.local.json", true)
-        .AddEnvironmentVariables())
-      .UseStartup<Startup>();
-    return new TestServer(hostBuilder);
-  }
 }

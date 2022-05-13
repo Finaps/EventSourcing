@@ -10,6 +10,7 @@ public static class EventSourcingStartup
 {
     public static IServiceCollection AddEventSourcing(this IServiceCollection services, IConfigurationRoot configuration)
     {
+        var x = configuration.GetConnectionString("RecordStore");
         if (configuration.GetConnectionString("RecordStore") is not null)
         {
             services.AddDbContext<RecordContext, ExampleContext>(options =>
