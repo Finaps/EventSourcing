@@ -12,6 +12,6 @@ public class CosmosInfrastructureTests
     {
         var recordStore = CosmosTestServer.GetServer().Services.GetService<IRecordStore>();
         
-        Assert.True(recordStore is CosmosRecordStore);
+        Assert.Equal(typeof(CosmosRecordStore), recordStore!.GetType());
     }
 }
