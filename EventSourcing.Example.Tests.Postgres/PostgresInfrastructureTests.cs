@@ -12,6 +12,6 @@ public class PostgresInfrastructureTests
     {
         var recordStore = PostgresTestServer.GetServer().Services.GetService<IRecordStore>();
         
-        Assert.True(recordStore is EntityFrameworkRecordStore);
+        Assert.Equal(typeof(EntityFrameworkRecordStore), recordStore!.GetType());
     }
 }
