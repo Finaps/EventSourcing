@@ -15,6 +15,7 @@ public static class PostgresTestServer
         var hostBuilder = new WebHostBuilder()
             .UseContentRoot(Path.GetDirectoryName(path)!)
             .ConfigureAppConfiguration(builder => builder
+                .AddJsonFile("appsettings.json", true)
                 .AddJsonFile("appsettings.local.json", true))
             .UseStartup<Startup>();
         return new TestServer(hostBuilder);
