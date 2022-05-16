@@ -10,7 +10,9 @@ namespace EventSourcing.Example.Tests.Cosmos;
 
 public static class CosmosTestServer
 {
-    public static TestServer GetServer()
+  public static readonly TestServer Server = GetServer();
+
+  private static TestServer GetServer()
     {
       Environment.SetEnvironmentVariable("UseCosmos", "true");
       var path = Assembly.GetAssembly(typeof(CosmosTestServer))?.Location;

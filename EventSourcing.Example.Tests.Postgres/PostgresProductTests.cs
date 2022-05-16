@@ -4,5 +4,5 @@ namespace EventSourcing.Example.Tests.Postgres;
 
 public class PostgresProductTests : ProductTests
 {
-    public PostgresProductTests() : base(PostgresTestServer.GetServer()) { }
+    public PostgresProductTests() : base(PostgresTestServer.Server) { }
 }
