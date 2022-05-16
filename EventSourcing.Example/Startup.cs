@@ -33,18 +33,8 @@ public class Startup
     {
       c.SwaggerDoc("v1", new OpenApiInfo { Title = "EventSourcing.Example", Version = "v1" });
     });
-
-    // Configure Cosmos connection
-
-    // services.AddEventSourcing(Configuration.GetSection("Cosmos"));
-
-    // Configure EF connection
-    services.AddDbContext<RecordContext, ExampleContext>(options =>
-    {
-      options.UseNpgsql(Configuration.GetConnectionString("RecordStore"));
-    });
-
-    //Add required eventsourcing services 
+    
+    //Add required event sourcing services 
     services.AddEventSourcing(Configuration);
   }
 
