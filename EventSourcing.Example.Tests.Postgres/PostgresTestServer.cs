@@ -18,7 +18,8 @@ public static class PostgresTestServer
             .UseContentRoot(Path.GetDirectoryName(path)!)
             .ConfigureAppConfiguration(builder => builder
                 .AddJsonFile("appsettings.json", true)
-                .AddJsonFile("appsettings.local.json", true))
+                .AddJsonFile("appsettings.local.json", true)
+                .AddEnvironmentVariables())
             .UseStartup<Startup>();
         return new TestServer(hostBuilder);
     }
