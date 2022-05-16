@@ -10,7 +10,7 @@ public static class EventSourcingStartup
 {
     public static IServiceCollection AddEventSourcing(this IServiceCollection services, IConfigurationRoot configuration)
     {
-        if (configuration.GetValue<bool>("UseCosmos") && configuration.GetSection("Cosmos").Exists())
+        if (configuration.GetValue<bool>("UseCosmos"))
         {
             services.Configure<CosmosRecordStoreOptions>(configuration.GetSection("Cosmos"));
             services.AddSingleton<IRecordStore, CosmosRecordStore>();
