@@ -20,7 +20,7 @@ public static class ServiceProviderExtensions
   public static IServiceCollection AddEventSourcing(this IServiceCollection serviceProvider, IConfigurationSection configuration)
   {
     return serviceProvider
-    .Configure<CosmosClientOptions>(configuration)
+    .Configure<CosmosRecordStoreOptions>(configuration)
     .AddEventSourcing();
   }
 

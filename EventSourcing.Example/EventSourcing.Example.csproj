@@ -15,9 +15,13 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\EventSourcing.Core\EventSourcing.Core.csproj" />
-      <ProjectReference Include="..\EventSourcing.Cosmos\EventSourcing.Cosmos.csproj" />
+        <ProjectReference Include="..\EventSourcing.Core\EventSourcing.Core.csproj" />
+        <ProjectReference Include="..\EventSourcing.Cosmos\EventSourcing.Cosmos.csproj" />
         <ProjectReference Include="..\EventSourcing.EF\EventSourcing.EF.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="appsettings.local.json" />
     </ItemGroup>
 
 </Project>
