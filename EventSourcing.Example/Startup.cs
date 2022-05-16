@@ -34,8 +34,7 @@ public class Startup
       c.SwaggerDoc("v1", new OpenApiInfo { Title = "EventSourcing.Example", Version = "v1" });
     });
     
-    //Add required event sourcing services 
-    services.AddEventSourcing(Configuration);
+    services.StartupEventSourcing(Configuration);
   }
 
   // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
