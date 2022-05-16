@@ -1,20 +1,19 @@
 Example of  a webshop backend using Finaps.EventSourcing
 --------------------------
 
-This project is an example of a webshop backend service using ```Finaps.EventSourcing``` to eventsource it's aggregates using Cosmos DB.
+This project is an example of a webshop backend service using ```Finaps.EventSourcing``` to eventsource it's aggregates using Cosmos DB or Postgres.
 
 Keep in mind that this service is not meant to be used as a webshop backend but rather to illustrate the strengths of EventSourcing and in particular ```Finaps.EventSourcing``` for this solution.
 
-The project is a simple AspNetCore service containing code that mostly describes behavior and uses ```Finaps.EventSourcing``` for all of it's infrastructure.
+The project is a simple AspNetCore service containing code that mostly describes behavior and uses ```Finaps.EventSourcing``` for most of it's infrastructure.
 
 Infrastructure
 -------
 To set up the infrastructure ``` EventSourcingStartup.cs ``` is being called from ``` Startup.cs ```.
 
-The following two lines are added in ``` EventSourcingStartup.cs ``` to set up the infrastructure to store and query events from the Cosmos DB:
+The following line is added in ``` EventSourcingStartup.cs ``` to set up the infrastructure to store and query events from the Cosmos DB:
 ```c#
-services.Configure<CosmosRecordStoreOptions>(Configuration.GetSection("Cosmos"));
-services.AddSingleton<IRecordStore, CosmosRecordStore>();
+services.AddEventSourcing(configuration.GetSection("Cosmos"));
 ```
 And the following lines are added when using with a Postgres DB:
 ```c#
@@ -22,12 +21,9 @@ services.AddDbContext<RecordContext, ExampleContext>(options =>
 {
     options.UseNpgsql(configuration.GetConnectionString("RecordStore"));
 });
-services.AddScoped<IRecordStore, EntityFrameworkRecordStore>();
+services.AddEventSourcing<ExampleContext>();
 ```
-For the recalculating state, persisting and validating the aggregates the following line is also added to inject the ```AggregateService```:
-```c#
-services.AddScoped<IAggregateService, AggregateService>();
-```
+We can now request the ```AggregateService``` whenever we need to recalculate or persist the state of an aggregate.
 
 Aggregates
 -------
