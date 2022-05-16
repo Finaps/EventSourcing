@@ -10,7 +10,9 @@ namespace EventSourcing.Example.Tests.Postgres;
 
 public static class PostgresTestServer
 {
-    public static TestServer GetServer()
+    public static readonly TestServer Server = GetServer();
+
+    private static TestServer GetServer()
     {
         Environment.SetEnvironmentVariable("UseCosmos", "false");
         var path = Assembly.GetAssembly(typeof(PostgresTestServer))?.Location;

@@ -10,7 +10,7 @@ public class PostgresInfrastructureTests
     [Fact]
     public void EF_RecordStore_Is_Initialized()
     {
-        var recordStore = PostgresTestServer.GetServer().Services.GetService<IRecordStore>();
+        var recordStore = PostgresTestServer.Server.Services.GetService<IRecordStore>();
         
         Assert.Equal(typeof(EntityFrameworkRecordStore), recordStore!.GetType());
     }

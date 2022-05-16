@@ -4,5 +4,5 @@ namespace EventSourcing.Example.Tests.Cosmos;
 
 public class CosmosProductTests : ProductTests
 {
-    public CosmosProductTests() : base(CosmosTestServer.GetServer()) { }
+    public CosmosProductTests() : base(CosmosTestServer.Server) { }
 }

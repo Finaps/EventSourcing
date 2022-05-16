@@ -4,5 +4,5 @@ namespace EventSourcing.Example.Tests.Cosmos;
 
 public class CosmosBasketTests : BasketTests
 {
-    public CosmosBasketTests() : base(CosmosTestServer.GetServer()) { }
+    public CosmosBasketTests() : base(CosmosTestServer.Server) { }
 }

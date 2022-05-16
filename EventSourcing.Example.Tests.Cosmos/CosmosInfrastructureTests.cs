@@ -10,7 +10,7 @@ public class CosmosInfrastructureTests
     [Fact]
     public void Cosmos_RecordStore_Is_Initialized()
     {
-        var recordStore = CosmosTestServer.GetServer().Services.GetService<IRecordStore>();
+        var recordStore = CosmosTestServer.Server.Services.GetService<IRecordStore>();
         
         Assert.Equal(typeof(CosmosRecordStore), recordStore!.GetType());
     }
