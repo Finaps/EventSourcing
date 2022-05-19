@@ -90,8 +90,7 @@ public class EntityFrameworkRecordTransaction : IRecordTransaction
   /// <inheritdoc />
   public async Task CommitAsync(CancellationToken cancellationToken = default)
   {
-    try
-    {
+
       await using var transaction = await _store.Context.Database.BeginTransactionAsync(cancellationToken);
       
       foreach (var action in _actions)
@@ -135,13 +134,15 @@ public class EntityFrameworkRecordTransaction : IRecordTransaction
             break;
         }
       }
-    
-      await _store.Context.SaveChangesAsync(cancellationToken);
-      await transaction.CommitAsync(cancellationToken);
-    }
-    catch (DbUpdateException e)
-    {
-      throw new RecordStoreException(e.Message, e);
-    }
+
+      try
+      {
+        await _store.Context.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+      }
+      catch (DbUpdateException e)
+      {
+        throw new RecordStoreException(e.Message, e);
+      }
   }
 }
