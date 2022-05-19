@@ -160,13 +160,17 @@ public abstract partial class EventSourcingTests
   [Fact] // Tests issue https://github.com/Finaps/EventSourcing/issues/72
   public async Task AggregateService_PersistAsync_NonAlphabetical_Events_Persisted_In_Order()
   {
-    var aggregate = new BankAccount();
-    aggregate.Apply(new BankAccountCreatedEvent("E. Sourcing", "Some IBAN"));
-    aggregate.Apply(new BankAccountFundsDepositedEvent(500));
-    aggregate.Apply(new BankAccountFundsWithdrawnEvent(100));
-    aggregate.Apply(new BankAccountFundsDepositedEvent(50));
-    aggregate.Apply(new BankAccountFundsWithdrawnEvent(20));
-    aggregate.Apply(new BankAccountFundsDepositedEvent(500));
-    await AggregateService.PersistAsync(aggregate);
+    var bankAccount = new BankAccount();
+    var bankAccount2 = new BankAccount();
+
+    bankAccount.Apply(new BankAccountCreatedEvent("E. Sourcing", "Some IBAN"));
+    bankAccount2.Apply(new BankAccountCreatedEvent("Other Person", "Some other IBAN"));
+    
+    bankAccount.Apply(new BankAccountFundsDepositedEvent(500));
+    bankAccount.Apply(new BankAccountFundsWithdrawnEvent(100));
+    bankAccount.Apply(new BankAccountFundsTransferredEvent(50, bankAccount.Id, bankAccount2.Id));
+    bankAccount.Apply(new BankAccountFundsWithdrawnEvent(20));
+    bankAccount.Apply(new BankAccountFundsDepositedEvent(500));
+    await AggregateService.PersistAsync(bankAccount);
   }
 }
