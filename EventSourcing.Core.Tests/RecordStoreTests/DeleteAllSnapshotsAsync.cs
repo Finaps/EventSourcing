@@ -7,17 +7,19 @@ public abstract partial class EventSourcingTests
     [Fact]
     public async Task RecordStore_DeleteAllSnapshotsAsync_Can_Delete_Snapshots()
     {
+        var store = RecordStore;
+        
         var aggregate = new SnapshotAggregate();
         var factory = new SimpleSnapshotFactory();
         foreach (var _ in Enumerable.Range(0, 3))
         {
             var e = aggregate.Apply(new SnapshotEvent());
-            await RecordStore.AddEventsAsync(new List<Event> { e });
+            await store.AddEventsAsync(new List<Event> { e });
             var snapshot = factory.CreateSnapshot(aggregate);
-            await RecordStore.AddSnapshotAsync(snapshot);
+            await store.AddSnapshotAsync(snapshot);
         }
 
-        var countBeforeDelete = await RecordStore
+        var countBeforeDelete = await store
             .GetSnapshots<SnapshotAggregate>()
             .Where(x => x.AggregateId == aggregate.Id)
             .AsAsyncEnumerable()
@@ -25,9 +27,9 @@ public abstract partial class EventSourcingTests
         
         Assert.Equal(3, countBeforeDelete);
 
-        await RecordStore.DeleteAllSnapshotsAsync<SnapshotAggregate>(aggregate.Id);
+        await store.DeleteAllSnapshotsAsync<SnapshotAggregate>(aggregate.Id);
         
-        var countAfterDelete = await RecordStore
+        var countAfterDelete = await store
             .GetSnapshots<SnapshotAggregate>()
             .Where(x => x.AggregateId == aggregate.Id)
             .AsAsyncEnumerable()
@@ -78,19 +80,21 @@ public abstract partial class EventSourcingTests
     [Fact]
     public async Task RecordStore_DeleteAllSnapshotsAsync_Correctly_Returns_Deleted_Count()
     {
+        var store = RecordStore;
+        
         var aggregate = new SnapshotAggregate();
         var factory = new SimpleSnapshotFactory();
         foreach (var _ in Enumerable.Range(0, 3))
         {
             var e = aggregate.Apply(new SnapshotEvent());
-            await RecordStore.AddEventsAsync(new List<Event> { e });
+            await store.AddEventsAsync(new List<Event> { e });
             var snapshot = factory.CreateSnapshot(aggregate);
-            await RecordStore.AddSnapshotAsync(snapshot);
+            await store.AddSnapshotAsync(snapshot);
         }
         
-        var deleted = await RecordStore.DeleteAllSnapshotsAsync<SnapshotAggregate>(aggregate.Id);
+        var deleted = await store.DeleteAllSnapshotsAsync<SnapshotAggregate>(aggregate.Id);
         
-        var countAfterDelete = await RecordStore
+        var countAfterDelete = await store
             .GetSnapshots<SnapshotAggregate>()
             .Where(x => x.AggregateId == aggregate.Id)
             .AsAsyncEnumerable()

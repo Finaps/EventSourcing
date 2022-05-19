@@ -96,17 +96,19 @@ public abstract partial class EventSourcingTests
   [Fact]
   public async Task Cannot_Add_Events_When_Events_Are_Deleted_Concurrently()
   {
+    var store = RecordStore;
+    
     var aggregate = new EmptyAggregate();
     
     // Add 5 Events
-    await RecordStore.AddEventsAsync(Enumerable
+    await store.AddEventsAsync(Enumerable
       .Range(0, 5)
       .Select(_ => aggregate.Apply(new EmptyEvent()))
       .Cast<Event>()
       .ToList());
 
     // Then, start transaction, adding 5 additional events
-    var transaction = RecordStore.CreateTransaction()
+    var transaction = store.CreateTransaction()
       .AddEvents(Enumerable
         .Range(0, 5)
         .Select(_ => aggregate.Apply(new EmptyEvent()))
@@ -114,7 +116,7 @@ public abstract partial class EventSourcingTests
         .ToList());
     
     // Then delete the first 5 events, simulating concurrency
-    await RecordStore.DeleteAllEventsAsync<EmptyAggregate>(aggregate.Id);
+    await store.DeleteAllEventsAsync<EmptyAggregate>(aggregate.Id);
 
     // Check if committing transaction throws NonConsecutiveException
     await Assert.ThrowsAsync<RecordStoreException>(async () => await transaction.CommitAsync());
