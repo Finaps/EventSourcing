@@ -84,22 +84,24 @@ public abstract partial class EventSourcingTests
   [Fact]
   public async Task RecordStore_DeleteAggregateAsync_Can_Delete_More_Than_100_Events()
   {
+    var store = RecordStore;
+    
     var aggregate = new EmptyAggregate();
     var events = new List<Event>();
 
     for (var i = 0; i < 100; i++)
       events.Add(aggregate.Apply(new EmptyEvent()));
 
-    await RecordStore.AddEventsAsync(events);
+    await store.AddEventsAsync(events);
     events.Clear();
 
     for (var i = 0; i < 10; i++)
       events.Add(aggregate.Apply(new EmptyEvent()));
 
-    await RecordStore.AddEventsAsync(events);
-    var deleted = await RecordStore.DeleteAggregateAsync<EmptyAggregate>(Guid.Empty, aggregate.Id);
+    await store.AddEventsAsync(events);
+    var deleted = await store.DeleteAggregateAsync<EmptyAggregate>(Guid.Empty, aggregate.Id);
 
-    var count = await RecordStore
+    var count = await store
       .GetEvents<EmptyAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()

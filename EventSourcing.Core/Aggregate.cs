@@ -138,7 +138,11 @@ public abstract class Aggregate<TAggregate> : Aggregate where TAggregate : Aggre
       PartitionId = PartitionId,
       AggregateId = Id,
       AggregateType = Type,
-      Index = Version
+      Index = Version,
+      
+      // Set Previous Event Reference to convince EF Core about Event consecutiveness
+      // See https://github.com/Finaps/EventSourcing/issues/72
+      _previousEvent = UncommittedEvents.Cast<Event<TAggregate>>().LastOrDefault()
     };
     
     ValidateAndApply(e);

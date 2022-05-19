@@ -1,5 +1,3 @@
-using Finaps.EventSourcing.Core.Tests.Mocks;
-
 namespace Finaps.EventSourcing.Core.Tests;
 
 public abstract partial class EventSourcingTests
@@ -47,21 +45,24 @@ public abstract partial class EventSourcingTests
   {
     var aggregate = new SnapshotAggregate();
     var e1 = aggregate.Apply(new SnapshotEvent());
-    await RecordStore.AddEventsAsync(new List<Event> { e1 });
+
+    var store = RecordStore;
+
+    await store.AddEventsAsync(new List<Event> { e1 });
     
     var factory = new SimpleSnapshotFactory();
     
     var snapshot1 = factory.CreateSnapshot(aggregate);
     
     var e2 = aggregate.Apply(new SnapshotEvent());
-    await RecordStore.AddEventsAsync(new List<Event> { e2 });
+    await store.AddEventsAsync(new List<Event> { e2 });
     
     var snapshot2 = factory.CreateSnapshot(aggregate);
 
     Assert.NotEqual(snapshot1.Index, snapshot2.Index);
 
-    await RecordStore.AddSnapshotAsync(snapshot1);
-    await RecordStore.AddSnapshotAsync(snapshot2);
+    await store.AddSnapshotAsync(snapshot1);
+    await store.AddSnapshotAsync(snapshot2);
 
     var result = await RecordStore
       .GetSnapshots<SnapshotAggregate>()

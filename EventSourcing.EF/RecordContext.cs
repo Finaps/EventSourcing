@@ -8,6 +8,7 @@ namespace Finaps.EventSourcing.EF;
 /// </summary>
 public class RecordContext : DbContext
 {
+  internal const string PreviousEvent = "_previousEvent";
   internal const string PreviousIndex = "PreviousIndex";
   internal const string ZeroIndex = "ZeroIndex";
   internal const int MaxTypeLength = 256;
@@ -69,7 +70,7 @@ public class RecordContext : DbContext
         // Constrain Type sizes
         @event.Property(nameof(Event.AggregateType)).HasMaxLength(MaxTypeLength);
         @event.Property(nameof(Event.Type)).HasMaxLength(MaxTypeLength);
-        
+
         // Events are uniquely identified by their PartitionId, AggregateId, and Index
         @event.HasKey(nameof(Snapshot.PartitionId), nameof(Snapshot.AggregateId), nameof(Snapshot.Index));
         
@@ -90,7 +91,7 @@ public class RecordContext : DbContext
         // Since PreviousIndex is nullable, EF Core makes the unique index filtered on NOT NULL, which fails in SQL Server
         // The Index below is explicitly defined as not unique, which prevents EF Core from adding a filtered unique index 
         @event.HasIndex(nameof(Event.PartitionId), nameof(Event.AggregateId), PreviousIndex).IsUnique(false);
-        
+
         // 3. Enforce Event Consecutiveness using a foreign key to the previous Event
         // This accomplishes three things:
         //  1. It disallows adding a loose Event
@@ -100,7 +101,7 @@ public class RecordContext : DbContext
         //  3. No implicit deletions will occur.
         //      i.e. if you remove Event 0, a Cascade Delete would remove everything after, but that is now prevented.
         //      rather, the system expects the user to be explicit about removing Events
-        @event.HasOne(eventType).WithOne()
+        @event.HasOne(eventType, PreviousEvent).WithOne()
           .HasForeignKey(eventType, nameof(Event.PartitionId), nameof(Event.AggregateId), PreviousIndex)
           .HasConstraintName($"FK_{aggregateType.EventTable()}_ConsecutiveIndex")
           .OnDelete(DeleteBehavior.Restrict);

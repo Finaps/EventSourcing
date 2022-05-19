@@ -23,4 +23,6 @@ public record Event<TAggregate> : Event where TAggregate : Aggregate, new()
 {
   /// <inheritdoc />
   public Event() => AggregateType = typeof(TAggregate).Name;
+  
+  internal Event<TAggregate>? _previousEvent { get; set; }
 }

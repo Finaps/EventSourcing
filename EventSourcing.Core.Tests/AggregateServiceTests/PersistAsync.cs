@@ -156,4 +156,17 @@ public abstract partial class EventSourcingTests
     Assert.NotNull(snapshotResult);
     Assert.Equal((int) factory.SnapshotInterval, eventCount);
   }
+
+  [Fact] // Tests issue https://github.com/Finaps/EventSourcing/issues/72
+  public async Task AggregateService_PersistAsync_NonAlphabetical_Events_Persisted_In_Order()
+  {
+    var aggregate = new BankAccount();
+    aggregate.Apply(new BankAccountCreatedEvent("E. Sourcing", "Some IBAN"));
+    aggregate.Apply(new BankAccountFundsDepositedEvent(500));
+    aggregate.Apply(new BankAccountFundsWithdrawnEvent(100));
+    aggregate.Apply(new BankAccountFundsDepositedEvent(50));
+    aggregate.Apply(new BankAccountFundsWithdrawnEvent(20));
+    aggregate.Apply(new BankAccountFundsDepositedEvent(500));
+    await AggregateService.PersistAsync(aggregate);
+  }
 }
