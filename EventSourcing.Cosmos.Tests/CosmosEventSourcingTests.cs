@@ -76,7 +76,7 @@ public partial class CosmosEventSourcingTests : EventSourcingTests
       // Invalid Connection String
       ConnectionString = "AccountEndpoint=https://example.documents.azure.com:443/;AccountKey=JKnJg81PiP0kkqhCu0k3mKlEPEEBqlFxwM4eiyd3WX2HKUYAAglbc9vMRJQhDsUomD3VHpwrWO9O5nL4ENwLFw==;",
       Database = _options.Value.Database,
-      Container =_options.Value.Container
+      Container = _options.Value.Container
     }));
 
     var exception = await Assert.ThrowsAsync<RecordStoreException>(async () =>
