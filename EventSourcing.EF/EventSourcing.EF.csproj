@@ -4,7 +4,7 @@
         <TargetFramework>net6.0</TargetFramework>
         <OutputType>Library</OutputType>
         <PackageId>Finaps.EventSourcing.EF</PackageId>
-        <Version>0.3.0</Version>
+        <Version>0.3.1</Version>
         <Authors>Niels Disveld, Bram Kraaijeveld</Authors>
         <Company>Finaps B.V.</Company>
         <RepositoryUrl>https://github.com/Finaps/EventSourcing</RepositoryUrl>
@@ -20,9 +20,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.Data.SqlClient" Version="2.1.4" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.3" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.3" />
+      <PackageReference Include="Microsoft.Data.SqlClient" Version="4.1.0" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.5" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.5" />
     </ItemGroup>
 
     <PropertyGroup>

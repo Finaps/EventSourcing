@@ -151,8 +151,15 @@ public class CosmosRecordTransaction : IRecordTransaction
           "See https://docs.microsoft.com/en-us/azure/cosmos-db/sql/transactional-batch for more information. ");
     }
 
-    var response = await _batch.ExecuteAsync(cancellationToken);
-    if (!response.IsSuccessStatusCode) ThrowException(response);
+    try
+    {
+      var response = await _batch.ExecuteAsync(cancellationToken);
+      if (!response.IsSuccessStatusCode) ThrowException(response);
+    }
+    catch (CosmosException e)
+    {
+      throw new RecordStoreException(e.Message, e);
+    }
   }
 
   private void ThrowException(TransactionalBatchResponse response)
