@@ -59,17 +59,17 @@ public class CosmosRecordStore : IRecordStore
     .Where(x => x.AggregateType == typeof(TAggregate).Name && x.Kind == RecordKind.Snapshot);
 
   /// <inheritdoc />
-  public IQueryable<TProjection> GetProjections<TProjection>() where TProjection : Projection, new() => _container
+  public IQueryable<TProjection> GetProjections<TProjection>() where TProjection : Projection => _container
     .AsCosmosAsyncQueryable<TProjection>()
-    .Where(x => x.Kind == RecordKind.Projection && x.Type == new TProjection().Type);
+    .Where(x => x.Kind == RecordKind.Projection && x.Type == typeof(TProjection).Name);
 
   /// <inheritdoc />
-  public async Task<TProjection?> GetProjectionByIdAsync<TProjection>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection, new()
+  public async Task<TProjection?> GetProjectionByIdAsync<TProjection>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection
   {
     try
     {
       return await _container.ReadItemAsync<TProjection>(
-        new TProjection { PartitionId = partitionId, AggregateId = aggregateId }.id,
+        $"{RecordKind.Projection}|{typeof(TProjection).Name}|{aggregateId}",
         new PartitionKey(partitionId.ToString()),
         cancellationToken: cancellationToken
       );
@@ -140,7 +140,7 @@ public class CosmosRecordStore : IRecordStore
       .CommitAsync(cancellationToken);
 
   /// <inheritdoc />
-  public async Task DeleteProjectionAsync<TProjection>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection, new() =>
+  public async Task DeleteProjectionAsync<TProjection>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection =>
     await CreateTransaction(partitionId)
       .DeleteProjection<TProjection>(aggregateId)
       .CommitAsync(cancellationToken);

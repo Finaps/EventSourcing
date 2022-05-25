@@ -34,7 +34,7 @@ public interface IRecordStore
   /// and use <c>System.Linq.Async</c>'s extension methods to get the results of your query.
   /// </remarks>
   /// <typeparam name="TProjection"><see cref="Projection"/> type to query</typeparam>
-  IQueryable<TProjection> GetProjections<TProjection>() where TProjection : Projection, new();
+  IQueryable<TProjection> GetProjections<TProjection>() where TProjection : Projection;
   
   /// <summary>
   /// Get <see cref="Projection"/> by <see cref="Projection.PartitionId"/> and <see cref="Projection.AggregateId"/>
@@ -44,7 +44,7 @@ public interface IRecordStore
   /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
   /// <typeparam name="TProjection"><see cref="Projection"/> type</typeparam>
   /// <returns><see cref="Projection"/> of type <see cref="TProjection"/></returns>
-  Task<TProjection?> GetProjectionByIdAsync<TProjection>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection, new();
+  Task<TProjection?> GetProjectionByIdAsync<TProjection>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection;
 
   /// <summary>
   /// Store <see cref="Event"/>s to the <see cref="IRecordStore"/>
@@ -108,7 +108,7 @@ public interface IRecordStore
   /// <param name="aggregateId">Aggregate Id</param>
   /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
   /// <exception cref="RecordStoreException">Thrown when conflicts occur when deleting <see cref="Projection"/>s</exception>
-  Task DeleteProjectionAsync<TProjection>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection, new();
+  Task DeleteProjectionAsync<TProjection>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection;
 
   /// <summary>
   /// Delete all <see cref="Event"/>s, <see cref="Snapshot"/>s and <see cref="Projection"/>s for an <see cref="Aggregate{TAggregate}"/>
@@ -132,7 +132,7 @@ public interface IRecordStore
   /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
   /// <typeparam name="TProjection"><see cref="Projection"/> type</typeparam>
   /// <returns><see cref="Projection"/> of type <see cref="TProjection"/></returns>
-  async Task<TProjection?> GetProjectionByIdAsync<TProjection>(Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection, new() =>
+  async Task<TProjection?> GetProjectionByIdAsync<TProjection>(Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection =>
     await GetProjectionByIdAsync<TProjection>(Guid.Empty, aggregateId, cancellationToken);
 
   /// <summary>
@@ -166,7 +166,7 @@ public interface IRecordStore
   /// <param name="aggregateId">Aggregate Id</param>
   /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
   async Task DeleteProjectionAsync<TProjection>(Guid aggregateId, CancellationToken cancellationToken = default)
-    where TProjection : Projection, new() =>
+    where TProjection : Projection =>
     await DeleteProjectionAsync<TProjection>(Guid.Empty, aggregateId, cancellationToken);
 
   /// <summary>

@@ -20,7 +20,7 @@ public class EntityFrameworkRecordTransaction : IRecordTransaction
 
   private record DeleteSnapshotAction(Snapshot Snapshot) : TransactionAction;
 
-  private record DeleteProjectionAction(Projection Projection) : TransactionAction;
+  private record DeleteProjectionAction(Type Type, Guid AggregateId) : TransactionAction;
 
   private readonly List<TransactionAction> _actions = new();
 
@@ -81,9 +81,9 @@ public class EntityFrameworkRecordTransaction : IRecordTransaction
   }
 
   /// <inheritdoc />
-  public IRecordTransaction DeleteProjection<TProjection>(Guid aggregateId) where TProjection : Projection, new()
+  public IRecordTransaction DeleteProjection<TProjection>(Guid aggregateId) where TProjection : Projection
   {
-    _actions.Add(new DeleteProjectionAction(new TProjection { PartitionId = PartitionId, AggregateId = aggregateId }));
+    _actions.Add(new DeleteProjectionAction(typeof(TProjection), aggregateId));
     return this;
   }
 
@@ -128,9 +128,8 @@ public class EntityFrameworkRecordTransaction : IRecordTransaction
             _store.Context.Remove(snapshot);
             break;
 
-          case DeleteProjectionAction(var projection):
-            _store.Context.Attach(projection);
-            _store.Context.Remove(projection);
+          case DeleteProjectionAction(var type, var aggregateId):
+            await _store.Context.DeleteWhereAsync($"{type.Name}", PartitionId, aggregateId, cancellationToken);
             break;
         }
       }
