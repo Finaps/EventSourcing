@@ -24,7 +24,7 @@ public class ProjectionUpdateService : IProjectionUpdateService
   /// <typeparam name="TAggregate"><see cref="Aggregate{TAggregate}"/> type</typeparam>
   /// <typeparam name="TProjection"><see cref="Projection"/> type</typeparam>
   public async Task UpdateAllProjectionsAsync<TAggregate, TProjection>(CancellationToken cancellationToken = default)
-    where TAggregate : Aggregate, new() where TProjection : Projection, new()
+    where TAggregate : Aggregate, new() where TProjection : Projection
   {
     var factory = ProjectionCache.FactoryByAggregateAndProjection[(typeof(TAggregate), typeof(TProjection))];
     var hash = ProjectionCache.Hashes[factory.GetType().Name];

@@ -27,5 +27,5 @@ public interface IProjectionUpdateService
   /// <typeparam name="TProjection"><see cref="Projection"/> type</typeparam>
   /// <param name="cancellationToken">Cancellation token</param>
   Task UpdateAllProjectionsAsync<TAggregate, TProjection>(CancellationToken cancellationToken = default)
-    where TAggregate : Aggregate, new() where TProjection : Projection, new();
+    where TAggregate : Aggregate, new() where TProjection : Projection;
 }

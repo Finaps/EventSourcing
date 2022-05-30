@@ -24,11 +24,11 @@ public class EntityFrameworkRecordStore : IRecordStore
   public IQueryable<Snapshot> GetSnapshots<TAggregate>() where TAggregate : Aggregate, new() => Context.Set<Snapshot<TAggregate>>();
 
   /// <inheritdoc />
-  public IQueryable<TProjection> GetProjections<TProjection>() where TProjection : Projection, new() => Context.Set<TProjection>();
+  public IQueryable<TProjection> GetProjections<TProjection>() where TProjection : Projection => Context.Set<TProjection>();
 
   /// <inheritdoc />
   public async Task<TProjection?> GetProjectionByIdAsync<TProjection>(Guid partitionId, Guid aggregateId,
-    CancellationToken cancellationToken = default) where TProjection : Projection, new() =>
+    CancellationToken cancellationToken = default) where TProjection : Projection =>
     await Context.Set<TProjection>().FindAsync(new object?[] { partitionId, aggregateId }, cancellationToken);
 
   /// <inheritdoc />
@@ -67,12 +67,9 @@ public class EntityFrameworkRecordStore : IRecordStore
     await Context.DeleteWhereAsync(typeof(TAggregate).SnapshotTable(), partitionId, aggregateId, index, cancellationToken);
 
   /// <inheritdoc />
-  public async Task DeleteProjectionAsync<TProjection>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection, new()
+  public async Task DeleteProjectionAsync<TProjection>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection
   {
-    var projection = new TProjection { PartitionId = partitionId, AggregateId = aggregateId };
-    Context.Set<TProjection>().Attach(projection);
-    Context.Set<TProjection>().Remove(projection);
-    await Context.SaveChangesAsync(cancellationToken);
+    await Context.DeleteWhereAsync(typeof(TProjection).Name, partitionId, aggregateId, cancellationToken);
   }
 
   /// <inheritdoc />

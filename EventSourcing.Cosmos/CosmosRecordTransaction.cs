@@ -128,11 +128,10 @@ public class CosmosRecordTransaction : IRecordTransaction
   }
 
   /// <inheritdoc />
-  public IRecordTransaction DeleteProjection<TProjection>(Guid aggregateId) where TProjection : Projection, new()
+  public IRecordTransaction DeleteProjection<TProjection>(Guid aggregateId) where TProjection : Projection
   {
-    var projection = new TProjection { PartitionId = PartitionId, AggregateId = aggregateId };
-    _batch.DeleteItem(projection.id, CosmosRecordStore.BatchItemRequestOptions);
-    _actions.Add((CosmosEventTransactionAction.DeleteProjection, projection));
+    _batch.DeleteItem($"{RecordKind.Projection}|{typeof(TProjection).Name}|{aggregateId}", CosmosRecordStore.BatchItemRequestOptions);
+    _actions.Add((CosmosEventTransactionAction.DeleteProjection, new object()));
 
     return this;
   }

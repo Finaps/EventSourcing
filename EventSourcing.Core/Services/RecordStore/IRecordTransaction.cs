@@ -62,7 +62,7 @@ public interface IRecordTransaction
   /// <param name="aggregateId"><see cref="Projection"/>.<see cref="Projection.AggregateId"/></param>
   /// <param name="type"><see cref="Projection"/>.<see cref="Projection.Type"/> to delete</param>
   /// <returns></returns>
-  IRecordTransaction DeleteProjection<TProjection>(Guid aggregateId) where TProjection : Projection, new();
+  IRecordTransaction DeleteProjection<TProjection>(Guid aggregateId) where TProjection : Projection;
 
   /// <summary>
   /// Commit ACID Record Transaction
