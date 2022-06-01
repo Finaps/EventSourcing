@@ -18,7 +18,7 @@ public abstract partial class EventSourcingTests
             .AsAsyncEnumerable()
             .SingleAsync();
         
-        var updatedProjection = projectionBefore with { Timestamp = DateTimeOffset.Now };
+        var updatedProjection = projectionBefore with { Timestamp = DateTimeOffset.UtcNow };
         
         Assert.NotEqual(projectionBefore.Timestamp, updatedProjection.Timestamp);
         

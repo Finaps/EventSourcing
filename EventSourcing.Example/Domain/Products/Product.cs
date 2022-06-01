@@ -28,7 +28,7 @@ public class Product : Aggregate<Product>
                 // The following check makes the entire process of rehydrating this aggregate impure. However the
                 // tradeoff is probably worth it since we can ignore old, non-relevant product reservations which is
                 // easier on the memory
-                if(DateTimeOffset.Now - reservedEvent.Timestamp <= reservedEvent.HeldFor)
+                if(DateTimeOffset.UtcNow - reservedEvent.Timestamp <= reservedEvent.HeldFor)
                     Reservations.Add(new Reservation(reservedEvent.Quantity, reservedEvent.BasketId));
                 break;
             case ReservationRemovedEvent reservationRemovedEvent:

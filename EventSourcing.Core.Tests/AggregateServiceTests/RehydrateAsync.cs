@@ -28,11 +28,11 @@ public abstract partial class EventSourcingTests
     var aggregate = new SimpleAggregate();
     aggregate.Apply(new SimpleEvent());
     aggregate.Apply(new SimpleEvent());
-    aggregate.Apply(new SimpleEvent { Timestamp = DateTimeOffset.Now.AddYears(1) });
+    aggregate.Apply(new SimpleEvent { Timestamp = DateTimeOffset.UtcNow.AddYears(1) });
 
     await AggregateService.PersistAsync(aggregate);
 
-    var rehydrated = await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate.Id, DateTimeOffset.Now);
+    var rehydrated = await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate.Id, DateTimeOffset.UtcNow);
 
     Assert.Equal(2, rehydrated?.Counter);
   }
@@ -77,7 +77,7 @@ public abstract partial class EventSourcingTests
     await AggregateService.PersistAsync(aggregate);
 
     await Task.Delay(100);
-    var date = DateTimeOffset.Now;
+    var date = DateTimeOffset.UtcNow;
     await Task.Delay(100);
 
     foreach (var _ in new int[factory.SnapshotInterval])
