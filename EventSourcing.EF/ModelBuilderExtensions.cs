@@ -24,15 +24,15 @@ public static class ModelBuilderExtensions
     this ModelBuilder builder, Expression<Func<TEvent, Guid?>> navigation) 
     where TEvent : Event where TAggregate : Aggregate, new()
   {
-    var memberName = navigation.GetMemberAccess().GetSimpleMemberName();
-    var constraintName = $"FK_{typeof(TEvent).Name}_{memberName}";
+    var foreignAggregateId = navigation.GetMemberAccess().GetSimpleMemberName();
+    var foreignKeyName = $"FK_{typeof(TEvent).Name}_{foreignAggregateId}";
 
     return builder
       .Entity<TEvent>()
       .HasOne<Event<TAggregate>>()
       .WithMany()
-      .HasForeignKey(nameof(Event.PartitionId), memberName, RecordContext.ZeroIndex)
-      .HasConstraintName(constraintName)
+      .HasForeignKey(nameof(Event.PartitionId), foreignAggregateId, RecordContext.ZeroIndex)
+      .HasConstraintName(foreignKeyName)
       .OnDelete(DeleteBehavior.Restrict)
       .IsRequired();
   }

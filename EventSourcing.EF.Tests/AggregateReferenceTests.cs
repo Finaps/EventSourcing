@@ -13,10 +13,7 @@ public abstract partial class EntityFrameworkEventSourcingTests
   public async Task AggregateReferenceTests_Can_Reference_Self()
   {
     var referenced = new ReferenceAggregate();
-    referenced.Apply(new ReferenceEvent
-    {
-      ReferenceAggregateId = referenced.Id
-    });
+    referenced.Apply(new ReferenceEvent(referenced.Id));
     await AggregateService.PersistAsync(referenced);
   }
   
@@ -24,19 +21,31 @@ public abstract partial class EntityFrameworkEventSourcingTests
   public async Task AggregateReferenceTests_Can_Reference_Other_Aggregate()
   {
     var referenced = new ReferenceAggregate();
-    referenced.Apply(new ReferenceEvent
-    {
-      ReferenceAggregateId = referenced.Id
-    });
+    referenced.Apply(new ReferenceEvent(referenced.Id));
     await AggregateService.PersistAsync(referenced);
 
     var aggregate = new ReferenceAggregate();
-    aggregate.Apply(new ReferenceEvent
-    {
-      ReferenceAggregateId = referenced.Id
-    });
-
+    aggregate.Apply(new ReferenceEvent(referenced.Id));
     await AggregateService.PersistAsync(aggregate);
+  }
+  
+  [Fact]
+  public async Task AggregateReferenceTests_Can_Update_Reference()
+  {
+    var referenced = new ReferenceAggregate();
+    referenced.Apply(new ReferenceEvent(referenced.Id));
+    await AggregateService.PersistAsync(referenced);
+
+    var aggregate = new ReferenceAggregate();
+    aggregate.Apply(new ReferenceEvent(referenced.Id));
+    await AggregateService.PersistAsync(aggregate);
+    
+    var newReferenced = new ReferenceAggregate();
+    newReferenced.Apply(new ReferenceEvent(newReferenced.Id));
+    await AggregateService.PersistAsync(newReferenced);
+
+    await AggregateService.RehydrateAndPersistAsync<ReferenceAggregate>(aggregate.Id, x =>
+      x.Apply(new ReferenceEvent(newReferenced.Id)));
   }
   
   [Fact]
@@ -47,12 +56,7 @@ public abstract partial class EntityFrameworkEventSourcingTests
     await AggregateService.PersistAsync(referenced);
 
     var aggregate = new ReferenceAggregate();
-    aggregate.Apply(new ReferenceEvent
-    {
-      ReferenceAggregateId = aggregate.Id,
-      EmptyAggregateId = referenced.Id
-    });
-
+    aggregate.Apply(new ReferenceEvent(aggregate.Id, referenced.Id));
     await AggregateService.PersistAsync(aggregate);
   }
   
@@ -64,12 +68,7 @@ public abstract partial class EntityFrameworkEventSourcingTests
     await AggregateService.PersistAsync(referenced);
 
     var aggregate = new ReferenceAggregate();
-    aggregate.Apply(new ReferenceEvent
-    {
-      ReferenceAggregateId = aggregate.Id,
-      EmptyAggregateId = referenced.Id
-    });
-
+    aggregate.Apply(new ReferenceEvent(aggregate.Id, referenced.Id));
     await Assert.ThrowsAsync<RecordStoreException>(async () => await AggregateService.PersistAsync(aggregate));
   }
   
@@ -77,11 +76,7 @@ public abstract partial class EntityFrameworkEventSourcingTests
   public async Task AggregateReferenceTests_Cannot_Reference_NonExisting_Aggregate()
   {
     var aggregate = new ReferenceAggregate();
-    aggregate.Apply(new ReferenceEvent
-    {
-      ReferenceAggregateId = Guid.NewGuid()
-    });
-
+    aggregate.Apply(new ReferenceEvent(Guid.NewGuid(), null));
     await Assert.ThrowsAsync<RecordStoreException>(async () => await AggregateService.PersistAsync(aggregate));
   }
 }

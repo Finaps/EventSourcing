@@ -32,5 +32,16 @@ public class EntityFrameworkTestRecordContext : RecordContext
 
     builder.AggregateReference<ReferenceEvent, ReferenceAggregate>(x => x.ReferenceAggregateId);
     builder.AggregateReference<ReferenceEvent, EmptyAggregate>(x => x.EmptyAggregateId);
+
+    builder.Entity<ReferenceProjection>()
+      .HasOne<ReferenceProjection>()
+      .WithMany()
+      .HasForeignKey(x => new { x.PartitionId, x.ReferenceAggregateId })
+      .OnDelete(DeleteBehavior.NoAction);  // Sql Server does not like possible cyclic references
+
+    builder.Entity<ReferenceProjection>()
+      .HasOne<EmptyProjection>()
+      .WithMany()
+      .HasForeignKey(x => new { x.PartitionId, x.EmptyAggregateId });
   }
 }

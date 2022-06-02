@@ -33,6 +33,8 @@ Table of Contents
    8. [Querying Records](#8-querying-records)
    9. [Creating & Querying Projections](#9-creating--querying-projections)
 3. [Advanced Usage](#advanced-usage)
+    1. [Aggregate References](#1-aggregate-references)
+    2. [Projection References](#2-projection-references)
 4. [Concepts](#concepts)
    1. [Records](#records)
       1. [Events](#1-events)
@@ -469,7 +471,7 @@ Aggregates don't usually live in a vacuum, but are related to other Aggregates.
 However, because Events are the source of truth and Aggregates are never directly persisted,
 defining foreign keys to ensure data integrity is less trivial than in non-EventSourced systems.
 
-How do we, in the example below, ensure that ```PostAggregate.BlogId``` is actually valid?
+How do we, in the example below, ensure that ```Post.BlogId``` is actually valid?
 
 ```c#
 public class Blog : Aggregate<Blog>
@@ -484,7 +486,8 @@ public class Post : Aggregate<Post>
 }
 ```
 
-We can solve this by validating all Events that contain ```BlogId```
+Since Aggregates are never stored directly but are the result of Events,
+we should solve this by validating all Events that contain the ```BlogId``` reference.
 
 ```c#
 public record PostCreated(Guid BlogId, string Content) : Event<Post>;
@@ -497,8 +500,36 @@ builder.AggregateReference<PostCreated, Blog>(x => x.BlogId);
 ```
 
 This creates a relation between the ```PostCreated``` Event and the first Event of the referenced ```Blog```.
+To be precise, the foreign key of the ```PostCreated``` Event is ```[PartitionId, BlogId, 0]```.
 
 This technique can be used, alongside other techniques, to increase the data integrity of your application.
+
+### 2. Projection References
+
+**Note: currently this feature is only available in ```Finaps.EventSourcing.EF```**
+
+Even though Projections are not a source of truth, it can be beneficial to define foreign keys on them (e.g. to make certain queries easier).
+
+Given the following projections:
+
+```c#
+public record SomeProjection : Projection;
+public record DependentProjection(Guid SomeProjectionId) : Projection;
+```
+
+A foreign key is created like any other composite foreign key in EF Core:
+
+```c#
+protected override void OnModelCreating(ModelBuilder builder)
+{
+    builder.Entity<DependentProjection>()
+      .HasOne<SomeProjection>()
+      .WithMany()
+      .HasForeignKey(x => new { x.PartitionId, x.SomeProjectionId });
+}
+```
+
+Note: this does assume that both projections exist in the same partition.
 
 Concepts
 --------
@@ -524,7 +555,6 @@ public abstract record Record
     
   public Guid PartitionId { get; init; }            // = Aggregate.PartitionId
   public Guid AggregateId { get; init; }            // = Aggregate.Id
-  public Guid RecordId { get; init; }               // = Guid.NewGuid()
   
   public DateTimeOffset Timestamp { get; init; }    // Event/Snapshot/Projection creation time
 }
@@ -544,6 +574,8 @@ public record Event : Record
 }
 ```
 
+An ```Event``` can be uniquely indexed by the following primary key: ```[PartitionId, AggregateId, Index]```
+
 #### 2. Snapshots
 
 Snapshots are Events that describe the complete state of an Aggregate at a particular ```Event``` index.
@@ -554,6 +586,8 @@ The base ```Snapshot``` is defined below:
 ```c#
 public record Snapshot : Event;
 ```
+
+Like Events, A ```Snapshot``` has the following primary key: ```[PartitionId, AggregateId, Index]```
 
 #### 3. Projections
 
@@ -573,6 +607,8 @@ public record Projection : Record
 }
 ```
 
+A ```Projection``` of a particular type can be uniquely indexed by the following primary key: ```[PartitionId, AggregateId]```
+
 ##### Updating Projections
 
 Unlike Events, Projections are not a source of truth, but depend on the following data:
@@ -590,8 +626,8 @@ When querying projections, we can compare the stored hash to the current hash to
 ```Projection.IsUpToDate``` reflects this comparison.
 
 Now we know whether a ```Projection``` is out of date, we can actually update it using the following methods:
-1. Simply ```RehydrateAndPersist``` the aggregate with the corresponding ```AgregateType```, ```PartitionId``` and ```AggregateId```.
-2. Use the ```ProjectionUpdateService``` to bulk update may Projections at once.
+1. Call ```RehydrateAndPersist<TAggregate>(<PartitionId>, <AggregateId>)```.
+2. Use ```ProjectionUpdateService``` to bulk update may Projections at once.
 
 ### Aggregates
 
