@@ -89,7 +89,7 @@ public abstract record Record
   public Guid AggregateId { get; init; }
 
   /// <summary>
-  /// Record creation/update time. Defaults to <see cref="DateTimeOffset"/>.<see cref="DateTimeOffset.Now"/> on creation.
+  /// Record creation/update time. Defaults to <see cref="DateTimeOffset"/>.<see cref="DateTimeOffset.UtcNow"/> on creation.
   /// </summary>
   public DateTimeOffset Timestamp { get; init; }
   
@@ -104,6 +104,6 @@ public abstract record Record
   protected Record()
   {
     Type = GetType().Name;
-    Timestamp = DateTimeOffset.Now;
+    Timestamp = DateTimeOffset.UtcNow;
   }
 }

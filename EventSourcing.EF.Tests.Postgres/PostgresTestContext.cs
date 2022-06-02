@@ -20,8 +20,6 @@ public class TestContextFactory : IDesignTimeDbContextFactory<PostgresTestRecord
       .AddEnvironmentVariables()
       .Build();
     
-    AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-
     return new PostgresTestRecordContext(new DbContextOptionsBuilder<PostgresTestRecordContext>()
       .UseNpgsql(configuration.GetConnectionString("RecordStore"))
       .UseAllCheckConstraints()
