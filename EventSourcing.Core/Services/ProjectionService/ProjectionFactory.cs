@@ -25,7 +25,7 @@ public abstract class ProjectionFactory<TAggregate, TProjection> : IProjectionFa
     AggregateId = aggregate.Id,
     Version = aggregate.Version,
     
-    Timestamp = DateTimeOffset.Now,
+    Timestamp = DateTimeOffset.UtcNow,
     
     Hash = ProjectionCache.Hashes[GetType().Name]
   };
