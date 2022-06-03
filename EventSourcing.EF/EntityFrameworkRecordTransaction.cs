@@ -90,58 +90,58 @@ public class EntityFrameworkRecordTransaction : IRecordTransaction
   /// <inheritdoc />
   public async Task CommitAsync(CancellationToken cancellationToken = default)
   {
+    await using var transaction = await _store.Context.Database.BeginTransactionAsync(cancellationToken);
 
-      await using var transaction = await _store.Context.Database.BeginTransactionAsync(cancellationToken);
-      
-      foreach (var action in _actions)
+    foreach (var action in _actions)
+    {
+      switch (action)
       {
-        switch (action)
-        {
-          case AddEventsAction(var events):
-            _store.Context.AddRange(events);
-            break;
+        case AddEventsAction(var events):
+          _store.Context.AddRange(events);
+          break;
 
-          case AddSnapshotAction(var snapshot):
-            _store.Context.Add(snapshot);
-            break;
+        case AddSnapshotAction(var snapshot):
+          _store.Context.Add(snapshot);
+          break;
 
-          case UpsertProjectionAction(var projection):
+        case UpsertProjectionAction(var projection):
 
-            // Since EF Core has no Upsert functionality, we have to first query the original Projection :(
-            var existing = await _store.Context.FindAsync(
-              projection.GetType(),
-              projection.PartitionId, projection.AggregateId);
+          // Since EF Core has no Upsert functionality, we have to first query the original Projection :(
+          var existing = await _store.Context.FindAsync(
+            projection.GetType(),
+            projection.PartitionId, projection.AggregateId);
 
-            // Remove instead of update: this fixes problems with owned entities
-            if (existing != null) _store.Context.Remove(existing);
+          // Remove instead of update: this fixes problems with owned entities
+          if (existing != null) _store.Context.Remove(existing);
 
-            _store.Context.Add(projection);
+          _store.Context.Add(projection);
 
-            break;
+          break;
 
-          case DeleteAllEventsAction(var e):
-            await _store.Context.DeleteWhereAsync($"{e.AggregateType}{nameof(Event)}s", PartitionId, e.AggregateId, cancellationToken);
-            break;
+        case DeleteAllEventsAction(var e):
+          await _store.Context.DeleteWhereAsync($"{e.AggregateType}{nameof(Event)}s", PartitionId, e.AggregateId,
+            cancellationToken);
+          break;
 
-          case DeleteSnapshotAction(var snapshot):
-            _store.Context.Attach(snapshot);
-            _store.Context.Remove(snapshot);
-            break;
+        case DeleteSnapshotAction(var snapshot):
+          _store.Context.Attach(snapshot);
+          _store.Context.Remove(snapshot);
+          break;
 
-          case DeleteProjectionAction(var type, var aggregateId):
-            await _store.Context.DeleteWhereAsync($"{type.Name}", PartitionId, aggregateId, cancellationToken);
-            break;
-        }
+        case DeleteProjectionAction(var type, var aggregateId):
+          await _store.Context.DeleteWhereAsync($"{type.Name}", PartitionId, aggregateId, cancellationToken);
+          break;
       }
+    }
 
-      try
-      {
-        await _store.Context.SaveChangesAsync(cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
-      }
-      catch (DbUpdateException e)
-      {
-        throw new RecordStoreException(e.Message, e);
-      }
+    try
+    {
+      await _store.Context.SaveChangesAsync(cancellationToken);
+      await transaction.CommitAsync(cancellationToken);
+    }
+    catch (DbUpdateException e)
+    {
+      throw new RecordStoreException(e.Message, e);
+    }
   }
 }
