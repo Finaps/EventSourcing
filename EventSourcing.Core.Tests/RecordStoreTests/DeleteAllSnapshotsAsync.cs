@@ -1,5 +1,3 @@
-using Finaps.EventSourcing.Core.Tests.Mocks;
-
 namespace Finaps.EventSourcing.Core.Tests;
 
 public abstract partial class EventSourcingTests

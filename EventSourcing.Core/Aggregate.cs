@@ -173,14 +173,14 @@ public abstract class Aggregate<TAggregate> : Aggregate where TAggregate : Aggre
   protected virtual void Apply(Snapshot<TAggregate> s) { }
   
   /// <summary>
-  /// Project current state of this Aggregate to <see cref="TProjection"/>
+  /// Project current state of this Aggregate to <typeparamref name="TProjection"/>
   /// </summary>
   /// <remarks>
   /// <see cref="ProjectionFactory{TAggregate, TProjection}"/> should be defined
   /// </remarks>
   /// <typeparam name="TProjection"> Projection type</typeparam>
   /// <returns>
-  /// This Aggregate state projected to <see cref="TProjection"/>
+  /// This Aggregate state projected to <typeparamref name="TProjection"/>
   /// </returns>
   /// <exception cref="ArgumentException">Thrown when <see cref="ProjectionFactory{TAggregate, TProjection}"/> does not exist.</exception>
   public TProjection Project<TProjection>() where TProjection : Projection

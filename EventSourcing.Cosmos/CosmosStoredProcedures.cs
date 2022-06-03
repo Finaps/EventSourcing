@@ -54,9 +54,7 @@ internal static class CosmosStoredProcedures
     do
     {
       response = (await container.Scripts.ExecuteStoredProcedureAsync<DeleteResponse>(
-        deleteScriptId,
-        new PartitionKey($"{partitionId}"),
-        parameters)).Resource;
+        deleteScriptId, new PartitionKey(partitionId.ToString()), parameters)).Resource;
       deleted += response.deleted;
     } while (response.continuation);
 

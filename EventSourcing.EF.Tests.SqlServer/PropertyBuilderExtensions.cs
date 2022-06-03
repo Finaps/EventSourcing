@@ -12,7 +12,7 @@ public static class PropertyBuilderExtensions
     .HasConversion(
       list => list.SelectMany(BitConverter.GetBytes).ToArray(),
       bytes => bytes.Chunk(4).Select(b => BitConverter.ToSingle(b)).ToList(),
-      new ValueComparer<List<float>>((x, y) => x.SequenceEqual(y), x => x.GetHashCode()));
+      new ValueComparer<List<float>>((x, y) => y != null && x != null && x.SequenceEqual(y), x => x.GetHashCode()));
   
   public static PropertyBuilder<List<string>> HasStringConversion(this PropertyBuilder<List<string>> builder, string separator) => builder
     .HasConversion(

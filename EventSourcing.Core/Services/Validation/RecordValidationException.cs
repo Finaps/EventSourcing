@@ -4,5 +4,5 @@ namespace Finaps.EventSourcing.Core;
 public class RecordValidationException : Exception
 {
   /// <inheritdoc />
-  public RecordValidationException(string message, Exception? inner = null) : base(message, null) { }
+  public RecordValidationException(string message, Exception? inner = null) : base(message, inner) { }
 }

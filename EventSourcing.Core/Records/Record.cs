@@ -55,7 +55,7 @@ public abstract record Record
   /// </summary>
   /// <remarks>
   /// <para>
-  /// Set to <see cref="Aggregate{TAggregate}"/>.<see cref="Aggregate{TAggregate}.Type"/> when <see cref="Event"/> is added to an Aggregate.
+  /// Set to <see cref="Aggregate{TAggregate}"/>.<see cref="Aggregate.Type"/> when <see cref="Event"/> is added to an Aggregate.
   /// </para>
   /// </remarks>
   public string? AggregateType { get; init; }
@@ -65,7 +65,7 @@ public abstract record Record
   /// </summary>
   /// <remarks>
   /// <para>
-  /// Set to <see cref="Aggregate{TAggregate}"/>.<see cref="Aggregate{TAggregate}.PartitionId"/> when <see cref="Event"/> is added to an Aggregate.
+  /// Set to <see cref="Aggregate{TAggregate}"/>.<see cref="Aggregate.PartitionId"/> when <see cref="Event"/> is added to an Aggregate.
   /// </para>
   /// <para>
   /// <see cref="Record.PartitionId"/> is mapped directly to CosmosDB's <c>PartitionKey</c>.
@@ -83,7 +83,7 @@ public abstract record Record
   /// </summary>
   /// <remarks>
   /// <para>
-  /// Set to <see cref="Aggregate{TAggregate}"/>.<see cref="Aggregate{TAggregate}.Id"/> when <see cref="Event"/> is added to an Aggregate.
+  /// Set to <see cref="Aggregate{TAggregate}"/>.<see cref="Aggregate.Id"/> when <see cref="Event"/> is added to an Aggregate.
   /// </para>
   /// </remarks>
   public Guid AggregateId { get; init; }
@@ -94,8 +94,9 @@ public abstract record Record
   public DateTimeOffset Timestamp { get; init; }
   
   /// <summary>
-  /// Unique Database identifier.
+  /// Unique Cosmos Database identifier.
   /// </summary>
+  // ReSharper disable once InconsistentNaming
   public abstract string id { get; }
 
   /// <summary>

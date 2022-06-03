@@ -1,4 +1,3 @@
-using System.IO;
 using System.Text.Json;
 using Azure.Core.Serialization;
 using Finaps.EventSourcing.Core;

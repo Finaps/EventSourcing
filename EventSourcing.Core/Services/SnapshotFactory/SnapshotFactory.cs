@@ -1,7 +1,7 @@
 namespace Finaps.EventSourcing.Core;
 
 /// <summary>
-/// Create <see cref="TSnapshot"/> for <see cref="TAggregate"/>
+/// Create <typeparamref name="TSnapshot"/> for <typeparamref name="TAggregate"/>
 /// </summary>
 /// <typeparam name="TAggregate"><see cref="Aggregate{TAggregate}"/> type</typeparam>
 /// <typeparam name="TSnapshot"><see cref="Projection"/> type</typeparam>
@@ -40,9 +40,9 @@ public abstract class SnapshotFactory<TAggregate, TSnapshot> : ISnapshotFactory
   }
 
   /// <summary>
-  /// Create <see cref="TSnapshot"/> defined for a particular <see cref="TAggregate"/>
+  /// Create <typeparamref name="TSnapshot"/> defined for a particular <typeparamref name="TAggregate"/>
   /// </summary>
-  /// <param name="aggregate">Source <see cref="TAggregate"/></param>
-  /// <returns>Resulting <see cref="TSnapshot"/>s of <see cref="TAggregate"/></returns>
+  /// <param name="aggregate">Source <typeparamref name="TAggregate"/></param>
+  /// <returns>Resulting <typeparamref name="TSnapshot"/>s of <typeparamref name="TAggregate"/></returns>
   protected abstract TSnapshot CreateSnapshot(TAggregate aggregate);
 }

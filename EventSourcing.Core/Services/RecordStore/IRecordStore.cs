@@ -37,13 +37,13 @@ public interface IRecordStore
   IQueryable<TProjection> GetProjections<TProjection>() where TProjection : Projection;
   
   /// <summary>
-  /// Get <see cref="Projection"/> by <see cref="Projection.PartitionId"/> and <see cref="Projection.AggregateId"/>
+  /// Get <see cref="Projection"/> by <see cref="Record.PartitionId"/> and <see cref="Record.AggregateId"/>
   /// </summary>
-  /// <param name="partitionId"><see cref="Projection"/>.<see cref="Projection.PartitionId"/></param>
-  /// <param name="aggregateId"><see cref="Projection"/>.<see cref="Projection.AggregateId"/></param>
+  /// <param name="partitionId"><see cref="Projection"/>.<see cref="Record.PartitionId"/></param>
+  /// <param name="aggregateId"><see cref="Projection"/>.<see cref="Record.AggregateId"/></param>
   /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
   /// <typeparam name="TProjection"><see cref="Projection"/> type</typeparam>
-  /// <returns><see cref="Projection"/> of type <see cref="TProjection"/></returns>
+  /// <returns><see cref="Projection"/> of type <typeparamref name="TProjection"/></returns>
   Task<TProjection?> GetProjectionByIdAsync<TProjection>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection;
 
   /// <summary>
@@ -51,10 +51,10 @@ public interface IRecordStore
   /// </summary>
   /// <param name="events"><see cref="Event"/>s to add</param>
   /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
-  /// <exception cref="ArgumentNullException">Thrown when <see cref="events"/> is <c>null</c></exception>
-  /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with more than one unique <see cref="Event.PartitionId"/></exception>
-  /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with more than one unique <see cref="Event.AggregateId"/></exception>
-  /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with <see cref="Guid.Empty"/> <see cref="Event.AggregateId"/></exception>
+  /// <exception cref="ArgumentNullException">Thrown when <paramref name="events"/> is <c>null</c></exception>
+  /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with more than one unique <see cref="Record.PartitionId"/></exception>
+  /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with more than one unique <see cref="Record.AggregateId"/></exception>
+  /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with <see cref="Guid.Empty"/> <see cref="Record.AggregateId"/></exception>
   /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with nonconsecutive <see cref="Event.Index"/></exception>
   /// <exception cref="RecordStoreException">Thrown when conflicts occur when storing <see cref="Event"/>s</exception>
   Task AddEventsAsync(IList<Event> events, CancellationToken cancellationToken = default);
@@ -126,12 +126,12 @@ public interface IRecordStore
   #region DefaultPartitionIdOverloads
   
   /// <summary>
-  /// Get <see cref="Projection"/> by <see cref="Projection.AggregateId"/> and default <see cref="Projection.PartitionId"/>
+  /// Get <see cref="Projection"/> by <see cref="Record.AggregateId"/> and default <see cref="Record.PartitionId"/>
   /// </summary>
-  /// <param name="aggregateId"><see cref="Projection"/>.<see cref="Projection.AggregateId"/></param>
+  /// <param name="aggregateId"><see cref="Projection"/>.<see cref="Record.AggregateId"/></param>
   /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
   /// <typeparam name="TProjection"><see cref="Projection"/> type</typeparam>
-  /// <returns><see cref="Projection"/> of type <see cref="TProjection"/></returns>
+  /// <returns><see cref="Projection"/> of type <typeparamref name="TProjection"/></returns>
   async Task<TProjection?> GetProjectionByIdAsync<TProjection>(Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection =>
     await GetProjectionByIdAsync<TProjection>(Guid.Empty, aggregateId, cancellationToken);
 

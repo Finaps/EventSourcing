@@ -17,8 +17,8 @@ public interface IRecordTransaction
   /// When all <see cref="Event"/>s have been added, call <see cref="CommitAsync"/> to commit them
   /// </remarks>
   /// <param name="events"><see cref="Event"/>s to add</param>
-  /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with more than one unique <see cref="Event.PartitionId"/> or <see cref="Event.AggregateId"/></exception>
-  /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with <see cref="Guid.Empty"/> <see cref="Event.AggregateId"/></exception>
+  /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with more than one unique <see cref="Record.PartitionId"/> or <see cref="Record.AggregateId"/></exception>
+  /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with <see cref="Guid.Empty"/> <see cref="Record.AggregateId"/></exception>
   /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with nonconsecutive <see cref="Event.Index"/>s</exception>
   /// <returns>This <see cref="IRecordTransaction"/></returns>
   IRecordTransaction AddEvents(IList<Event> events);
@@ -40,8 +40,8 @@ public interface IRecordTransaction
   /// <summary>
   /// Delete all <see cref="Event"/>s of a particular <see cref="Aggregate{TAggregate}"/>
   /// </summary>
-  /// <param name="aggregateId"><see cref="Aggregate{TAggregate}"/>.<see cref="Aggregate{TAggregate}.Id"/></param>
-  /// <param name="index"><see cref="Event.Index"/> of last <see cref="Event"/> (a.k.a. <see cref="Aggregate{TAggregate}"/>.<see cref="Aggregate{TAggregate}.Version"/> - 1)</param>
+  /// <param name="aggregateId"><see cref="Aggregate{TAggregate}"/>.<see cref="Aggregate.Id"/></param>
+  /// <param name="index"><see cref="Event.Index"/> of last <see cref="Event"/> (a.k.a. <see cref="Aggregate{TAggregate}"/>.<see cref="Aggregate.Version"/> - 1)</param>
   /// <remarks>
   /// For a more convenient method, refer to the async delete methods in <see cref="IRecordStore"/>
   /// </remarks>
@@ -51,7 +51,7 @@ public interface IRecordTransaction
   /// <summary>
   /// Delete <see cref="Snapshot"/> at a particular <see cref="Snapshot.Index"/> 
   /// </summary>
-  /// <param name="aggregateId"><see cref="Aggregate{TAggregate}"/>.<see cref="Aggregate{TAggregate}.Id"/></param>
+  /// <param name="aggregateId"><see cref="Aggregate{TAggregate}"/>.<see cref="Aggregate.Id"/></param>
   /// <param name="index"><see cref="Snapshot"/>.<see cref="Snapshot.Index"/> to delete</param>
   /// <returns></returns>
   IRecordTransaction DeleteSnapshot<TAggregate>(Guid aggregateId, long index) where TAggregate : Aggregate, new();
@@ -59,8 +59,7 @@ public interface IRecordTransaction
   /// <summary>
   /// Delete <see cref="Projection"/>
   /// </summary>
-  /// <param name="aggregateId"><see cref="Projection"/>.<see cref="Projection.AggregateId"/></param>
-  /// <param name="type"><see cref="Projection"/>.<see cref="Projection.Type"/> to delete</param>
+  /// <param name="aggregateId"><see cref="Projection"/>.<see cref="Record.AggregateId"/></param>
   /// <returns></returns>
   IRecordTransaction DeleteProjection<TProjection>(Guid aggregateId) where TProjection : Projection;
 

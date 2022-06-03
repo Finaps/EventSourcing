@@ -1,7 +1,3 @@
 namespace Finaps.EventSourcing.Example.Tests.DTOs;
 
-public class OrderDto
-{
-    public Guid Id { get; set; }
-    public Guid BasketId { get; set; }
-}
+public record OrderDto(Guid Id, Guid BasketId);

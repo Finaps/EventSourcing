@@ -17,26 +17,14 @@ public enum MockFlagEnum : byte
   E = 1 << 4
 }
 
-public record MockNestedRecord
-{
-  public bool MockBoolean { get; init; }
-  public string? MockString { get; init; }
-  public decimal MockDecimal { get; init; }
-  public double MockDouble { get; init; }
-}
+public record MockNestedRecord(bool MockBoolean, string MockString, decimal MockDecimal, double MockDouble);
 
-public record MockNestedRecordItem
-{
-  public bool MockBoolean { get; init; }
-  public string MockString { get; init; }
-  public decimal MockDecimal { get; init; }
-  public double MockDouble { get; init; }
-}
+public record MockNestedRecordItem(bool MockBoolean, string MockString, decimal MockDecimal, double MockDouble);
 
 public interface IMock
 {
   public bool MockBoolean { get; }
-  public string? MockString { get; }
+  public string MockString { get; }
   public string? MockNullableString { get; }
   public decimal MockDecimal { get; }
   public double MockDouble { get; }
@@ -55,14 +43,14 @@ public interface IMock
   public static void AssertDefault(IMock mock)
   {
     Assert.Equal(default, mock.MockBoolean);
-    Assert.Equal(default, mock.MockString);
+    Assert.Equal("", mock.MockString);
     Assert.Equal(default, mock.MockNullableString);
     Assert.Equal(default, mock.MockDecimal);
     Assert.Equal(default, mock.MockDouble);
     Assert.Equal(default, mock.MockNullableDouble);
     Assert.Equal(default, mock.MockEnum);
     Assert.Equal(default, mock.MockFlagEnum);
-    Assert.Equal(new MockNestedRecord(), mock.MockNestedRecord);
+    Assert.Equal(new MockNestedRecord(default, "", default, default), mock.MockNestedRecord);
     Assert.Equal(new List<MockNestedRecordItem>(), mock.MockNestedRecordList);
     Assert.Equal(new List<float>(), mock.MockFloatList);
     Assert.Equal(new List<string>(), mock.MockStringSet);
@@ -88,7 +76,7 @@ public interface IMock
 public record MockEvent : Event<MockAggregate>, IMock
 {
   public bool MockBoolean { get; init; }
-  public string MockString { get; init; }
+  public string MockString { get; init; } = null!;
   public string? MockNullableString { get; init; }
   public decimal MockDecimal { get; init; }
   public double MockDouble { get; init; }
@@ -97,18 +85,18 @@ public record MockEvent : Event<MockAggregate>, IMock
   public MockEnum MockEnum { get; init; }
   public MockFlagEnum MockFlagEnum { get; init; }
     
-  public MockNestedRecord MockNestedRecord { get; init; }
-    
-  public List<MockNestedRecordItem> MockNestedRecordList { get; init; }
+  public MockNestedRecord MockNestedRecord { get; init; } = null!;
 
-  public List<float> MockFloatList { get; init; }
-  public List<string> MockStringSet { get; init; }
+  public List<MockNestedRecordItem> MockNestedRecordList { get; init; } = null!;
+
+  public List<float> MockFloatList { get; init; } = null!;
+  public List<string> MockStringSet { get; init; } = null!;
 }
 
 public record MockSnapshot : Snapshot<MockAggregate>, IMock
 {
   public bool MockBoolean { get; init; }
-  public string MockString { get; init; }
+  public string MockString { get; init; } = null!;
   public string? MockNullableString { get; init; }
   public decimal MockDecimal { get; init; }
   public double MockDouble { get; init; }
@@ -117,29 +105,28 @@ public record MockSnapshot : Snapshot<MockAggregate>, IMock
   public MockEnum MockEnum { get; init; }
   public MockFlagEnum MockFlagEnum { get; init; }
     
-  public MockNestedRecord MockNestedRecord { get; init; }
-    
-  public List<MockNestedRecordItem> MockNestedRecordList { get; init; }
+  public MockNestedRecord MockNestedRecord { get; init; } = null!;
 
-  public List<float> MockFloatList { get; init; }
-  public List<string> MockStringSet { get; init; }
+  public List<MockNestedRecordItem> MockNestedRecordList { get; init; } = null!;
+
+  public List<float> MockFloatList { get; init; } = null!;
+  public List<string> MockStringSet { get; init; } = null!;
 }
 
 public class MockAggregate : Aggregate<MockAggregate>, IMock
 {
-  public Guid NiceRelation { get; private set; }
   public bool MockBoolean { get; private set; }
-  public string MockString { get; private set; }
+  public string MockString { get; private set; } = null!;
   public string? MockNullableString { get; private set; }
   public decimal MockDecimal { get; private set; }
   public double MockDouble { get; private set; }
   public double? MockNullableDouble { get; private set; }
   public MockEnum MockEnum { get; private set; }
   public MockFlagEnum MockFlagEnum { get; private set; }
-  public MockNestedRecord MockNestedRecord { get; private set; }
-  public List<MockNestedRecordItem> MockNestedRecordList { get; private set; }
-  public List<float> MockFloatList { get; private set; }
-  public List<string> MockStringSet { get; private set; }
+  public MockNestedRecord MockNestedRecord { get; private set; } = null!;
+  public List<MockNestedRecordItem> MockNestedRecordList { get; private set; } = null!;
+  public List<float> MockFloatList { get; private set; } = null!;
+  public List<string> MockStringSet { get; private set; } = null!;
   
   public static MockAggregate Create()
   {
@@ -152,29 +139,11 @@ public class MockAggregate : Aggregate<MockAggregate>, IMock
       MockDouble = 3.14159265359,
       MockEnum = MockEnum.B,
       MockFlagEnum = MockFlagEnum.C | MockFlagEnum.E,
-      MockNestedRecord = new MockNestedRecord
-      {
-        MockBoolean = false,
-        MockString = "Bon Appetit",
-        MockDecimal = 9.99m,
-        MockDouble = 2.71828
-      },
+      MockNestedRecord = new MockNestedRecord(false, "Bon Appetit", 9.99m, 2.71828),
       MockNestedRecordList = new List<MockNestedRecordItem>
       {
-        new ()
-        {
-          MockBoolean = true,
-          MockString = "Good",
-          MockDecimal = 99.99m,
-          MockDouble = 1.61803398875
-        },
-        new ()
-        {
-          MockBoolean = false,
-          MockString = "Bye",
-          MockDecimal = 99.99m,
-          MockDouble = 1.73205080757
-        }
+        new (true, "Good", 99.99m, 1.61803398875),
+        new (false, "Bye", 99.99m, 1.73205080757)
       },
       MockFloatList = new List<float> { .1f, .2f, .3f },
       MockStringSet = new List<string> { "No", "Duplicates", "Duplicates", "Here" }
@@ -208,17 +177,17 @@ public class MockAggregate : Aggregate<MockAggregate>, IMock
 public record MockAggregateProjection : Projection, IMock
 {
   public bool MockBoolean { get; init; }
-  public string? MockString { get; init; }
+  public string MockString { get; init; } = null!;
   public string? MockNullableString { get; init; }
   public decimal MockDecimal { get; init; }
   public double MockDouble { get; init; }
   public double? MockNullableDouble { get; init; }
   public MockEnum MockEnum { get; init; }
   public MockFlagEnum MockFlagEnum { get; init; }
-  public MockNestedRecord MockNestedRecord { get; init; }
-  public List<MockNestedRecordItem> MockNestedRecordList { get; init; }
-  public List<float> MockFloatList { get; init; }
-  public List<string> MockStringSet { get; init; }
+  public MockNestedRecord MockNestedRecord { get; init; } = null!;
+  public List<MockNestedRecordItem> MockNestedRecordList { get; init; } = null!;
+  public List<float> MockFloatList { get; init; } = null!;
+  public List<string> MockStringSet { get; init; } = null!;
 }
 
 public class MockAggregateProjectionFactory : ProjectionFactory<MockAggregate, MockAggregateProjection>

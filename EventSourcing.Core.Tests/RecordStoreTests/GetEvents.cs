@@ -1,5 +1,3 @@
-using Finaps.EventSourcing.Core.Tests.Mocks;
-
 namespace Finaps.EventSourcing.Core.Tests;
 
 public abstract partial class EventSourcingTests
@@ -133,23 +131,11 @@ public abstract partial class EventSourcingTests
       MockEnum = MockEnum.C,
       MockFlagEnum = MockFlagEnum.A | MockFlagEnum.D,
 
-      MockNestedRecord = new MockNestedRecord
-      {
-        MockBoolean = false,
-        MockString = "Bonjour",
-        MockDecimal = 0.82m,
-        MockDouble = 0.999
-      },
+      MockNestedRecord = new MockNestedRecord(false, "Bonjour", .82m, .999),
 
       MockNestedRecordList = new List<MockNestedRecordItem>
       {
-        new()
-        {
-          MockBoolean = false,
-          MockString = "Bye Bye",
-          MockDecimal = 99.99m,
-          MockDouble = 0.111
-        },
+        new(false, "Bye Bye", 99.99m, .111)
       },
 
       MockFloatList = new List<float> { .1f, .5f, .9f },

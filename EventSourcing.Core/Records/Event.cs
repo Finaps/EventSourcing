@@ -24,5 +24,6 @@ public record Event<TAggregate> : Event where TAggregate : Aggregate, new()
   /// <inheritdoc />
   public Event() => AggregateType = typeof(TAggregate).Name;
   
+  // ReSharper disable once InconsistentNaming
   internal Event<TAggregate>? _previousEvent { get; set; }
 }

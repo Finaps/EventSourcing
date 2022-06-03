@@ -1,5 +1,3 @@
-using Finaps.EventSourcing.Core;
-
 namespace Finaps.EventSourcing.Example.Domain.Baskets;
 
 public record BasketCreatedEvent(TimeSpan ExpirationTime) : Event<Basket>;

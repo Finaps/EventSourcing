@@ -45,7 +45,7 @@ public class RecordConversionTests
         .Replace("\"B\":10,", "")  // Remove 'B' from json
         .Replace("11", "null");  // Set 'C' to null in json
       var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(json), true, default);
-      return converter.Read(ref reader, typeof(Event), default);
+      return converter.Read(ref reader, typeof(Event), new JsonSerializerOptions());
     });
 
     Assert.DoesNotContain($"{nameof(TestEvent)}.PartitionId", exception.Message);
