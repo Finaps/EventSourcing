@@ -119,4 +119,27 @@ public interface IAggregateService
   public async Task<TAggregate> RehydrateAndPersistAsync<TAggregate>(Guid aggregateId, Action<TAggregate> action,
     CancellationToken cancellationToken = default) where TAggregate : Aggregate, new() =>
     await RehydrateAndPersistAsync(Guid.Empty, aggregateId, action, cancellationToken);
+  
+  /// <summary>
+  /// Rehydrate and Persist <see cref="Aggregate{TAggregate}"/>
+  /// </summary>
+  /// <param name="partitionId">Unique partition identifier of <see cref="Aggregate{TAggregate}"/> to rehydrate</param>
+  /// <param name="aggregateId">Unique identifier of <see cref="Aggregate{TAggregate}"/> to rehydrate</param>
+  /// <param name="cancellationToken">Cancellation Token</param>
+  /// <typeparam name="TAggregate">Type of <see cref="Aggregate{TAggregate}"/></typeparam>
+  /// <returns><see cref="Aggregate{TAggregate}"/> of type <c>TAggregate</c> or null when not found</returns>
+  public async Task<TAggregate> RehydrateAndPersistAsync<TAggregate>(Guid partitionId, Guid aggregateId,
+    CancellationToken cancellationToken = default) where TAggregate : Aggregate, new() =>
+    await RehydrateAndPersistAsync<TAggregate>(partitionId, aggregateId, _ => {}, cancellationToken);
+  
+  /// <summary>
+  /// Rehydrate and Persist <see cref="Aggregate{TAggregate}"/>
+  /// </summary>
+  /// <param name="aggregateId">Unique identifier of <see cref="Aggregate{TAggregate}"/> to rehydrate</param>
+  /// <param name="cancellationToken">Cancellation Token</param>
+  /// <typeparam name="TAggregate">Type of <see cref="Aggregate{TAggregate}"/></typeparam>
+  /// <returns><see cref="Aggregate{TAggregate}"/> of type <c>TAggregate</c> or null when not found</returns>
+  public async Task<TAggregate> RehydrateAndPersistAsync<TAggregate>(Guid aggregateId,
+    CancellationToken cancellationToken = default) where TAggregate : Aggregate, new() =>
+    await RehydrateAndPersistAsync<TAggregate>(Guid.Empty, aggregateId, _ => {}, cancellationToken);
 }
