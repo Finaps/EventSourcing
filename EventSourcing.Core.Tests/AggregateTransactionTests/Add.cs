@@ -1,5 +1,3 @@
-using Finaps.EventSourcing.Core.Tests.Mocks;
-
 namespace Finaps.EventSourcing.Core.Tests;
 
 public abstract partial class EventSourcingTests
@@ -14,8 +12,6 @@ public abstract partial class EventSourcingTests
       aggregate1.Apply(new SimpleEvent());
 
     transaction.Add(aggregate1);
-
-    var hash = aggregate1.ComputeHash();
 
     var aggregate2 = new SimpleAggregate();
     foreach (var _ in new int[4])

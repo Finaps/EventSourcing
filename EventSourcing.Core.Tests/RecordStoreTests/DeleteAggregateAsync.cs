@@ -1,5 +1,3 @@
-using Finaps.EventSourcing.Core.Tests.Mocks;
-
 namespace Finaps.EventSourcing.Core.Tests;
 
 public abstract partial class EventSourcingTests
@@ -57,7 +55,7 @@ public abstract partial class EventSourcingTests
     Assert.NotNull(await RecordStore.GetProjectionByIdAsync<EmptyProjection>(projection.AggregateId));
 
     // Delete all items created
-    var deleted = await RecordStore.DeleteAggregateAsync<EmptyAggregate>(Guid.Empty, aggregate.Id);
+    await RecordStore.DeleteAggregateAsync<EmptyAggregate>(Guid.Empty, aggregate.Id);
     
     var eventsCount = await RecordStore
       .GetEvents<EmptyAggregate>()

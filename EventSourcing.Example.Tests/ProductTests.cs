@@ -78,6 +78,6 @@ public abstract class ProductTests : TestsBase
         Assert.NotNull(snapshot);
         Assert.Equal(ProductName, snapshot!.Name);
         Assert.Equal(ProductQuantity + snapshotInterval - 1, snapshot.Quantity);
-        Assert.Empty(snapshot.Reservations);
+        Assert.Empty(snapshot.Reservations!);
     }
 }

@@ -6,9 +6,9 @@ namespace Finaps.EventSourcing.Example.Tests;
 
 public class TestsBase : IAsyncLifetime
 {
-  private readonly TestServer Server;
+  private TestServer Server { get; }
 
-  protected readonly HttpClient Client;
+  protected HttpClient Client { get; }
   protected TService? GetService<TService>() => Server.Services.GetService<TService>();
   // Control the number of concurrent Tests
   private static readonly SemaphoreSlim Semaphore = new(8);

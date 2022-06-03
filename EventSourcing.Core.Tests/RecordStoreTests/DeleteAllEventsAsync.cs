@@ -1,5 +1,3 @@
-using Finaps.EventSourcing.Core.Tests.Mocks;
-
 namespace Finaps.EventSourcing.Core.Tests;
 
 public abstract partial class EventSourcingTests
@@ -27,7 +25,7 @@ public abstract partial class EventSourcingTests
   }
   
   [Fact]
-  public async Task RecordStore_DeleteAllEventsAsync_Can_Only_Delete_Events()
+  public async Task RecordStore_DeleteAllEventsAsync_Deleting_Events_Does_Not_Delete_Projection()
   {
     var aggregate = new EmptyAggregate();
     var events = new List<Event>();
@@ -36,7 +34,6 @@ public abstract partial class EventSourcingTests
 
     for (var i = 0; i < 3; i++)
       events.Add(aggregate.Apply(new EmptyEvent()));
-    
     
     await RecordStore.AddEventsAsync(events);
     await RecordStore.AddSnapshotAsync(snapshot);
@@ -50,12 +47,6 @@ public abstract partial class EventSourcingTests
       .AsAsyncEnumerable()
       .CountAsync();
 
-    var snapshotCount = await RecordStore
-      .GetSnapshots<EmptyAggregate>()
-      .Where(x => x.AggregateId == aggregate.Id)
-      .AsAsyncEnumerable()
-      .CountAsync();
-    
     var projectionResult = await RecordStore.GetProjectionByIdAsync<EmptyProjection>(aggregate.Id);
     
     Assert.Equal(0, eventCount);

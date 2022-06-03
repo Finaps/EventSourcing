@@ -1,5 +1,3 @@
-using Finaps.EventSourcing.Core.Tests.Mocks;
-
 namespace Finaps.EventSourcing.Core.Tests;
 
 public abstract partial class EventSourcingTests
@@ -20,7 +18,8 @@ public abstract partial class EventSourcingTests
       FactoryType = nameof(MockAggregateProjectionFactory),
       Hash = "OUTDATED",
 
-      MockNestedRecord = new MockNestedRecord(),
+      MockString = "",
+      MockNestedRecord = new MockNestedRecord(default, "", default, default),
       MockNestedRecordList = new List<MockNestedRecordItem>(),
       MockFloatList = new List<float>(),
       MockStringSet = new List<string>()

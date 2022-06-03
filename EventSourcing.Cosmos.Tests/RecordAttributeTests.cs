@@ -14,7 +14,7 @@ public partial class CosmosEventSourcingTests
   [Fact]
   public async Task Can_Store_Attribute_Event_With_Correct_Type()
   {
-    var e = new EmptyAggregate().Apply(new AttributeEvent { SomeString = "something" });
+    var e = new EmptyAggregate().Apply(new AttributeEvent("something"));
     var recordType = e.GetType().GetCustomAttribute<RecordTypeAttribute>()!.Type;
 
     await RecordStore.AddEventsAsync(new List<Event> { e });
@@ -30,7 +30,7 @@ public partial class CosmosEventSourcingTests
   [Fact]
   public async Task Can_Deserialize_Attribute_Event_With_Custom_Type_Name()
   {
-    var e = new EmptyAggregate().Apply(new AttributeEvent { SomeString = "something" });
+    var e = new EmptyAggregate().Apply(new AttributeEvent("something"));
     var recordType = e.GetType().GetCustomAttribute<RecordTypeAttribute>()!.Type;
 
     await RecordStore.AddEventsAsync(new List<Event> { e });

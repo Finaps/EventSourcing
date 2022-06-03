@@ -1,5 +1,4 @@
 using System.Linq;
-using Finaps.EventSourcing.Core;
 using Finaps.EventSourcing.Example.Domain.Shared;
 
 namespace Finaps.EventSourcing.Example.Domain.Baskets;

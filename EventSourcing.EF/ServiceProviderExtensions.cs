@@ -19,7 +19,9 @@ public static class ServiceProviderExtensions
   public static IServiceCollection AddEventSourcing<T>(this IServiceCollection serviceProvider) where T : RecordContext
   {
     return serviceProvider
-    .AddScoped<IRecordStore>(x => new EntityFrameworkRecordStore(x.GetService<T>()))
+    .AddScoped<IRecordStore>(provider => new EntityFrameworkRecordStore(provider.GetService<T>() 
+      ?? throw new InvalidOperationException($"Could not find service '{typeof(T)}'. " +
+                                             "Did you add this service to the Service Provider?")))
     .AddScoped<IRecordStore, EntityFrameworkRecordStore>()
     .AddScoped<IAggregateService, AggregateService>();
   }

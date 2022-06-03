@@ -134,24 +134,4 @@ public static class RecordValidation
 
     return true;
   }
-
-  private static void ValidateEventAggregateType(Aggregate a, Event e)
-  {
-    var aggregateType = GetEventAggregateType(e.GetType());
-
-    if (aggregateType == null || !aggregateType.IsInstanceOfType(a))
-      throw new RecordValidationException($"Cannot Apply {e}: Event AggregateType does not correspond with Aggregate type");
-  }
-
-  private static Type? GetEventAggregateType(Type? type)
-  {
-    while (type != null)
-    {
-      var aggregateType = type.GetGenericArguments().FirstOrDefault(typeof(Aggregate).IsAssignableFrom);
-      if (aggregateType != null) return aggregateType;
-      type = type.BaseType;
-    }
-
-    return null;
-  }
 }

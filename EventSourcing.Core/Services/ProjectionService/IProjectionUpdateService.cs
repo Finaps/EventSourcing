@@ -11,7 +11,7 @@ namespace Finaps.EventSourcing.Core;
 /// <para>
 /// The <see cref="Projection"/>.<see cref="Projection.Hash"/> property is used to decide whether it is out of date.
 /// This hash is determined at projection creation time based on the
-/// <see cref="Aggregate{TAggregate}"/>.<see cref="Aggregate{TAggregate}.ComputeHash"/> and <see cref="IProjectionFactory"/>.<see cref="IProjectionFactory"/>.<see cref="IProjectionFactory.ComputeHash"/> methods.
+/// <see cref="Aggregate{TAggregate}"/>.<see cref="Aggregate{TAggregate}.ComputeHash"/> and <see cref="IProjectionFactory"/>.<see cref="IProjectionFactory"/>.<see cref="IHashable.ComputeHash"/> methods.
 /// </para>
 /// </remarks>
 /// <seealso cref="IAggregateService"/>

@@ -1,5 +1,3 @@
-using Finaps.EventSourcing.Core.Tests.Mocks;
-
 namespace Finaps.EventSourcing.Core.Tests;
 
 public abstract partial class EventSourcingTests
@@ -32,7 +30,7 @@ public abstract partial class EventSourcingTests
   public async Task RecordStore_AddEventsAsync_Cannot_Add_Null()
   {
     await Assert.ThrowsAsync<ArgumentNullException>(async () =>
-      await RecordStore.AddEventsAsync(null));
+      await RecordStore.AddEventsAsync(null!));
   }
   
   [Fact]
@@ -114,7 +112,7 @@ public abstract partial class EventSourcingTests
   public async Task RecordStore_AddEventsAsync_Cannot_Add_Event_With_Null_Type()
   {
     var aggregate = new EmptyAggregate();
-    var e = aggregate.Apply(new EmptyEvent()) with { Type = null };
+    var e = aggregate.Apply(new EmptyEvent()) with { Type = null! };
     
     await Assert.ThrowsAnyAsync<RecordValidationException>(
       async () => await RecordStore.AddEventsAsync(new Event[] { e }));

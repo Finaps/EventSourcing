@@ -1,5 +1,3 @@
-using Finaps.EventSourcing.Core;
-
 namespace Finaps.EventSourcing.Example.Domain.Products;
 
 public record ProductCreatedEvent(string Name, int Quantity) : Event<Product>;

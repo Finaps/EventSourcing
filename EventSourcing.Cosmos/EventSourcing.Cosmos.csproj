@@ -21,7 +21,7 @@
 
     <ItemGroup>
       <PackageReference Include="Azure.Core" Version="1.24.0" />
-      <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.27.0" />
+      <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.27.1" />
       <PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
       <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.1" />
       <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="6.0.0" />

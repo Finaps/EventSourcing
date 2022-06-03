@@ -44,7 +44,7 @@ public class Product : Aggregate<Product>
             case ProductSnapshot snapshot:
                 Name = snapshot.Name;
                 Quantity = snapshot.Quantity;
-                Reservations = snapshot.Reservations.ToList();
+                Reservations = snapshot.Reservations?.ToList() ?? new List<Reservation>();
                 break;
         }
     }

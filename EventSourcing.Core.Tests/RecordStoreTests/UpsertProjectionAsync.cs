@@ -1,5 +1,3 @@
-using Finaps.EventSourcing.Core.Tests.Mocks;
-
 namespace Finaps.EventSourcing.Core.Tests;
 
 public abstract partial class EventSourcingTests
@@ -16,29 +14,11 @@ public abstract partial class EventSourcingTests
       MockDouble = 3.14159265359,
       MockEnum = MockEnum.B,
       MockFlagEnum = MockFlagEnum.C | MockFlagEnum.E,
-      MockNestedRecord = new MockNestedRecord
-      {
-        MockBoolean = false,
-        MockString = "Bon Appetit",
-        MockDecimal = 9.99m,
-        MockDouble = 2.71828
-      },
+      MockNestedRecord = new MockNestedRecord(false, "Bon Appetit", 9.99m, 2.71828),
       MockNestedRecordList = new List<MockNestedRecordItem>
       {
-        new ()
-        {
-          MockBoolean = true,
-          MockString = "Good",
-          MockDecimal = 99.99m,
-          MockDouble = 1.61803398875
-        },
-        new ()
-        {
-          MockBoolean = false,
-          MockString = "Bye",
-          MockDecimal = 99.99m,
-          MockDouble = 1.73205080757
-        }
+        new (true, "Good", 99.99m, 1.61803398875),
+        new (false, "Bye", 99.99m, 1.73205080757)
       },
       MockFloatList = new List<float> { .1f, .2f, .3f },
       MockStringSet = new List<string> { "No", "Duplicates", "Duplicates", "Here" }
@@ -73,29 +53,11 @@ public abstract partial class EventSourcingTests
       MockDouble = 3.14159265359,
       MockEnum = MockEnum.B,
       MockFlagEnum = MockFlagEnum.C | MockFlagEnum.E,
-      MockNestedRecord = new MockNestedRecord
-      {
-        MockBoolean = false,
-        MockString = "Bon Appetit",
-        MockDecimal = 9.99m,
-        MockDouble = 2.71828
-      },
+      MockNestedRecord = new MockNestedRecord(false, "Bon Appetit", 9.99m, 2.71828),
       MockNestedRecordList = new List<MockNestedRecordItem>
       {
-        new ()
-        {
-          MockBoolean = true,
-          MockString = "Good",
-          MockDecimal = 99.99m,
-          MockDouble = 1.61803398875
-        },
-        new ()
-        {
-          MockBoolean = false,
-          MockString = "Bye",
-          MockDecimal = 99.99m,
-          MockDouble = 1.73205080757
-        }
+        new (true, "Good", 99.99m, 1.61803398875),
+        new (false, "Bye", 99.99m, 1.73205080757)
       },
       MockFloatList = new List<float> { .1f, .2f, .3f },
       MockStringSet = new List<string> { "No", "Duplicates", "Duplicates", "Here" }
