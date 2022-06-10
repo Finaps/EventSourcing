@@ -1,4 +1,4 @@
-using System;
+using EventSourcing.EF.SqlAggregate;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
@@ -12,18 +12,11 @@ public class PostgresTestRecordContext : EntityFrameworkTestRecordContext
 
 public class TestContextFactory : IDesignTimeDbContextFactory<PostgresTestRecordContext>
 {
-  public PostgresTestRecordContext CreateDbContext(string[] args)
-  {
-    var configuration = new ConfigurationBuilder()
-      .AddJsonFile("appsettings.json", false)
-      .AddJsonFile("appsettings.local.json", true)
-      .AddEnvironmentVariables()
-      .Build();
-    
-    return new PostgresTestRecordContext(new DbContextOptionsBuilder<PostgresTestRecordContext>()
-      .UseNpgsql(configuration.GetConnectionString("RecordStore"))
+  public PostgresTestRecordContext CreateDbContext(string[] args) => 
+    new (new DbContextOptionsBuilder<PostgresTestRecordContext>()
+      .UseNpgsql(new ConfigurationBuilder().AddJsonFile("appsettings.json").Build()
+        .GetConnectionString("RecordStore"))
       .UseAllCheckConstraints()
       .EnableSensitiveDataLogging()
       .Options);
-  }
 }

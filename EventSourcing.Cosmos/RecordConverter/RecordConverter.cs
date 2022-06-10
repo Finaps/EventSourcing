@@ -49,32 +49,11 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
 
   private Type DeserializeRecordType(Utf8JsonReader reader)
   {
-    var json = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(ref reader);
-    
-    // Get Record.Type String from Json
-    if (json == null || !json.TryGetValue("Type", out var typeString) || typeString.ValueKind != JsonValueKind.String)
+    if (reader.TokenType == JsonTokenType.StartObject &&
+        reader.Read() && reader.TokenType == JsonTokenType.PropertyName && reader.GetString() == nameof(Record.Type) &&
+        reader.Read() && reader.TokenType == JsonTokenType.String)
+      return _recordTypeCache.GetRecordType(reader.GetString()!);
 
-                     // Throw Exception when json has no "Type" Property
-                     throw new RecordValidationException(
-                       $"Error converting {typeof(TRecord)}. " +
-                       $"Couldn't parse {typeof(TRecord)}.Type string from Json. " +
-                       $"Does the Json contain a {nameof(Record.Type)} field?");
-
-    var type = _recordTypeCache.GetRecordType(typeString.GetString()!);
-
-    if (!_throwOnMissingNonNullableProperties) return type;
-
-      var missing = _recordTypeCache.GetNonNullableRecordProperties(type)
-      .Where(property => !json.TryGetValue(property.Name, out var value) || value.ValueKind == JsonValueKind.Null)
-      .Select(property => property.Name)
-      .ToList();
-    
-    if (missing.Count > 0)
-      throw new RecordValidationException(
-        $"Error converting Json to {type}'.\n" +
-        $"One ore more non-nullable properties are missing or null: {string.Join(", ", missing.Select(property => $"{type.Name}.{property}"))}.\n" +
-        $"Either make properties nullable or use a RecordMigrator to handle {typeof(TRecord)} versioning.");
-    
-    return type;
+    throw new JsonException("Could not deserialize Record Type");
   }
 }

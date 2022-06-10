@@ -18,6 +18,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\EventSourcing.Core.Tests\EventSourcing.Core.Tests.csproj" />
+      <ProjectReference Include="..\EventSourcing.EF.SqlAggregate\EventSourcing.EF.SqlAggregate.csproj" />
       <ProjectReference Include="..\EventSourcing.EF\EventSourcing.EF.csproj" />
     </ItemGroup>
 

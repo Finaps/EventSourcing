@@ -10,6 +10,7 @@ public record Event : Record
   /// <summary>
   /// The index of this <see cref="Event"/> with respect to <see cref="Record.AggregateId"/>
   /// </summary>
+  [JsonPropertyOrder(-2)]
   public long Index { get; init; }
 
   /// <summary>

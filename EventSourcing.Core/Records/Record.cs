@@ -32,22 +32,9 @@ public enum RecordKind
 public abstract record Record
 {
   /// <summary>
-  /// <see cref="RecordKind"/> of this <see cref="Record"/>.
-  /// </summary>
-  /// <remarks>
-  /// Used to differentiate between <see cref="Record"/> kinds in database queries
-  /// </remarks>
-  public RecordKind Kind => this switch
-  {
-    Projection => RecordKind.Projection,
-    Snapshot => RecordKind.Snapshot,
-    Event => RecordKind.Event,
-    _ => RecordKind.None
-  };
-  
-  /// <summary>
   /// String representation of Record Type. Defaults to <c>GetType().Name</c>
   /// </summary>
+  [JsonPropertyOrder(-8)]
   public string Type { get; init; }
   
   /// <summary>
@@ -58,7 +45,23 @@ public abstract record Record
   /// Set to <see cref="Aggregate{TAggregate}"/>.<see cref="Aggregate{TAggregate}.Type"/> when <see cref="Event"/> is added to an Aggregate.
   /// </para>
   /// </remarks>
+  [JsonPropertyOrder(-7)]
   public string? AggregateType { get; init; }
+  
+  /// <summary>
+  /// <see cref="RecordKind"/> of this <see cref="Record"/>.
+  /// </summary>
+  /// <remarks>
+  /// Used to differentiate between <see cref="Record"/> kinds in database queries
+  /// </remarks>
+  [JsonPropertyOrder(-6)]
+  public RecordKind Kind => this switch
+  {
+    Projection => RecordKind.Projection,
+    Snapshot => RecordKind.Snapshot,
+    Event => RecordKind.Event,
+    _ => RecordKind.None
+  };
   
   /// <summary>
   /// Unique Partition identifier.
@@ -76,6 +79,7 @@ public abstract record Record
   /// i.e. no transactions involving multiple <see cref="PartitionId"/>'s can be committed.
   /// </para>
   /// </remarks>
+  [JsonPropertyOrder(-5)]
   public Guid PartitionId { get; init; }
 
   /// <summary>
@@ -86,16 +90,19 @@ public abstract record Record
   /// Set to <see cref="Aggregate{TAggregate}"/>.<see cref="Aggregate{TAggregate}.Id"/> when <see cref="Event"/> is added to an Aggregate.
   /// </para>
   /// </remarks>
+  [JsonPropertyOrder(-4)]
   public Guid AggregateId { get; init; }
 
   /// <summary>
   /// Record creation/update time. Defaults to <see cref="DateTimeOffset"/>.<see cref="DateTimeOffset.UtcNow"/> on creation.
   /// </summary>
+  [JsonPropertyOrder(-3)]
   public DateTimeOffset Timestamp { get; init; }
   
   /// <summary>
   /// Unique Database identifier.
   /// </summary>
+  [JsonPropertyOrder(-1)]
   public abstract string id { get; }
 
   /// <summary>

@@ -27,6 +27,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventSourcing.Example.Tests
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventSourcing.Example.Tests.Postgres", "EventSourcing.Example.Tests.Postgres\EventSourcing.Example.Tests.Postgres.csproj", "{A8976424-DA37-4C61-A6D9-FB837CD632D0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventSourcing.EF.SqlAggregate", "EventSourcing.EF.SqlAggregate\EventSourcing.EF.SqlAggregate.csproj", "{CF29CA6A-FA71-4325-9870-18D713C11B04}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -196,5 +198,17 @@ Global
 		{A8976424-DA37-4C61-A6D9-FB837CD632D0}.Release|x64.Build.0 = Release|Any CPU
 		{A8976424-DA37-4C61-A6D9-FB837CD632D0}.Release|x86.ActiveCfg = Release|Any CPU
 		{A8976424-DA37-4C61-A6D9-FB837CD632D0}.Release|x86.Build.0 = Release|Any CPU
+		{CF29CA6A-FA71-4325-9870-18D713C11B04}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF29CA6A-FA71-4325-9870-18D713C11B04}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF29CA6A-FA71-4325-9870-18D713C11B04}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{CF29CA6A-FA71-4325-9870-18D713C11B04}.Debug|x64.Build.0 = Debug|Any CPU
+		{CF29CA6A-FA71-4325-9870-18D713C11B04}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CF29CA6A-FA71-4325-9870-18D713C11B04}.Debug|x86.Build.0 = Debug|Any CPU
+		{CF29CA6A-FA71-4325-9870-18D713C11B04}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF29CA6A-FA71-4325-9870-18D713C11B04}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF29CA6A-FA71-4325-9870-18D713C11B04}.Release|x64.ActiveCfg = Release|Any CPU
+		{CF29CA6A-FA71-4325-9870-18D713C11B04}.Release|x64.Build.0 = Release|Any CPU
+		{CF29CA6A-FA71-4325-9870-18D713C11B04}.Release|x86.ActiveCfg = Release|Any CPU
+		{CF29CA6A-FA71-4325-9870-18D713C11B04}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
