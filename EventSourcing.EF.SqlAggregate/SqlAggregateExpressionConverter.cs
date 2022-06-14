@@ -190,8 +190,8 @@ public class SqlAggregateExpressionConverter : ExpressionVisitor
         _tokens.Add($"event.\"{node.Member.Name}\"");
         break;
       
-      case true when node.Expression is { NodeType: ExpressionType.Parameter } && node.Expression.Type.IsAssignableTo(typeof(global::EventSourcing.EF.SqlAggregate.SqlAggregate)):
-        _tokens.Add($"aggregate.{node.Member.Name}");
+      case true when node.Expression is { NodeType: ExpressionType.Parameter } && node.Expression.Type.IsAssignableTo(typeof(global::EventSourcing.EF.SqlAggregate.SQLAggregate)):
+        _tokens.Add($"aggregate.\"{node.Member.Name}\"");
         break;
 
       // When current node accesses the str.Length member -> resolve as char_length(str)
@@ -257,20 +257,22 @@ public class SqlAggregateExpressionConverter : ExpressionVisitor
   protected override Expression VisitMemberInit(MemberInitExpression node)
   {
     var bindings = node.Bindings.Cast<MemberAssignment>().ToDictionary(x => x.Member.Name);
-    var properties = node.NewExpression.Type.GetProperties().OrderBy(x => x.MetadataToken).ToList();
+    var properties = node.NewExpression.Type.GetProperties().OrderBy(x => x.Name).ToList();
     
     _tokens.Add("ROW(");
 
     foreach (var property in properties)
     {
       if (bindings.TryGetValue(property.Name, out var binding)) Visit(binding.Expression);
-      else if (property.Name == nameof(global::EventSourcing.EF.SqlAggregate.SqlAggregate.Version)) _tokens.Add($"aggregate.{property.Name} + 1");
-      else _tokens.Add($"aggregate.{property.Name}");
+      else if (property.Name == nameof(global::EventSourcing.EF.SqlAggregate.SQLAggregate.PartitionId)) _tokens.Add($"event.\"{property.Name}\"");
+      else if (property.Name == nameof(global::EventSourcing.EF.SqlAggregate.SQLAggregate.AggregateId)) _tokens.Add($"event.\"{property.Name}\"");
+      else if (property.Name == nameof(global::EventSourcing.EF.SqlAggregate.SQLAggregate.Version)) _tokens.Add($"aggregate.\"{property.Name}\" + 1");
+      else _tokens.Add($"aggregate.\"{property.Name}\"");
       
       if (property != properties.Last()) _tokens.Add(",");
     }
 
-    _tokens.Add($")::{node.NewExpression.Type.Name}");
+    _tokens.Add($")::\"{node.NewExpression.Type.Name}\"");
 
     return node;
   }

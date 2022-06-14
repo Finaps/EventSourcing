@@ -9,39 +9,69 @@ using System.Text.Json;
 using Finaps.EventSourcing.Core;
 using Finaps.EventSourcing.EF;
 using Finaps.EventSourcing.EF.SqlAggregate;
+using Microsoft.EntityFrameworkCore;
 using NpgsqlTypes;
 
 namespace EventSourcing.EF.SqlAggregate;
 
-public class SqlAggregateConverter<TSqlAggregate> where TSqlAggregate : SqlAggregate, new()
+
+public abstract class SqlAggregateBuilder
 {
-  public readonly string EventTableName = GetAggregateType(typeof(TSqlAggregate)).EventTable();
-  public readonly string AggregateTypeName = typeof(TSqlAggregate).Name;
-  public string ApplyFunctionName => $"{AggregateTypeName}Apply";
-  public string AggregateFunctionName => $"{AggregateTypeName}Aggregate";
+  internal static Dictionary<Type, Dictionary<Type, SqlAggregateBuilder>> Cache { get; } = new();
+
+  public abstract string SQL { get; }
+}
+
+public class SqlAggregateBuilder<TAggregate, TSqlAggregate> : SqlAggregateBuilder
+  where TAggregate : Aggregate, new()
+  where TSqlAggregate : SQLAggregate, new()
+{
+  public override string SQL => $"{ApplyFunctionDefinition}\n{AggregateFunctionDefinition}";
   
-  public string AggregateTypeDefinition => $"CREATE TYPE {AggregateTypeName} AS ({string.Join(", ", ConvertPropertyTypes())});";
-
-  public string ApplyFunctionDefinition => 
-    $"CREATE FUNCTION {ApplyFunctionName}({AggregateToken} {AggregateTypeName}, {EventToken} \"{EventTableName}\") " +
-    $"RETURNS {AggregateTypeName}\n" +
-    $"RETURN CASE\n{string.Join("\n", new TSqlAggregate().Clauses.Select(ConvertClause))}\nELSE {AggregateToken}\nEND;";
-
-  public string AggregateFunctionDefinition =>
+  private List<LambdaExpression> Clauses { get; } = new();
+  
+  private static string EventTableName => typeof(TAggregate).EventTable();
+  private static string ApplyFunctionName => $"{typeof(TAggregate).Name}{typeof(TSqlAggregate).Name}Apply";
+  private static string AggregateFunctionName => $"{typeof(TAggregate).Name}{typeof(TSqlAggregate).Name}Aggregate";
+  private static string AggregateFunctionDefinition =>
     $"CREATE AGGREGATE {AggregateFunctionName}(\"{EventTableName}\")\n" +
     "(\n" +
     $"  sfunc = {ApplyFunctionName},\n" +
-    $"  stype = {AggregateTypeName},\n" +
+    $"  stype = \"{typeof(TSqlAggregate).Name}\",\n" +
     $"  initcond = '({string.Join(",", ConvertDefaultPropertyValues())})'\n" +
     ");";
-
-  private static IEnumerable<PropertyInfo> Properties => typeof(TSqlAggregate).GetProperties().OrderBy(x => x.MetadataToken);
+  private string ApplyFunctionDefinition => 
+    $"CREATE FUNCTION {ApplyFunctionName}({AggregateToken} \"{typeof(TSqlAggregate).Name}\", {EventToken} \"{EventTableName}\") " +
+    $"RETURNS \"{typeof(TSqlAggregate).Name}\"\n" +
+    $"RETURN CASE\n{string.Join("\n", Clauses.Select(ConvertClause))}\nELSE {AggregateToken}\nEND;";
+  
+  private static IEnumerable<PropertyInfo> Properties => typeof(TSqlAggregate).GetProperties().OrderBy(x => x.Name);
   private const string AggregateToken = "aggregate";
   private const string EventToken = "event";
-
-  private static IEnumerable<string> ConvertPropertyTypes() => Properties
-      .Select(x => $"{x.Name} {ConvertType(x.PropertyType)}");
   
+  public SqlAggregateBuilder(ModelBuilder builder)
+  {
+    if (!Cache.ContainsKey(typeof(TSqlAggregate)))
+      Cache.Add(typeof(TSqlAggregate), new Dictionary<Type, SqlAggregateBuilder>());
+
+    Cache[typeof(TSqlAggregate)].TryAdd(typeof(TAggregate), this);
+    
+    builder.Entity<TSqlAggregate>()
+      .HasKey(x => new { x.PartitionId, x.AggregateId });
+    
+    foreach (var (property, i) in typeof(TSqlAggregate).GetProperties().OrderBy(x => x.Name).Select((info, i) => (info, i)))
+      builder.Entity<TSqlAggregate>()
+        .Property(property.Name).HasColumnOrder(i);
+  }
+
+  public SqlAggregateBuilder<TAggregate, TSqlAggregate> Apply<TEvent>(
+    Expression<Func<TSqlAggregate, TEvent, TSqlAggregate>> expression)
+    where TEvent : Event<TAggregate>
+  {
+    Clauses.Add(expression);
+    return this;
+  }
+
   private static IEnumerable<string> ConvertDefaultPropertyValues() => Properties
     .Select(x => ConvertDefaultValue(x.PropertyType));
 
@@ -52,118 +82,10 @@ public class SqlAggregateConverter<TSqlAggregate> where TSqlAggregate : SqlAggre
 
     throw new NotSupportedException($"Type {type} is not supported");
   }
-  
-  private static string ConvertType(Type type)
-  {
-    if (ConstructorTypeToSqlType.TryGetValue(type, out var result))
-      return result;
-
-    throw new NotSupportedException($"Type {type} is not supported");
-  }
 
   private static string ConvertClause(LambdaExpression expression) =>
     $"WHEN {EventToken}.\"{nameof(Event.Type)}\" = '{expression.Parameters.Last().Type.Name}' THEN {new SqlAggregateExpressionConverter().Convert(expression)}";
 
-  private static Type GetAggregateType(Type? type)
-  {
-    while (type != null)
-    {
-      var aggregateType = type.GetGenericArguments().FirstOrDefault(typeof(Aggregate).IsAssignableFrom);
-      if (aggregateType != null) return aggregateType;
-      type = type.BaseType;
-    }
-
-    throw new InvalidOperationException("Couldn't find Aggregate Type");
-  }
-
-  // Adapted from: https://github.com/npgsql/npgsql/blob/main/src/Npgsql/TypeMapping/BuiltInTypeHandlerResolver.cs
-  private static readonly Dictionary<Type, string> ConstructorTypeToSqlType = new()
-  {
-    // Numeric types
-    { typeof(byte), "smallint" },
-    { typeof(short), "smallint" },
-    { typeof(int), "integer" },
-    { typeof(long), "bigint" },
-    { typeof(float), "real" },
-    { typeof(double), "double precision" },
-    { typeof(decimal), "decimal" },
-    { typeof(BigInteger), "decimal" },
-
-    // Text types
-    { typeof(string), "text" },
-    { typeof(char[]), "text" },
-    { typeof(char), "text" },
-    { typeof(ArraySegment<char>), "text" },
-    { typeof(JsonDocument), "jsonb" },
-
-    // Date/time types
-    // The DateTime entry is for LegacyTimestampBehavior mode only. In regular mode we resolve through
-    // ResolveValueDependentValue below
-    { typeof(DateTime), "timestamp without time zone" },
-    { typeof(DateTimeOffset), "timestamp with time zone" },
-    { typeof(DateOnly), "date" },
-    { typeof(TimeOnly), "time without time zone" },
-    { typeof(TimeSpan), "interval" },
-    { typeof(NpgsqlInterval), "interval" },
-
-    // Network types
-    { typeof(IPAddress), "inet" },
-    // See ReadOnlyIPAddress below
-    { typeof((IPAddress Address, int Subnet)), "inet" },
-#pragma warning disable 618
-    { typeof(NpgsqlInet), "inet" },
-#pragma warning restore 618
-    { typeof(PhysicalAddress), "macaddr" },
-
-    // Full-text types
-    { typeof(NpgsqlTsVector), "tsvector" },
-    { typeof(NpgsqlTsQueryLexeme), "tsquery" },
-    { typeof(NpgsqlTsQueryAnd), "tsquery" },
-    { typeof(NpgsqlTsQueryOr), "tsquery" },
-    { typeof(NpgsqlTsQueryNot), "tsquery" },
-    { typeof(NpgsqlTsQueryEmpty), "tsquery" },
-    { typeof(NpgsqlTsQueryFollowedBy), "tsquery" },
-
-    // Geometry types
-    { typeof(NpgsqlBox), "box" },
-    { typeof(NpgsqlCircle), "circle" },
-    { typeof(NpgsqlLine), "line" },
-    { typeof(NpgsqlLSeg), "lseg" },
-    { typeof(NpgsqlPath), "path" },
-    { typeof(NpgsqlPoint), "point" },
-    { typeof(NpgsqlPolygon), "polygon" },
-
-    // Misc types
-    { typeof(bool), "boolean" },
-    { typeof(byte[]), "bytea" },
-    { typeof(ArraySegment<byte>), "bytea" },
-    { typeof(Guid), "uuid" },
-    { typeof(BitArray), "bit varying" },
-    { typeof(BitVector32), "bit varying" },
-    { typeof(Dictionary<string, string>), "hstore" },
-
-    // Internal types
-    { typeof(NpgsqlLogSequenceNumber), "pg_lsn" },
-    { typeof(NpgsqlTid), "tid" },
-    { typeof(DBNull), "unknown" },
-
-    // Built-in range types
-    { typeof(NpgsqlRange<int>), "int4range" },
-    { typeof(NpgsqlRange<long>), "int8range" },
-    { typeof(NpgsqlRange<decimal>), "numrange" },
-    { typeof(NpgsqlRange<DateOnly>), "daterange" },
-
-    // Built-in multirange types
-    { typeof(NpgsqlRange<int>[]), "int4multirange" },
-    { typeof(List<NpgsqlRange<int>>), "int4multirange" },
-    { typeof(NpgsqlRange<long>[]), "int8multirange" },
-    { typeof(List<NpgsqlRange<long>>), "int8multirange" },
-    { typeof(NpgsqlRange<decimal>[]), "nummultirange" },
-    { typeof(List<NpgsqlRange<decimal>>), "nummultirange" },
-    { typeof(NpgsqlRange<DateOnly>[]), "datemultirange" },
-    { typeof(List<NpgsqlRange<DateOnly>>), "datemultirange" },
-  };
-  
   private static readonly Dictionary<Type, object?> ConstructorTypeToSqlDefaultValue = new()
   {
     // Numeric types

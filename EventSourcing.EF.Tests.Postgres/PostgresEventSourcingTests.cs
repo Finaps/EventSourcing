@@ -1,6 +1,10 @@
 using System;
+using System.Linq;
+using System.Threading.Tasks;
 using EventSourcing.EF.SqlAggregate;
 using Finaps.EventSourcing.Core;
+using Finaps.EventSourcing.Core.Tests.Mocks;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace Finaps.EventSourcing.EF.Tests.Postgres;
@@ -11,10 +15,11 @@ public class PostgresEventSourcingTests : EntityFrameworkEventSourcingTests
   public override RecordContext RecordContext => new TestContextFactory().CreateDbContext(Array.Empty<string>());
 
   [Fact]
-  public void Can_Get_Sql_Type_Definition()
+  public async Task Can_Aggregate_Sql_Aggregate()
   {
-    var type = new SqlAggregateConverter<BankAccountSqlAggregate>();
-    
-    Assert.Equal("create type BankAccountSqlAggregate AS (PartitionId uuid);", type.AggregateTypeDefinition);
+    var result = await RecordContext
+      .Aggregate<BankAccount, BankAccountSqlAggregate>()
+      .Where(x => x.Amount > 50)
+      .ToListAsync();
   }
 }
