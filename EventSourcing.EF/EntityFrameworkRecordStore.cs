@@ -56,15 +56,15 @@ public class EntityFrameworkRecordStore : IRecordStore
 
   /// <inheritdoc />
   public async Task<int> DeleteAllEventsAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new() =>
-    await Context.DeleteWhereAsync(typeof(TAggregate).EventTable(), partitionId, aggregateId, cancellationToken);
+    await Context.DeleteWhereAsync($"{typeof(TAggregate).Name}{nameof(Event)}", partitionId, aggregateId, cancellationToken);
 
   /// <inheritdoc />
   public async Task<int> DeleteAllSnapshotsAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new() =>
-    await Context.DeleteWhereAsync(typeof(TAggregate).SnapshotTable(), partitionId, aggregateId, cancellationToken);
+    await Context.DeleteWhereAsync($"{typeof(TAggregate).Name}{nameof(Snapshot)}", partitionId, aggregateId, cancellationToken);
 
   /// <inheritdoc />
   public async Task DeleteSnapshotAsync<TAggregate>(Guid partitionId, Guid aggregateId, long index, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new() =>
-    await Context.DeleteWhereAsync(typeof(TAggregate).SnapshotTable(), partitionId, aggregateId, index, cancellationToken);
+    await Context.DeleteWhereAsync($"{typeof(TAggregate).Name}{nameof(Snapshot)}", partitionId, aggregateId, index, cancellationToken);
 
   /// <inheritdoc />
   public async Task DeleteProjectionAsync<TProjection>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection
@@ -77,11 +77,13 @@ public class EntityFrameworkRecordStore : IRecordStore
   {
     var count = 0;
     
-    count += await Context.DeleteWhereAsync(typeof(TAggregate).EventTable(), partitionId, aggregateId, cancellationToken);
-    count += await Context.DeleteWhereAsync(typeof(TAggregate).SnapshotTable(), partitionId, aggregateId, cancellationToken);
+    count += await Context.DeleteWhereAsync($"{typeof(TAggregate).Name}{nameof(Event)}", partitionId, aggregateId, cancellationToken);
+    count += await Context.DeleteWhereAsync($"{typeof(TAggregate).Name}{nameof(Snapshot)}", partitionId, aggregateId, cancellationToken);
     
-    foreach (var type in ProjectionTypes)
-      count += await Context.DeleteWhereAsync(type.Name, partitionId, aggregateId, cancellationToken);
+    // TODO: FIX ME!
+    throw new NotImplementedException();
+    // foreach (var type in ProjectionTypes)
+    //   count += await Context.DeleteWhereAsync(type.Name, partitionId, aggregateId, cancellationToken);
 
     return count;
   }

@@ -30,8 +30,8 @@ public class EntityFrameworkTestRecordContext : RecordContext
       entity.OwnsMany(x => x.MockNestedRecordList);
     });
 
-    builder.AggregateReference<ReferenceEvent, ReferenceAggregate>(x => x.ReferenceAggregateId);
-    builder.AggregateReference<ReferenceEvent, EmptyAggregate>(x => x.EmptyAggregateId);
+    // builder.AggregateReference<ReferenceEvent, ReferenceAggregate>(x => x.ReferenceAggregateId);
+    // builder.AggregateReference<ReferenceEvent, EmptyAggregate>(x => x.EmptyAggregateId);
 
     builder.Entity<ReferenceProjection>()
       .HasOne<ReferenceProjection>()

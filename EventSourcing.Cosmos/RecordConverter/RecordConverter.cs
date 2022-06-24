@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -11,7 +12,17 @@ namespace Finaps.EventSourcing.Core;
 /// </remarks>
 public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : Record
 {
-  private readonly RecordTypeCache _recordTypeCache;
+  private static readonly Dictionary<Type, string> RecordTypeStrings =
+    EventSourcingCache.RecordTypes.ToDictionary(
+      type => type, type => type.GetCustomAttribute<RecordTypeAttribute>()?.Type ?? type.Name);
+
+  private static readonly Dictionary<string, Type> RecordStringTypes =
+    RecordTypeStrings.ToDictionary(x => x.Value, x => x.Key);
+
+  private static readonly Dictionary<Type, PropertyInfo[]> NonNullableRecordProperties = EventSourcingCache.RecordTypes
+    .ToDictionary(type => type, type => type.GetProperties().Where(property =>
+      property.PropertyType.IsValueType && Nullable.GetUnderlyingType(property.PropertyType) == null).ToArray());
+  
   private readonly bool _throwOnMissingNonNullableProperties;
 
   /// <summary>
@@ -23,7 +34,6 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
   /// </param>
   public RecordConverter(RecordConverterOptions? options = null)
   {
-    _recordTypeCache = new RecordTypeCache(options?.RecordTypes);
     _throwOnMissingNonNullableProperties = options?.ThrowOnMissingNonNullableProperties ?? false;
   }
 
@@ -36,8 +46,14 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
   /// <summary>
   /// Serialize Record
   /// </summary>
-  public override void Write(Utf8JsonWriter writer, TRecord value, JsonSerializerOptions options) =>
-    JsonSerializer.Serialize(writer, value with { Type = RecordTypeCache.GetAssemblyRecordTypeString(value.GetType()) }, value.GetType());
+  public override void Write(Utf8JsonWriter writer, TRecord value, JsonSerializerOptions options)
+  {
+    if (!RecordTypeStrings.TryGetValue(value.GetType(), out var type))
+      throw new ArgumentException($"Couldn't find Record Type string for {value.GetType()}. " +
+                                  "Make sure the type is a public non-abstract record.", nameof(value));
+      
+    JsonSerializer.Serialize(writer, value with { Type = type }, value.GetType());
+  }
 
   /// <summary>
   /// Deserialize Record
@@ -49,22 +65,26 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
 
   private Type DeserializeRecordType(Utf8JsonReader reader)
   {
+    // TODO: Optimize this by only querying the first field
     var json = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(ref reader);
     
     // Get Record.Type String from Json
-    if (json == null || !json.TryGetValue("Type", out var typeString) || typeString.ValueKind != JsonValueKind.String)
+    if (json == null || !json.TryGetValue(nameof(Record.Type), out var typeString) || typeString.ValueKind != JsonValueKind.String)
 
                      // Throw Exception when json has no "Type" Property
                      throw new RecordValidationException(
                        $"Error converting {typeof(TRecord)}. " +
-                       $"Couldn't parse {typeof(TRecord)}.Type string from Json. " +
-                       $"Does the Json contain a {nameof(Record.Type)} field?");
+                       $"Couldn't parse {typeof(TRecord)}.{nameof(Record.Type)} from Json. " +
+                       $"Does the Json document contain a {nameof(Record.Type)} field?");
 
-    var type = _recordTypeCache.GetRecordType(typeString.GetString()!);
+    if (!RecordStringTypes.TryGetValue(typeString.GetString()!, out var type))
+      throw new ArgumentException($"Couldn't find Record Type string for {typeString}. " +
+                                  "Make sure the type is a public non-abstract record.");
 
-    if (!_throwOnMissingNonNullableProperties) return type;
-
-      var missing = _recordTypeCache.GetNonNullableRecordProperties(type)
+    if (!_throwOnMissingNonNullableProperties || !NonNullableRecordProperties.TryGetValue(type, out var properties)) 
+      return type;
+    
+    var missing = properties
       .Where(property => !json.TryGetValue(property.Name, out var value) || value.ValueKind == JsonValueKind.Null)
       .Select(property => property.Name)
       .ToList();
