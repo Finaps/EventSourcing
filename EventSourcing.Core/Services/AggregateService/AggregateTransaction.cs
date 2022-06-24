@@ -28,10 +28,15 @@ public class AggregateTransaction : IAggregateTransaction
 
     _recordTransaction.AddEvents(aggregate.UncommittedEvents);
 
-    foreach (var snapshot in SnapshotService.CreateSnapshots(aggregate))
+    foreach (var snapshot in EventSourcingCache
+               .GetSnapshotFactories(aggregate.GetType())
+               .Where(factory => factory.IsSnapshotIntervalExceeded(aggregate))
+               .Select(factory => factory.CreateSnapshot(aggregate)))
       _recordTransaction.AddSnapshot(snapshot);
 
-    foreach (var projection in ProjectionService.CreateProjections(aggregate))
+    foreach (var projection in EventSourcingCache
+               .GetProjectionFactories(aggregate.GetType())
+               .Select(x => x.CreateProjection(aggregate)))
       _recordTransaction.UpsertProjection(projection);
 
     return this;

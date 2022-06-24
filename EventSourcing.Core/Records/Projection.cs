@@ -40,8 +40,7 @@ public abstract record Projection : Record
   /// to see whether this <see cref="Projection"/> is up to date.
   /// </summary>
   /// <remarks>To update projections, refer to the <see cref="ProjectionUpdateService"/></remarks>
-  public bool IsUpToDate =>
-    ProjectionCache.Hashes.TryGetValue(FactoryType ?? "", out var hash) && Hash == hash;
+  public bool IsUpToDate => Hash != null && EventSourcingCache.GetProjectionFactoryHash(FactoryType ?? "") == Hash;
 
   /// <inheritdoc />
   public override string id => $"{Kind}|{Type}|{AggregateId}";

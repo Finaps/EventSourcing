@@ -171,7 +171,7 @@ public abstract class Aggregate<TAggregate> : Aggregate where TAggregate : Aggre
   /// </example>
   /// <param name="s"><see cref="Snapshot"/> to apply</param>
   protected virtual void Apply(Snapshot<TAggregate> s) { }
-  
+
   /// <summary>
   /// Project current state of this Aggregate to <typeparamref name="TProjection"/>
   /// </summary>
@@ -183,23 +183,16 @@ public abstract class Aggregate<TAggregate> : Aggregate where TAggregate : Aggre
   /// This Aggregate state projected to <typeparamref name="TProjection"/>
   /// </returns>
   /// <exception cref="ArgumentException">Thrown when <see cref="ProjectionFactory{TAggregate, TProjection}"/> does not exist.</exception>
-  public TProjection Project<TProjection>() where TProjection : Projection
-  {
-    if (!ProjectionCache.FactoryByAggregateAndProjection.TryGetValue((GetType(), typeof(TProjection)), out var factory))
-      throw new ArgumentException(
-        $"Cannot get Projection of type '{typeof(TProjection).Name}'." +
-        $"No ProjectionFactory of type '{typeof(ProjectionFactory<TAggregate, TProjection>)}' found.", nameof(TProjection));
-    
-    return (factory.CreateProjection(this) as TProjection)!;
-  }
-  
+  public TProjection? Project<TProjection>() where TProjection : Projection =>
+    EventSourcingCache.GetProjectionFactory<TAggregate, TProjection>()?.CreateProjection(this) as TProjection;
+
   private void ValidateAndApply(Event e)
   {
     if (e is not Event<TAggregate> @event)
       throw new RecordValidationException($"{e} does not derive from {typeof(Event<TAggregate>)}");
     
     RecordValidation.ValidateEventForAggregate(this, e);
-    
+
     Apply(@event);
     Version++;
   }

@@ -27,7 +27,7 @@ public abstract class ProjectionFactory<TAggregate, TProjection> : IProjectionFa
     
     Timestamp = DateTimeOffset.UtcNow,
     
-    Hash = ProjectionCache.Hashes[GetType().Name]
+    Hash = EventSourcingCache.GetProjectionFactoryHash(GetType().Name)
   };
   
   /// <summary>
@@ -51,8 +51,6 @@ public abstract class ProjectionFactory<TAggregate, TProjection> : IProjectionFa
   /// <seealso cref="Aggregate{TAggregate}"/>
   /// <seealso cref="IHashable"/>
   /// <returns>Hash string</returns>
-  public virtual string ComputeHash() => IHashable.CombineHashes(
-    IHashable.ComputeMethodHash(
-      GetType().GetMethod(nameof(CreateProjection), BindingFlags.Instance | BindingFlags.NonPublic)),
-      ProjectionCache.AggregateHashes[AggregateType]);
+  public virtual string ComputeHash() => IHashable.ComputeMethodHash(
+    GetType().GetMethod(nameof(CreateProjection), BindingFlags.Instance | BindingFlags.NonPublic));
 }
