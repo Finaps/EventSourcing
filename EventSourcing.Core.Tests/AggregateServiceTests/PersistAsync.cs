@@ -191,26 +191,26 @@ public abstract partial class EventSourcingTests
   [Fact]
   public async Task AggregateService_PersistAsync_Can_Persist_Projection_Hierarchy()
   {
-    var tph = new HierarchyAggregate();
-    tph.Apply(new HierarchyEvent("Long String", "Tiny", "Small"));
-    await AggregateService.PersistAsync(tph);
+    var aggregate = new HierarchyAggregate();
+    aggregate.Apply(new HierarchyEvent("Long String", "Tiny", "Small"));
+    await AggregateService.PersistAsync(aggregate);
 
-    var projectionA = await RecordStore.GetProjectionByIdAsync<HierarchyProjection>(tph.Id);
+    var projectionA = await RecordStore.GetProjectionByIdAsync<HierarchyProjection>(aggregate.Id);
     Assert.IsType<HierarchyProjectionA>(projectionA);
     
-    var projectionALiteral = await RecordStore.GetProjectionByIdAsync<HierarchyProjectionA>(tph.Id);
+    var projectionALiteral = await RecordStore.GetProjectionByIdAsync<HierarchyProjectionA>(aggregate.Id);
     Assert.IsType<HierarchyProjectionA>(projectionALiteral);
 
-    tph.Apply(new HierarchyEvent("Tiny", "Long String", "Small"));
-    await AggregateService.PersistAsync(tph);
+    aggregate.Apply(new HierarchyEvent("Tiny", "Long String", "Small"));
+    await AggregateService.PersistAsync(aggregate);
     
-    var projectionB = await RecordStore.GetProjectionByIdAsync<HierarchyProjection>(tph.Id);
+    var projectionB = await RecordStore.GetProjectionByIdAsync<HierarchyProjection>(aggregate.Id);
     Assert.IsType<HierarchyProjectionB>(projectionB);
 
-    tph.Apply(new HierarchyEvent("Small", "Tiny", "Long String"));
-    await AggregateService.PersistAsync(tph);
+    aggregate.Apply(new HierarchyEvent("Small", "Tiny", "Long String"));
+    await AggregateService.PersistAsync(aggregate);
     
-    var projectionC = await RecordStore.GetProjectionByIdAsync<HierarchyProjection>(tph.Id);
+    var projectionC = await RecordStore.GetProjectionByIdAsync<HierarchyProjection>(aggregate.Id);
     Assert.IsType<HierarchyProjectionC>(projectionC);
   }
 }

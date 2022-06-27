@@ -18,6 +18,9 @@ namespace Finaps.EventSourcing.Core;
 /// <seealso cref="IRecordStore"/>
 public abstract record Projection : Record
 {
+  /// <summary>
+  /// Base Type of Projection Hierarchy
+  /// </summary>
   public string BaseType => GetBaseType().Name;
 
   /// <summary>
@@ -45,7 +48,16 @@ public abstract record Projection : Record
   public bool IsUpToDate =>
     ProjectionCache.Hashes.TryGetValue(FactoryType ?? "", out var hash) && Hash == hash;
 
+  /// <summary>
+  /// Get Base Type of Projection Hierarchy
+  /// </summary>
+  /// <returns>Base Type</returns>
   public Type GetBaseType() => GetBaseType(GetType());
+  /// <summary>
+  /// Get Base Type of Projection Hierarchy
+  /// </summary>
+  /// <param name="type">Projection Type</param>
+  /// <returns>Base Type</returns>
   public static Type GetBaseType(Type type) => ProjectionCache.BaseTypes[type];
   
   /// <inheritdoc />

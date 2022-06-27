@@ -27,7 +27,7 @@ public abstract partial class EventSourcingTests
 
     var projection = await RecordStore.GetProjectionByIdAsync<MockAggregateProjection>(aggregate.Id);
     
-    IMock.AssertEqual(aggregate, projection);
+    IMock.AssertEqual(aggregate, projection!);
   }
   
   [Fact]

@@ -22,7 +22,7 @@ internal static class ProjectionCache
     .Where(type => typeof(Projection).IsAssignableFrom(type) && type.IsClass && !type.IsAbstract && type.IsPublic)
     .ToDictionary(x => x, root =>
     {
-      while (root.BaseType != typeof(Projection) && root != typeof(Projection)) root = root.BaseType!;
+      while (root.BaseType != typeof(Projection)) root = root.BaseType!;
       return root;
     });
 
