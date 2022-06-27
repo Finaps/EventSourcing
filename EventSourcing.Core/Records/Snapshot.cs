@@ -15,7 +15,7 @@ namespace Finaps.EventSourcing.Core;
 /// <seealso cref="SnapshotFactory{TAggregate,TSnapshot}"/>
 /// <seealso cref="IAggregateService"/>
 /// <seealso cref="IRecordStore"/>
-public record Snapshot : Record
+public abstract record Snapshot : Record
 {
   /// <summary>
   /// The index of this <see cref="Event"/> with respect to <see cref="Record.AggregateId"/>

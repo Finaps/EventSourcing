@@ -183,14 +183,14 @@ public abstract class Aggregate<TAggregate> : Aggregate where TAggregate : Aggre
   /// This Aggregate state projected to <typeparamref name="TProjection"/>
   /// </returns>
   /// <exception cref="ArgumentException">Thrown when <see cref="ProjectionFactory{TAggregate, TProjection}"/> does not exist.</exception>
-  public TProjection Project<TProjection>() where TProjection : Projection
+  public TProjection? Project<TProjection>() where TProjection : Projection
   {
     if (!ProjectionCache.FactoryByAggregateAndProjection.TryGetValue((GetType(), typeof(TProjection)), out var factory))
       throw new ArgumentException(
         $"Cannot get Projection of type '{typeof(TProjection).Name}'." +
         $"No ProjectionFactory of type '{typeof(ProjectionFactory<TAggregate, TProjection>)}' found.", nameof(TProjection));
     
-    return (factory.CreateProjection(this) as TProjection)!;
+    return factory.CreateProjection(this) as TProjection;
   }
   
   private void ValidateAndApply(Event e)

@@ -7,6 +7,10 @@ namespace Finaps.EventSourcing.Cosmos;
 /// </summary>
 public class CosmosRecordTransaction : IRecordTransaction
 {
+  private record CheckEvent : Event;
+
+  private record CheckSnapshot : Snapshot;
+  
   private enum CosmosEventTransactionAction
   {
     ReadEvent,
@@ -48,7 +52,7 @@ public class CosmosRecordTransaction : IRecordTransaction
     {
       // Check if the event before the current event is present in the Database
       // If not, this could be due to user error or the events being deleted during this transaction
-      var check = new Event
+      var check = new CheckEvent
       {
         PartitionId = first.PartitionId,
         AggregateId = first.AggregateId,
@@ -90,7 +94,7 @@ public class CosmosRecordTransaction : IRecordTransaction
   /// <inheritdoc />
   public IRecordTransaction DeleteAllEvents<TAggregate>(Guid aggregateId, long index) where TAggregate : Aggregate, new()
   {
-    var reservation = new Event
+    var reservation = new CheckEvent
     {
       PartitionId = PartitionId,
       AggregateId = aggregateId,
@@ -106,7 +110,7 @@ public class CosmosRecordTransaction : IRecordTransaction
     // Delete All Events
     for (var i = 0; i <= index; i++)
     {
-      var deletion = new Event { PartitionId = PartitionId, AggregateId = aggregateId, Index = i };
+      var deletion = new CheckEvent { PartitionId = PartitionId, AggregateId = aggregateId, Index = i };
       _batch.DeleteItem(deletion.id, CosmosRecordStore.BatchItemRequestOptions);
       _actions.Add((CosmosEventTransactionAction.DeleteEvent, deletion));
     }
@@ -120,7 +124,7 @@ public class CosmosRecordTransaction : IRecordTransaction
   /// <inheritdoc />
   public IRecordTransaction DeleteSnapshot<TAggregate>(Guid aggregateId, long index) where TAggregate : Aggregate, new()
   {
-    var snapshot = new Snapshot { PartitionId = PartitionId, AggregateId = aggregateId, Index = index };
+    var snapshot = new CheckSnapshot { PartitionId = PartitionId, AggregateId = aggregateId, Index = index };
     _batch.DeleteItem(snapshot.id, CosmosRecordStore.BatchItemRequestOptions);
     _actions.Add((CosmosEventTransactionAction.DeleteSnapshot, snapshot));
 

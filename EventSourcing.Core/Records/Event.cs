@@ -5,7 +5,7 @@ namespace Finaps.EventSourcing.Core;
 /// </summary>
 /// <seealso cref="Aggregate{TAggregate}"/>
 /// <seealso cref="IRecordStore"/>
-public record Event : Record
+public abstract record Event : Record
 {
   /// <summary>
   /// The index of this <see cref="Event"/> with respect to <see cref="Record.AggregateId"/>

@@ -61,18 +61,18 @@ public class CosmosRecordStore : IRecordStore
   /// <inheritdoc />
   public IQueryable<TProjection> GetProjections<TProjection>() where TProjection : Projection => _container
     .AsCosmosAsyncQueryable<TProjection>()
-    .Where(x => x.Kind == RecordKind.Projection && x.Type == typeof(TProjection).Name);
+    .Where(x => x.Kind == RecordKind.Projection && x.BaseType == Projection.GetBaseType(typeof(TProjection)).Name);
 
   /// <inheritdoc />
   public async Task<TProjection?> GetProjectionByIdAsync<TProjection>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection
   {
     try
     {
-      return await _container.ReadItemAsync<TProjection>(
-        $"{RecordKind.Projection}|{typeof(TProjection).Name}|{aggregateId}",
-        new PartitionKey(partitionId.ToString()),
+      return (await _container.ReadManyItemsAsync<Projection>(new []{(
+        $"{RecordKind.Projection}|{Projection.GetBaseType(typeof(TProjection)).Name}|{aggregateId}",
+        new PartitionKey(partitionId.ToString()))},
         cancellationToken: cancellationToken
-      );
+      )).Cast<TProjection>().FirstOrDefault();
     }
     catch (CosmosException e) when (e.StatusCode == HttpStatusCode.NotFound)
     {

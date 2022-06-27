@@ -156,9 +156,14 @@ public class RecordContext : DbContext
     // Add all Projections as separate tables
     foreach (var type in projections)
     {
-      EntityFrameworkRecordStore.ProjectionTypes.Add(type);
       builder.Entity(type, projection =>
       {
+        // When using Table Per Hierarchy, only the root has to be configured
+        if (type.BaseType != typeof(Projection)) return;
+        
+        // Add to Projection Types Cache
+        EntityFrameworkRecordStore.ProjectionTypes.Add(type);
+
         // Add Indices for AggregateType, Type and Timestamp
         projection.HasIndex(nameof(Projection.AggregateType));
         projection.HasIndex(nameof(Projection.Type));

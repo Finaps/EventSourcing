@@ -16,6 +16,16 @@ internal static class ProjectionCache
     .Select(type => (IProjectionFactory) Activator.CreateInstance(type)!)
     .ToList();
 
+  public static readonly Dictionary<Type, Type> BaseTypes = AppDomain.CurrentDomain
+    .GetAssemblies()
+    .SelectMany(assembly => assembly.GetTypes())
+    .Where(type => typeof(Projection).IsAssignableFrom(type) && type.IsClass && !type.IsAbstract && type.IsPublic)
+    .ToDictionary(x => x, root =>
+    {
+      while (root.BaseType != typeof(Projection) && root != typeof(Projection)) root = root.BaseType!;
+      return root;
+    });
+
   public static readonly Dictionary<Type, string> AggregateHashes = Aggregates
     .ToDictionary(x => x.GetType(), x => x.ComputeHash());
 

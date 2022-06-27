@@ -18,11 +18,13 @@ namespace Finaps.EventSourcing.Core;
 /// <seealso cref="IRecordStore"/>
 public abstract record Projection : Record
 {
+  public string BaseType => GetBaseType().Name;
+
   /// <summary>
   /// Factory type string
   /// </summary>
   public string? FactoryType { get; init; }
-  
+
   /// <summary>
   /// The number of <see cref="Event"/>s applied to the source <see cref="Aggregate{TAggregate}"/>.
   /// </summary>
@@ -43,6 +45,9 @@ public abstract record Projection : Record
   public bool IsUpToDate =>
     ProjectionCache.Hashes.TryGetValue(FactoryType ?? "", out var hash) && Hash == hash;
 
+  public Type GetBaseType() => GetBaseType(GetType());
+  public static Type GetBaseType(Type type) => ProjectionCache.BaseTypes[type];
+  
   /// <inheritdoc />
-  public override string id => $"{Kind}|{Type}|{AggregateId}";
+  public override string id => $"{Kind}|{BaseType}|{AggregateId}";
 }

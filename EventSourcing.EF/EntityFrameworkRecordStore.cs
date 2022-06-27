@@ -80,6 +80,7 @@ public class EntityFrameworkRecordStore : IRecordStore
     count += await Context.DeleteWhereAsync(typeof(TAggregate).EventTable(), partitionId, aggregateId, cancellationToken);
     count += await Context.DeleteWhereAsync(typeof(TAggregate).SnapshotTable(), partitionId, aggregateId, cancellationToken);
     
+    // TODO: This works, but for performance reasons limit to projections where ProjectionFactory<TAggregate, TProjection> is defined
     foreach (var type in ProjectionTypes)
       count += await Context.DeleteWhereAsync(type.Name, partitionId, aggregateId, cancellationToken);
 

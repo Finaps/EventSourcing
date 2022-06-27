@@ -105,11 +105,9 @@ public class EntityFrameworkRecordTransaction : IRecordTransaction
           break;
 
         case UpsertProjectionAction(var projection):
-
           // Since EF Core has no Upsert functionality, we have to first query the original Projection :(
           var existing = await _store.Context.FindAsync(
-            projection.GetType(),
-            projection.PartitionId, projection.AggregateId);
+            projection.GetBaseType(), projection.PartitionId, projection.AggregateId);
 
           // Remove instead of update: this fixes problems with owned entities
           if (existing != null) _store.Context.Remove(existing);
