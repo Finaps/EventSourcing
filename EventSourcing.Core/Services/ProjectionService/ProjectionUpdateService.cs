@@ -26,8 +26,12 @@ public class ProjectionUpdateService : IProjectionUpdateService
   public async Task UpdateAllProjectionsAsync<TAggregate, TProjection>(CancellationToken cancellationToken = default)
     where TAggregate : Aggregate, new() where TProjection : Projection
   {
-    var factory = ProjectionCache.FactoryByAggregateAndProjection[(typeof(TAggregate), typeof(TProjection))];
-    var hash = ProjectionCache.Hashes[factory.GetType().Name];
+    var factory = Cache.GetProjectionFactory<TAggregate, TProjection>();
+
+    if (factory == null)
+      throw new ArgumentException($"No {typeof(ProjectionFactory<TAggregate, TProjection>).Name} Found");
+    
+    var hash = Cache.GetProjectionFactoryHash(factory.GetType().Name);
 
     // TODO: Make work with large data sets
     var items = await _store.GetProjections<TProjection>()

@@ -61,7 +61,7 @@ public class CosmosRecordStore : IRecordStore
   /// <inheritdoc />
   public IQueryable<TProjection> GetProjections<TProjection>() where TProjection : Projection => _container
     .AsCosmosAsyncQueryable<TProjection>()
-    .Where(x => x.Kind == RecordKind.Projection && x.BaseType == Projection.GetBaseType(typeof(TProjection)).Name);
+    .Where(x => x.Kind == RecordKind.Projection && x.BaseType == Cache.GetProjectionBaseType(typeof(TProjection)).Name);
 
   /// <inheritdoc />
   public async Task<TProjection?> GetProjectionByIdAsync<TProjection>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection
@@ -69,7 +69,7 @@ public class CosmosRecordStore : IRecordStore
     try
     {
       return (await _container.ReadManyItemsAsync<Projection>(new []{(
-        $"{RecordKind.Projection}|{Projection.GetBaseType(typeof(TProjection)).Name}|{aggregateId}",
+        $"{RecordKind.Projection}|{Cache.GetProjectionBaseType(typeof(TProjection)).Name}|{aggregateId}",
         new PartitionKey(partitionId.ToString()))},
         cancellationToken: cancellationToken
       )).Cast<TProjection>().FirstOrDefault();

@@ -26,24 +26,20 @@ public class RecordContext : DbContext
   protected override void OnModelCreating(ModelBuilder builder)
   {
     // TODO: Make this easier to manually configure
-    
-    // Get all Records in Assembly
-    var records = GetAssemblyTypes<Record>();
-
     // Get all Events, grouped by Aggregate Type
-    var events = records
+    var events = Cache.RecordTypes
       .Where(type => typeof(Event).IsAssignableFrom(type))
       .GroupBy(GetAggregateType).Where(x => x.Key != null)
       .ToDictionary(grouping => grouping.Key!, grouping => grouping.ToList());
     
     // Get all Snapshots, grouped by Aggregate Type
-    var snapshots = records
+    var snapshots = Cache.RecordTypes
       .Where(type => typeof(Snapshot).IsAssignableFrom(type))
       .GroupBy(GetAggregateType).Where(x => x.Key != null)
       .ToDictionary(grouping => grouping.Key!, grouping => grouping.ToList());
 
     // Get all projections
-    var projections = records
+    var projections = Cache.RecordTypes
       .Where(type => typeof(Projection).IsAssignableFrom(type))
       .ToList();
 
@@ -209,14 +205,4 @@ public class RecordContext : DbContext
 
     return null;
   }
-
-  /// <summary>
-  /// See get all public, non-abstract types with a default constructor assignable from <c>T</c>
-  /// </summary>
-  /// <typeparam name="T"><see cref="Type"/></typeparam>
-  /// <returns></returns>
-  private static List<Type> GetAssemblyTypes<T>() => AppDomain.CurrentDomain
-    .GetAssemblies().SelectMany(x => x.GetTypes())
-    .Where(type => typeof(T).IsAssignableFrom(type) && type.IsPublic && type.IsClass && !type.IsAbstract && !type.IsGenericType)
-    .ToList();
 }
