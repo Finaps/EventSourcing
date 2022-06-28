@@ -12,6 +12,6 @@ public static class ProjectionService
   /// <returns>Resulting <see cref="Projection"/>s of <see cref="Aggregate{TAggregate}"/></returns>
   public static List<Projection> CreateProjections(Aggregate aggregate) => 
     ProjectionCache.FactoriesByAggregate.TryGetValue(aggregate.GetType(), out var factories)
-      ? factories.Select(x => x.CreateProjection(aggregate)).ToList()
+      ? factories.Select(x => x.CreateProjection(aggregate)).OfType<Projection>().ToList()
       : new List<Projection>();
 }

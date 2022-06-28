@@ -14,11 +14,11 @@ public interface IProjectionFactory : IHashable
   /// Destination <see cref="Projection"/> type
   /// </summary>
   Type ProjectionType { get; }
-  
+
   /// <summary>
   /// Create <see cref="Projection"/> for <see cref="Aggregate{TAggregate}"/>
   /// </summary>
   /// <param name="aggregate">Source <see cref="Aggregate{TAggregate}"/></param>
   /// <returns>Resulting <see cref="Projection"/> of <see cref="Aggregate{TAggregate}"/></returns>
-  Projection CreateProjection(Aggregate aggregate);
+  Projection? CreateProjection(Aggregate aggregate);
 }

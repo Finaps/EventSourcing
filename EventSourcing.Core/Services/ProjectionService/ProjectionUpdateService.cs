@@ -44,7 +44,11 @@ public class ProjectionUpdateService : IProjectionUpdateService
       
       if (aggregate == null) continue;
 
-      await _store.UpsertProjectionAsync(factory.CreateProjection(aggregate), cancellationToken);
+      var projection = factory.CreateProjection(aggregate);
+      
+      if (projection == null) continue;
+
+      await _store.UpsertProjectionAsync(projection, cancellationToken);
     }
   }
 }

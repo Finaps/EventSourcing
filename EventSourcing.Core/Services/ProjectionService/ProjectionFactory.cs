@@ -16,26 +16,33 @@ public abstract class ProjectionFactory<TAggregate, TProjection> : IProjectionFa
   public Type ProjectionType => typeof(TProjection);
 
   /// <inheritdoc />
-  public Projection CreateProjection(Aggregate aggregate) => CreateProjection((TAggregate) aggregate) with
+  public Projection? CreateProjection(Aggregate aggregate)
   {
-    AggregateType = aggregate.Type,
-    FactoryType = GetType().Name,
+    var projection = CreateProjection((TAggregate)aggregate);
+
+    if (projection == null) return null;
     
-    PartitionId = aggregate.PartitionId,
-    AggregateId = aggregate.Id,
-    Version = aggregate.Version,
-    
-    Timestamp = DateTimeOffset.UtcNow,
-    
-    Hash = ProjectionCache.Hashes[GetType().Name]
-  };
-  
+    return projection with
+    {
+      AggregateType = aggregate.Type,
+      FactoryType = GetType().Name,
+
+      PartitionId = aggregate.PartitionId,
+      AggregateId = aggregate.Id,
+      Version = aggregate.Version,
+
+      Timestamp = DateTimeOffset.UtcNow,
+
+      Hash = ProjectionCache.Hashes[GetType().Name]
+    };
+  }
+
   /// <summary>
   /// Create <c>TProjection</c> for <c>TAggregate</c>
   /// </summary>
   /// <param name="aggregate">Source <c>TAggregate</c></param>
   /// <returns>Resulting <c>TProjection</c> of <c>TAggregate</c></returns>
-  protected abstract TProjection CreateProjection(TAggregate aggregate);
+  protected abstract TProjection? CreateProjection(TAggregate aggregate);
 
   /// <summary>
   /// Compute hash for <c>TProjection</c>

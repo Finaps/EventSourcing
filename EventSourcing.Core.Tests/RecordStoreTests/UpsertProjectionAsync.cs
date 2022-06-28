@@ -25,7 +25,7 @@ public abstract partial class EventSourcingTests
     });
 
     // Create Projection
-    await RecordStore.UpsertProjectionAsync(new MockAggregateProjectionFactory().CreateProjection(aggregate));
+    await RecordStore.UpsertProjectionAsync(new MockAggregateProjectionFactory().CreateProjection(aggregate)!);
     
     var projection = await RecordStore
       .GetProjections<MockAggregateProjection>()
@@ -64,7 +64,7 @@ public abstract partial class EventSourcingTests
     });
 
     // Update Projection
-    await RecordStore.UpsertProjectionAsync(new MockAggregateProjectionFactory().CreateProjection(aggregate));
+    await RecordStore.UpsertProjectionAsync(new MockAggregateProjectionFactory().CreateProjection(aggregate)!);
     
     var updatedProjection = await RecordStore
       .GetProjections<MockAggregateProjection>()

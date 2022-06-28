@@ -19,10 +19,15 @@ namespace Finaps.EventSourcing.Core;
 public abstract record Projection : Record
 {
   /// <summary>
+  /// Base Type of Projection Hierarchy
+  /// </summary>
+  public string BaseType => GetBaseType().Name;
+
+  /// <summary>
   /// Factory type string
   /// </summary>
   public string? FactoryType { get; init; }
-  
+
   /// <summary>
   /// The number of <see cref="Event"/>s applied to the source <see cref="Aggregate{TAggregate}"/>.
   /// </summary>
@@ -43,6 +48,18 @@ public abstract record Projection : Record
   public bool IsUpToDate =>
     ProjectionCache.Hashes.TryGetValue(FactoryType ?? "", out var hash) && Hash == hash;
 
+  /// <summary>
+  /// Get Base Type of Projection Hierarchy
+  /// </summary>
+  /// <returns>Base Type</returns>
+  public Type GetBaseType() => GetBaseType(GetType());
+  /// <summary>
+  /// Get Base Type of Projection Hierarchy
+  /// </summary>
+  /// <param name="type">Projection Type</param>
+  /// <returns>Base Type</returns>
+  public static Type GetBaseType(Type type) => ProjectionCache.BaseTypes[type];
+  
   /// <inheritdoc />
-  public override string id => $"{Kind}|{Type}|{AggregateId}";
+  public override string id => $"{Kind}|{BaseType}|{AggregateId}";
 }

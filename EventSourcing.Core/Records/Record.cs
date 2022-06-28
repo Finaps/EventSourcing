@@ -102,7 +102,7 @@ public abstract record Record
   /// <summary>
   /// Create new <see cref="Record"/>
   /// </summary>
-  protected Record()
+  public Record()
   {
     Type = GetType().Name;
     Timestamp = DateTimeOffset.UtcNow;
