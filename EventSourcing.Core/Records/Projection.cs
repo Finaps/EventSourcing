@@ -21,7 +21,7 @@ public abstract record Projection : Record
   /// <summary>
   /// Base Type of Projection Hierarchy
   /// </summary>
-  public string BaseType => GetBaseType().Name;
+  public string BaseType => Cache.GetProjectionBaseType(GetType()).Name;
 
   /// <summary>
   /// Factory type string
@@ -45,21 +45,8 @@ public abstract record Projection : Record
   /// to see whether this <see cref="Projection"/> is up to date.
   /// </summary>
   /// <remarks>To update projections, refer to the <see cref="ProjectionUpdateService"/></remarks>
-  public bool IsUpToDate =>
-    ProjectionCache.Hashes.TryGetValue(FactoryType ?? "", out var hash) && Hash == hash;
+  public bool IsUpToDate => FactoryType != null && Cache.GetProjectionFactoryHash(FactoryType) == Hash;
 
-  /// <summary>
-  /// Get Base Type of Projection Hierarchy
-  /// </summary>
-  /// <returns>Base Type</returns>
-  public Type GetBaseType() => GetBaseType(GetType());
-  /// <summary>
-  /// Get Base Type of Projection Hierarchy
-  /// </summary>
-  /// <param name="type">Projection Type</param>
-  /// <returns>Base Type</returns>
-  public static Type GetBaseType(Type type) => ProjectionCache.BaseTypes[type];
-  
   /// <inheritdoc />
   public override string id => $"{Kind}|{BaseType}|{AggregateId}";
 }

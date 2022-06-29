@@ -11,7 +11,6 @@ namespace Finaps.EventSourcing.Core;
 /// </remarks>
 public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : Record
 {
-  private readonly RecordTypeCache _recordTypeCache;
   private readonly bool _throwOnMissingNonNullableProperties;
 
   /// <summary>
@@ -23,7 +22,6 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
   /// </param>
   public RecordConverter(RecordConverterOptions? options = null)
   {
-    _recordTypeCache = new RecordTypeCache(options?.RecordTypes);
     _throwOnMissingNonNullableProperties = options?.ThrowOnMissingNonNullableProperties ?? false;
   }
 
@@ -37,7 +35,7 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
   /// Serialize Record
   /// </summary>
   public override void Write(Utf8JsonWriter writer, TRecord value, JsonSerializerOptions options) =>
-    JsonSerializer.Serialize(writer, value with { Type = RecordTypeCache.GetAssemblyRecordTypeString(value.GetType()) }, value.GetType());
+    JsonSerializer.Serialize(writer, value with { Type = RecordTypeCache.GetRecordTypeString(value.GetType()) }, value.GetType());
 
   /// <summary>
   /// Deserialize Record
@@ -60,11 +58,11 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
                        $"Couldn't parse {typeof(TRecord)}.Type string from Json. " +
                        $"Does the Json contain a {nameof(Record.Type)} field?");
 
-    var type = _recordTypeCache.GetRecordType(typeString.GetString()!);
+    var type = RecordTypeCache.GetRecordType(typeString.GetString()!);
 
     if (!_throwOnMissingNonNullableProperties) return type;
 
-      var missing = _recordTypeCache.GetNonNullableRecordProperties(type)
+      var missing = RecordTypeCache.GetNonNullableProperties(type)
       .Where(property => !json.TryGetValue(property.Name, out var value) || value.ValueKind == JsonValueKind.Null)
       .Select(property => property.Name)
       .ToList();
