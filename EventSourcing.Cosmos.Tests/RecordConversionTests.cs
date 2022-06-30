@@ -7,22 +7,21 @@ using Xunit;
 
 namespace Finaps.EventSourcing.Core.Tests;
 
+public record TestEvent : Event
+{
+  public int A { get; init; }
+  public int B { get; init; }
+  public int C { get; init; }
+  public int? D { get; set; }
+}
+
 public class RecordConversionTests
 {
-  private record TestEvent : Event
-  {
-    public int A { get; init; }
-    public int B { get; init; }
-    public int C { get; init; }
-    public int? D { get; set; }
-  }
-
   [Fact]
   public Task Converter_Throws_On_Missing_And_Null_Properties_On_Read_And_Write()
   {
     var converter = new RecordConverter<Event>(new RecordConverterOptions
     {
-      RecordTypes = new List<Type> { typeof(TestEvent) },
       ThrowOnMissingNonNullableProperties = true
     });
 

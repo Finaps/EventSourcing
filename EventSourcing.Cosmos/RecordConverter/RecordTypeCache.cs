@@ -1,61 +1,45 @@
 using System.Reflection;
+using Finaps.EventSourcing.Cosmos;
 
 namespace Finaps.EventSourcing.Core;
 
 internal sealed class RecordTypeCache
 {
-    // Static RecordTypes cache
-    private static readonly List<Type> AssemblyRecordTypes = AppDomain.CurrentDomain
-        .GetAssemblies()
-        .SelectMany(x => x.GetTypes())
-        .Where(type => typeof(Record).IsAssignableFrom(type) && type.IsClass && !type.IsAbstract)
-        .ToList();
-    private static readonly Dictionary<Type, string> RecordTypeStrings =
-        AssemblyRecordTypes.ToDictionary(type => type, type => type.GetCustomAttribute<RecordTypeAttribute>()?.Type ?? type.Name);
+    private static readonly Dictionary<Type, string> RecordTypeStrings = Cache.RecordTypes
+        .Append(typeof(CosmosRecordTransaction.CheckEvent))
+        .Append(typeof(CosmosRecordTransaction.CheckSnapshot))
+        .ToDictionary(
+        type => type, type => type.GetCustomAttribute<RecordTypeAttribute>()?.Type ?? type.Name);
 
-    // Non-static RecordTypes cache
-    private readonly Dictionary<string, Type> _recordTypes;
-    private readonly Dictionary<Type, string> _recordTypeStrings;
-    private readonly Dictionary<Type, PropertyInfo[]> _nonNullableRecordProperties;
+    private static readonly Dictionary<string, Type> RecordStringTypes = RecordTypeStrings.ToDictionary(
+        x => x.Value, x => x.Key);
 
-    public RecordTypeCache(IReadOnlyCollection<Type>? recordTypes)
+    private static readonly Dictionary<Type, PropertyInfo[]> NonNullableProperties = Cache.RecordTypes.ToDictionary(
+        type => type, type => type.GetProperties()
+            .Where(property => property.PropertyType.IsValueType 
+                            && Nullable.GetUnderlyingType(property.PropertyType) == null).ToArray());
+    
+    public static Type GetRecordType(string typeString)
     {
-        // Create dictionaries mapping from Record.Type string to Record Type and it's reverse
-        _recordTypeStrings = recordTypes == null ? 
-            RecordTypeStrings : recordTypes.ToDictionary(type => type, type => type.GetCustomAttribute<RecordTypeAttribute>()?.Type ?? type.Name);
-        _recordTypes = _recordTypeStrings.ToDictionary(kv => kv.Value, kv => kv.Key);
-        // For each Record Type, create set of non-nullable properties for validation
-        _nonNullableRecordProperties = _recordTypes.Values.ToDictionary(type => type, type => type.GetProperties()
-            .Where(property => property.PropertyType.IsValueType && Nullable.GetUnderlyingType(property.PropertyType) == null).ToArray());
-    }
-    public Type GetRecordType(string typeString)
-    {
-        if (!_recordTypes.TryGetValue(typeString, out var type))
+        if (!RecordStringTypes.TryGetValue(typeString, out var type))
             throw new InvalidOperationException(
-                $"Error getting record type string for {type}. {type} not provided in {nameof(RecordTypeCache)}.ctor");
+                $"Error getting record type for {typeString}. {typeString} not found in assembly. Ensure {typeString} extends {typeof(Record)}");
 
         return type;
     }
-    public string GetRecordTypeString(Type type)
-    {
-        if(!_recordTypeStrings.TryGetValue(type, out var typeString))
-            throw new InvalidOperationException(
-                $"Error getting record type string for {type}. {type} not provided in {nameof(RecordTypeCache)}.ctor");
-
-        return typeString;
-    }
-    public static string GetAssemblyRecordTypeString(Type type)
+    
+    public static string GetRecordTypeString(Type type)
     {
         if(!RecordTypeStrings.TryGetValue(type, out var typeString))
             throw new InvalidOperationException(
-                $"Error getting record type string for {type}. {type} not found in Assembly. Ensure {type.Name} extends {typeof(Record)}");
+                $"Error getting record type string for {type}. {type} not found in assembly. Ensure {type.Name} extends {typeof(Record)}");
 
         return typeString;
     }
-    public IEnumerable<PropertyInfo> GetNonNullableRecordProperties(Type type)
+    public static IEnumerable<PropertyInfo> GetNonNullableProperties(Type type)
     {
-        if(!_nonNullableRecordProperties.TryGetValue(type, out var properties))
-            throw new InvalidOperationException($"Error getting non-nullable properties for {type}. {type} not provided in {nameof(RecordTypeCache)}.ctor");
+        if(!NonNullableProperties.TryGetValue(type, out var properties))
+            throw new InvalidOperationException($"Error getting non-nullable properties for {type}. {type} not found in assembly. Ensure {type.Name} extends {typeof(Record)}");
 
         return properties;
     }

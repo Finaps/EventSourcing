@@ -7,9 +7,9 @@ namespace Finaps.EventSourcing.Cosmos;
 /// </summary>
 public class CosmosRecordTransaction : IRecordTransaction
 {
-  private record CheckEvent : Event;
+  internal record CheckEvent : Event;
 
-  private record CheckSnapshot : Snapshot;
+  internal record CheckSnapshot : Snapshot;
   
   private enum CosmosEventTransactionAction
   {
