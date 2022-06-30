@@ -13,7 +13,7 @@ public interface IAggregateTransaction
   /// </remarks>
   /// <param name="aggregate"><see cref="Aggregate{TAggregate}"/></param>
   /// <returns><see cref="IAggregateTransaction"/></returns>
-  IAggregateTransaction Add(Aggregate aggregate);
+  Task<IAggregateTransaction> AddAggregateAsync(Aggregate aggregate);
 
   /// <summary>
   /// Commit <see cref="Aggregate{TAggregate}"/>s to the <see cref="IRecordStore"/> in an ACID transaction.

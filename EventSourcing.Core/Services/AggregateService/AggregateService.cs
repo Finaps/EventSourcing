@@ -44,8 +44,7 @@ public class AggregateService : IAggregateService
   public async Task<TAggregate> PersistAsync<TAggregate>(TAggregate aggregate,
     CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
   {
-    await CreateTransaction(aggregate.PartitionId).Add(aggregate).CommitAsync(cancellationToken);
-    
+    await (await CreateTransaction(aggregate.PartitionId).AddAggregateAsync(aggregate)).CommitAsync(cancellationToken);
     return aggregate;
   }
 
@@ -57,7 +56,7 @@ public class AggregateService : IAggregateService
     foreach (var aggregate in aggregates)
     {
       transaction ??= CreateTransaction(aggregate.PartitionId);
-      transaction.Add(aggregate);
+      await transaction.AddAggregateAsync(aggregate);
     }
 
     if (transaction != null)

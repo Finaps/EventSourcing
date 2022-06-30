@@ -41,7 +41,7 @@ public abstract record Projection : Record
 
   /// <summary>
   /// Compares the <see cref="Projection"/>.<see cref="Projection.Hash"/> (i.e. the state of the code at time of <see cref="Projection"/> creation)
-  /// to the <see cref="ProjectionCache"/>.<see cref="ProjectionCache.Hashes"/> (i.e. the current state of the code)
+  /// to the <see cref="Cache"/> (i.e. the current state of the code)
   /// to see whether this <see cref="Projection"/> is up to date.
   /// </summary>
   /// <remarks>To update projections, refer to the <see cref="ProjectionUpdateService"/></remarks>
