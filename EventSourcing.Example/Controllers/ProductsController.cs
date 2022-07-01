@@ -23,7 +23,8 @@ public class ProductsController : Controller
     {
         var product = new Product();
         product.Create(request.Name, request.Quantity);
-        return await _aggregateService.PersistAsync(product);
+        await _aggregateService.PersistAsync(product);
+        return product;
     }
     
     [HttpGet("{id:Guid}")]

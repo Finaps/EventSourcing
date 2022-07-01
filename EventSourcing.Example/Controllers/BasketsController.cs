@@ -23,7 +23,8 @@ public class BasketsController : Controller
     {
         var basket = new Basket();
         basket.Create();
-        return await _aggregateService.PersistAsync(basket);
+        await _aggregateService.PersistAsync(basket);
+        return basket;
     }
     
     [HttpGet("{basketId:guid}")]
