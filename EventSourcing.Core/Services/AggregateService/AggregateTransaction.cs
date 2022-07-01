@@ -3,7 +3,7 @@ namespace Finaps.EventSourcing.Core;
 /// <inheritdoc />
 public class AggregateTransaction : IAggregateTransaction
 {
-  private readonly IRecordTransaction _recordTransaction;
+  protected readonly IRecordTransaction RecordTransaction;
   private readonly HashSet<Aggregate> _aggregates = new();
 
   /// <summary>
@@ -12,11 +12,12 @@ public class AggregateTransaction : IAggregateTransaction
   /// <param name="recordTransaction"><see cref="IRecordTransaction"/></param>
   public AggregateTransaction(IRecordTransaction recordTransaction)
   {
-    _recordTransaction = recordTransaction;
+    RecordTransaction = recordTransaction;
   }
 
   /// <inheritdoc />
-  public virtual async Task<IAggregateTransaction> AddAggregateAsync(Aggregate aggregate)
+  public virtual async Task<IAggregateTransaction> AddAggregateAsync<TAggregate>(TAggregate aggregate, CancellationToken cancellationToken = default)
+    where TAggregate : Aggregate<TAggregate>, new()
   {
     if (aggregate.Id == Guid.Empty)
       throw new ArgumentException(
@@ -26,19 +27,19 @@ public class AggregateTransaction : IAggregateTransaction
       throw new ArgumentException(
         $"Error adding {aggregate} to {nameof(AggregateTransaction)}. Aggregate already added.", nameof(aggregate));
 
-    await AddEventsAsync(aggregate.UncommittedEvents);
+    await AddEventsAsync(aggregate.UncommittedEvents, cancellationToken);
 
     foreach (var snapshot in Cache
-               .GetSnapshotFactories(aggregate.GetType())
+               .GetSnapshotFactories<TAggregate>()
                .Where(x => x.IsSnapshotIntervalExceeded(aggregate))
                .Select(x => x.CreateSnapshot(aggregate)))
-      await AddSnapshotAsync(snapshot);
+      await AddSnapshotAsync(snapshot, cancellationToken);
 
     foreach (var projection in Cache
-               .GetProjectionFactories(aggregate.GetType())
+               .GetProjectionFactories<TAggregate>()
                .Select(x => x.CreateProjection(aggregate))
                .OfType<Projection>())
-      await UpsertProjectionAsync(projection);
+      await UpsertProjectionAsync(projection, cancellationToken);
 
     return this;
   }
@@ -47,29 +48,29 @@ public class AggregateTransaction : IAggregateTransaction
   /// Add Events to RecordTransaction
   /// </summary>
   /// <param name="events"></param>
-  protected virtual Task AddEventsAsync(List<Event> events) =>
-    Task.FromResult(_recordTransaction.AddEvents(events));
+  protected virtual Task AddEventsAsync<TAggregate>(List<Event<TAggregate>> events, CancellationToken cancellationToken = default)
+    where TAggregate : Aggregate<TAggregate>, new() => Task.FromResult(RecordTransaction.AddEvents(events));
   
   /// <summary>
   /// Add Snapshot to RecordTransaction
   /// </summary>
   /// <param name="snapshot"></param>
-  protected virtual Task AddSnapshotAsync(Snapshot snapshot) =>
-    Task.FromResult(_recordTransaction.AddSnapshot(snapshot));
+  protected virtual Task AddSnapshotAsync<TAggregate>(Snapshot<TAggregate> snapshot, CancellationToken cancellationToken = default)
+    where TAggregate : Aggregate<TAggregate>, new() => Task.FromResult(RecordTransaction.AddSnapshot(snapshot));
   
   /// <summary>
   /// Add Projection to RecordTransaction
   /// </summary>
   /// <param name="projection"></param>
-  protected virtual Task UpsertProjectionAsync(Projection projection) =>
-    Task.FromResult(_recordTransaction.UpsertProjection(projection));
+  protected virtual Task UpsertProjectionAsync(Projection projection, CancellationToken cancellationToken = default) =>
+    Task.FromResult(RecordTransaction.UpsertProjection(projection));
 
   /// <inheritdoc />
   public virtual async Task CommitAsync(CancellationToken cancellationToken = default)
   {
-    await _recordTransaction.CommitAsync(cancellationToken);
+    await RecordTransaction.CommitAsync(cancellationToken);
 
     // If Transaction succeeded: Clear all uncommitted Events (they have been committed now)
-    foreach (var aggregate in _aggregates) aggregate.UncommittedEvents.Clear();
+    foreach (var aggregate in _aggregates) aggregate.ClearUncommittedEvents();
   }
 }

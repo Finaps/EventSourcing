@@ -8,7 +8,7 @@ public abstract partial class EventSourcingTests
     var e = new EmptyEvent { AggregateId = Guid.NewGuid(), AggregateType = nameof(EmptyAggregate) };
 
     await RecordStore.CreateTransaction()
-      .AddEvents(new List<Event> { e })
+      .AddEvents(new List<Event<EmptyAggregate>> { e })
       .CommitAsync();
 
     var count = await RecordStore
@@ -28,8 +28,8 @@ public abstract partial class EventSourcingTests
     var e2 = aggregate.Apply(new EmptyEvent { AggregateId = Guid.NewGuid() });
 
     await RecordStore.CreateTransaction()
-      .AddEvents(new List<Event> { e1 })
-      .AddEvents(new List<Event> { e2 })
+      .AddEvents(new List<Event<EmptyAggregate>> { e1 })
+      .AddEvents(new List<Event<EmptyAggregate>> { e2 })
       .CommitAsync();
 
     var count = await RecordStore
@@ -51,7 +51,7 @@ public abstract partial class EventSourcingTests
     };
 
     var transaction = RecordStore.CreateTransaction(Guid.NewGuid());
-    Assert.Throws<RecordValidationException>(() => transaction.AddEvents(new List<Event> { e }));
+    Assert.Throws<RecordValidationException>(() => transaction.AddEvents(new List<Event<EmptyAggregate>> { e }));
     await transaction.CommitAsync();
       
     // Ensure e was not committed
@@ -71,12 +71,12 @@ public abstract partial class EventSourcingTests
     var e2 = new EmptyEvent { AggregateId = Guid.NewGuid(), AggregateType = "AggregateType" };
 
     // Commit e1 in an earlier transaction
-    await RecordStore.AddEventsAsync(new List<Event> { e1 });
+    await RecordStore.AddEventsAsync(new [] { e1 });
 
     // Try to commit both e1 & e2
     var transaction = RecordStore.CreateTransaction()
-      .AddEvents(new List<Event> { e1 })
-      .AddEvents(new List<Event> { e2 });
+      .AddEvents(new List<Event<EmptyAggregate>> { e1 })
+      .AddEvents(new List<Event<EmptyAggregate>> { e2 });
 
     // Check commit throws a concurrency exception
     await Assert.ThrowsAsync<RecordStoreException>(async () => await transaction.CommitAsync());
@@ -102,16 +102,15 @@ public abstract partial class EventSourcingTests
     await store.AddEventsAsync(Enumerable
       .Range(0, 5)
       .Select(_ => aggregate.Apply(new EmptyEvent()))
-      .Cast<Event>()
-      .ToList());
+      .ToArray());
 
     // Then, start transaction, adding 5 additional events
     var transaction = store.CreateTransaction()
       .AddEvents(Enumerable
         .Range(0, 5)
         .Select(_ => aggregate.Apply(new EmptyEvent()))
-        .Cast<Event>()
-        .ToList());
+        .Cast<Event<EmptyAggregate>>()
+        .ToArray());
     
     // Then delete the first 5 events, simulating concurrency
     await store.DeleteAllEventsAsync<EmptyAggregate>(aggregate.Id);

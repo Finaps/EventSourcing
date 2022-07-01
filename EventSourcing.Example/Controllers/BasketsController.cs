@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading;
 using Finaps.EventSourcing.Example.Domain.Baskets;
 using Finaps.EventSourcing.Example.Domain.Orders;
 using Finaps.EventSourcing.Example.Domain.Products;
@@ -28,9 +29,9 @@ public class BasketsController : Controller
     }
     
     [HttpGet("{basketId:guid}")]
-    public async Task<ActionResult<Basket>> GetBasket([FromRoute] Guid basketId)
+    public async Task<ActionResult<Basket>> GetBasket([FromRoute] Guid basketId, CancellationToken cancellationToken = default)
     {
-        var basket = await _aggregateService.RehydrateAsync<Basket>(basketId);
+        var basket = await _aggregateService.RehydrateAsync<Basket>(basketId, cancellationToken);
         if(basket == null)
             return BadRequest($"Basket with id {basketId} not found");
         
@@ -38,15 +39,15 @@ public class BasketsController : Controller
     }
         
     [HttpPost("{basketId:guid}/addItem")]
-    public async Task<ActionResult<Basket>> AddItemToBasket([FromRoute] Guid basketId,[FromBody] AddProductToBasket request)
+    public async Task<ActionResult<Basket>> AddItemToBasket([FromRoute] Guid basketId,[FromBody] AddProductToBasket request, CancellationToken cancellationToken = default)
     {
         // Get basket
-        var basket = await _aggregateService.RehydrateAsync<Basket>(basketId);
+        var basket = await _aggregateService.RehydrateAsync<Basket>(basketId, cancellationToken);
         if(basket == null)
             return BadRequest($"Basket with id {basketId} not found");
         
         // Get product
-        var product = await _aggregateService.RehydrateAsync<Product>(request.ProductId);
+        var product = await _aggregateService.RehydrateAsync<Product>(request.ProductId, cancellationToken);
         if (product == null)
             return BadRequest($"Product with id {request.ProductId} not found");
         
@@ -57,18 +58,20 @@ public class BasketsController : Controller
         
         // Add product to basket
         basket.AddProduct(request.Quantity, request.ProductId);
-        
-        // Persist the changes for the basket and product, changes will either both succeed or both fail
-        await _aggregateService.PersistAsync(new List<Aggregate> { product, basket });
+
+        var transaction = _aggregateService.CreateTransaction();
+        await transaction.AddAggregateAsync(product, cancellationToken);
+        await transaction.AddAggregateAsync(basket, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         return basket;
     }
         
     [HttpPost("{basketId:guid}/checkout")]
-    public async Task<ActionResult<Order>> CheckoutBasket([FromRoute] Guid basketId)
+    public async Task<ActionResult<Order>> CheckoutBasket([FromRoute] Guid basketId, CancellationToken cancellationToken = default)
     {
         // Get basket
-        var basket = await _aggregateService.RehydrateAsync<Basket>(basketId);
+        var basket = await _aggregateService.RehydrateAsync<Basket>(basketId, cancellationToken);
         if(basket == null)
             return BadRequest($"Basket with id {basketId} not found");
         if(basket.Items.Count == 0)
@@ -81,7 +84,7 @@ public class BasketsController : Controller
         foreach (var item in basket.Items)
         {
             // Get product corresponding to the basket item
-            var product = await _aggregateService.RehydrateAsync<Product>(item.ProductId);
+            var product = await _aggregateService.RehydrateAsync<Product>(item.ProductId, cancellationToken);
             if(product == null)
                 return BadRequest($"Product with id {item.ProductId} not found");
             
@@ -90,7 +93,7 @@ public class BasketsController : Controller
                 return BadRequest($"Purchase of product {item.ProductId} failed: Insufficient stock");
             
             // Add the product to the transaction
-            await transaction.AddAggregateAsync(product);
+            await transaction.AddAggregateAsync(product, cancellationToken);
         }
         // Checkout the basket and create an order
         basket.CheckoutBasket();
@@ -99,9 +102,9 @@ public class BasketsController : Controller
         
         // Add the checked out basket and the newly created order to the transaction which already contains all the 
         // product changes. Persisting will only succeed if every change on every aggregate in the transaction succeeds
-        await transaction.AddAggregateAsync(basket);
-        await transaction.AddAggregateAsync(order);
-        await transaction.CommitAsync();
+        await transaction.AddAggregateAsync(basket, cancellationToken);
+        await transaction.AddAggregateAsync(order, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         return order;
     }

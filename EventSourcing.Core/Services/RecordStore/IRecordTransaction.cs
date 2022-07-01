@@ -21,14 +21,14 @@ public interface IRecordTransaction
   /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with <see cref="Guid.Empty"/> <see cref="Record.AggregateId"/></exception>
   /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with nonconsecutive <see cref="Event.Index"/>s</exception>
   /// <returns>This <see cref="IRecordTransaction"/></returns>
-  IRecordTransaction AddEvents(IList<Event> events);
+  IRecordTransaction AddEvents<TAggregate>(IReadOnlyCollection<Event<TAggregate>> events) where TAggregate : Aggregate<TAggregate>, new();
   
   /// <summary>
   /// Add <see cref="Snapshot"/>
   /// </summary>
   /// <param name="snapshot"><see cref="Snapshot"/> to add</param>
   /// <returns>This <see cref="IRecordTransaction"/></returns>
-  IRecordTransaction AddSnapshot(Snapshot snapshot);
+  IRecordTransaction AddSnapshot<TAggregate>(Snapshot<TAggregate> snapshot) where TAggregate : Aggregate<TAggregate>, new();
   
   /// <summary>
   /// Upsert <see cref="Projection"/>
@@ -46,7 +46,7 @@ public interface IRecordTransaction
   /// For a more convenient method, refer to the async delete methods in <see cref="IRecordStore"/>
   /// </remarks>
   /// <returns></returns>
-  IRecordTransaction DeleteAllEvents<TAggregate>(Guid aggregateId, long index) where TAggregate : Aggregate, new();
+  IRecordTransaction DeleteAllEvents<TAggregate>(Guid aggregateId, long index) where TAggregate : Aggregate<TAggregate>, new();
   
   /// <summary>
   /// Delete <see cref="Snapshot"/> at a particular <see cref="Snapshot.Index"/> 
@@ -54,7 +54,7 @@ public interface IRecordTransaction
   /// <param name="aggregateId"><see cref="Aggregate{TAggregate}"/>.<see cref="Aggregate.Id"/></param>
   /// <param name="index"><see cref="Snapshot"/>.<see cref="Snapshot.Index"/> to delete</param>
   /// <returns></returns>
-  IRecordTransaction DeleteSnapshot<TAggregate>(Guid aggregateId, long index) where TAggregate : Aggregate, new();
+  IRecordTransaction DeleteSnapshot<TAggregate>(Guid aggregateId, long index) where TAggregate : Aggregate<TAggregate>, new();
   
   /// <summary>
   /// Delete <see cref="Projection"/>

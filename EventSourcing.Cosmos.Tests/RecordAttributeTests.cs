@@ -17,7 +17,7 @@ public partial class CosmosEventSourcingTests
     var e = new EmptyAggregate().Apply(new AttributeEvent("something"));
     var recordType = e.GetType().GetCustomAttribute<RecordTypeAttribute>()!.Type;
 
-    await RecordStore.AddEventsAsync(new List<Event> { e });
+    await RecordStore.AddEventsAsync(new [] { e });
     var result = await RecordStore
       .GetEvents<EmptyAggregate>()
       .Where(x => x.Type == recordType && x.AggregateId == e.AggregateId)
@@ -33,7 +33,7 @@ public partial class CosmosEventSourcingTests
     var e = new EmptyAggregate().Apply(new AttributeEvent("something"));
     var recordType = e.GetType().GetCustomAttribute<RecordTypeAttribute>()!.Type;
 
-    await RecordStore.AddEventsAsync(new List<Event> { e });
+    await RecordStore.AddEventsAsync(new [] { e });
 
     var result = await RecordStore
       .GetEvents<EmptyAggregate>()

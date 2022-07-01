@@ -22,7 +22,7 @@ public static class ModelBuilderExtensions
   /// <returns><see cref="ReferenceCollectionBuilder"/> such that the reference can be further configured</returns>
   public static ReferenceCollectionBuilder<Event<TAggregate>, TEvent> AggregateReference<TEvent, TAggregate>(
     this ModelBuilder builder, Expression<Func<TEvent, Guid?>> navigation) 
-    where TEvent : Event where TAggregate : Aggregate, new()
+    where TEvent : Event where TAggregate : Aggregate<TAggregate>, new()
   {
     var foreignAggregateId = navigation.GetMemberAccess().GetSimpleMemberName();
     var foreignKeyName = $"FK_{typeof(TEvent).Name}_{foreignAggregateId}";

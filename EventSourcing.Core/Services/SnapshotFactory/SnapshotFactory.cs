@@ -5,8 +5,9 @@ namespace Finaps.EventSourcing.Core;
 /// </summary>
 /// <typeparam name="TAggregate"><see cref="Aggregate{TAggregate}"/> type</typeparam>
 /// <typeparam name="TSnapshot"><see cref="Projection"/> type</typeparam>
-public abstract class SnapshotFactory<TAggregate, TSnapshot> : ISnapshotFactory
-  where TAggregate : Aggregate where TSnapshot : Snapshot
+public abstract class SnapshotFactory<TAggregate, TSnapshot> : ISnapshotFactory<TAggregate>
+  where TAggregate : Aggregate<TAggregate>, new()
+  where TSnapshot : Snapshot<TAggregate>
 {
   /// <inheritdoc />
   public Type AggregateType => typeof(TAggregate);
@@ -18,13 +19,13 @@ public abstract class SnapshotFactory<TAggregate, TSnapshot> : ISnapshotFactory
   public abstract long SnapshotInterval { get; }
   
   /// <inheritdoc />
-  public bool IsSnapshotIntervalExceeded(Aggregate aggregate) =>
+  public bool IsSnapshotIntervalExceeded(TAggregate aggregate) =>
     SnapshotInterval != 0 && aggregate.UncommittedEvents.Any() && 
     aggregate.UncommittedEvents.First().Index / SnapshotInterval != 
     (aggregate.UncommittedEvents.Last().Index + 1) / SnapshotInterval;
 
   /// <inheritdoc />
-  public Snapshot CreateSnapshot(Aggregate aggregate)
+  public Snapshot<TAggregate> CreateSnapshot(Aggregate aggregate)
   {
     if (aggregate.Version == 0)
       throw new InvalidOperationException(

@@ -7,7 +7,7 @@ public abstract partial class EventSourcingTests
   {
     var aggregate = new SnapshotAggregate();
     var e = aggregate.Apply(new SnapshotEvent());
-    await RecordStore.AddEventsAsync(new List<Event> { e });
+    await RecordStore.AddEventsAsync(new [] { e });
 
     var factory = new SimpleSnapshotFactory();
     var snapshot = factory.CreateSnapshot(aggregate);

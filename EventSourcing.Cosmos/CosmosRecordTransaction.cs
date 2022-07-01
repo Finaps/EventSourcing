@@ -40,7 +40,8 @@ public class CosmosRecordTransaction : IRecordTransaction
   }
 
   /// <inheritdoc />
-  public IRecordTransaction AddEvents(IList<Event> events)
+  public IRecordTransaction AddEvents<TAggregate>(IReadOnlyCollection<Event<TAggregate>> events)
+    where TAggregate : Aggregate<TAggregate>, new()
   {
     RecordValidation.ValidateEventSequence(PartitionId, events);
 
@@ -73,7 +74,8 @@ public class CosmosRecordTransaction : IRecordTransaction
   }
 
   /// <inheritdoc />
-  public IRecordTransaction AddSnapshot(Snapshot snapshot)
+  public IRecordTransaction AddSnapshot<TAggregate>(Snapshot<TAggregate> snapshot)
+    where TAggregate : Aggregate<TAggregate>, new()
   {
     RecordValidation.ValidateSnapshot(PartitionId, snapshot);
     _batch.CreateItem(snapshot, CosmosRecordStore.BatchItemRequestOptions);
@@ -92,7 +94,8 @@ public class CosmosRecordTransaction : IRecordTransaction
   }
 
   /// <inheritdoc />
-  public IRecordTransaction DeleteAllEvents<TAggregate>(Guid aggregateId, long index) where TAggregate : Aggregate, new()
+  public IRecordTransaction DeleteAllEvents<TAggregate>(Guid aggregateId, long index)
+    where TAggregate : Aggregate<TAggregate>, new()
   {
     var reservation = new CheckEvent
     {
@@ -122,7 +125,8 @@ public class CosmosRecordTransaction : IRecordTransaction
   }
 
   /// <inheritdoc />
-  public IRecordTransaction DeleteSnapshot<TAggregate>(Guid aggregateId, long index) where TAggregate : Aggregate, new()
+  public IRecordTransaction DeleteSnapshot<TAggregate>(Guid aggregateId, long index)
+    where TAggregate : Aggregate<TAggregate>, new()
   {
     var snapshot = new CheckSnapshot { PartitionId = PartitionId, AggregateId = aggregateId, Index = index };
     _batch.DeleteItem(snapshot.id, CosmosRecordStore.BatchItemRequestOptions);

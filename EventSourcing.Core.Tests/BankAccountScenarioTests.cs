@@ -63,7 +63,10 @@ public abstract partial class EventSourcingTests
     account.Apply(transfer);
     anotherAccount.Apply(transfer);
 
-    await AggregateService.PersistAsync(new[] { account, anotherAccount });
+    var transaction = AggregateService.CreateTransaction();
+    await transaction.AddAggregateAsync(account);
+    await transaction.AddAggregateAsync(anotherAccount);
+    await transaction.CommitAsync();
 
     var result1 = await AggregateService.RehydrateAsync<BankAccount>(account.Id);
     var result2 = await AggregateService.RehydrateAsync<BankAccount>(anotherAccount.Id);

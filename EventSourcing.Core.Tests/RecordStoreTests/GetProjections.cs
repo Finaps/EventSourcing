@@ -33,11 +33,11 @@ public abstract partial class EventSourcingTests
   [Fact]
   public async Task RecordStore_GetProjections_Can_Query_Aggregate_Projection_Hierarchy_After_Persisting()
   {
-    var PartitionId = Guid.NewGuid();
+    var partitionId = Guid.NewGuid();
 
-    await AggregateService.PersistAsync(Enumerable.Range(0, 3).Select(i =>
+    for (var i = 0; i < 3; i++)
     {
-      var aggregate = new HierarchyAggregate { PartitionId = PartitionId };
+      var aggregate = new HierarchyAggregate { PartitionId = partitionId };
       aggregate.Apply(i switch
         {
           0 => new HierarchyEvent("AA", "B", "C"),
@@ -45,11 +45,11 @@ public abstract partial class EventSourcingTests
           _ => new HierarchyEvent("A", "B", "CC")
         }
       );
-      return aggregate;
-    }));
-
+      await AggregateService.PersistAsync(aggregate);
+    }
+    
     var projections = await RecordStore.GetProjections<HierarchyProjection>()
-      .Where(x => x.PartitionId == PartitionId)
+      .Where(x => x.PartitionId == partitionId)
       .AsAsyncEnumerable()
       .ToListAsync();
 

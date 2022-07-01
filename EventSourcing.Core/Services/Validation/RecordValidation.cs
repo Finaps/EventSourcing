@@ -42,7 +42,8 @@ public static class RecordValidation
   /// </summary>
   /// <param name="partitionId">Partition Id this sequence is expected to be in</param>
   /// <param name="events"><see cref="Event"/>s to validate</param>
-  public static void ValidateEventSequence(Guid partitionId, IList<Event> events)
+  public static void ValidateEventSequence<TAggregate>(Guid partitionId, IReadOnlyCollection<Event<TAggregate>> events)
+    where TAggregate : Aggregate<TAggregate>, new()
   {
     if (events == null) throw new ArgumentNullException(nameof(events));
 

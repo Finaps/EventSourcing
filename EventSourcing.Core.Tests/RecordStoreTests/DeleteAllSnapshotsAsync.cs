@@ -12,7 +12,7 @@ public abstract partial class EventSourcingTests
         foreach (var _ in Enumerable.Range(0, 3))
         {
             var e = aggregate.Apply(new SnapshotEvent());
-            await store.AddEventsAsync(new List<Event> { e });
+            await store.AddEventsAsync(new [] { e });
             var snapshot = factory.CreateSnapshot(aggregate);
             await store.AddSnapshotAsync(snapshot);
         }
@@ -40,15 +40,15 @@ public abstract partial class EventSourcingTests
     public async Task RecordStore_DeleteAllSnapshotsAsync_Can_Only_Delete_Snapshots()
     {
         var aggregate = new EmptyAggregate();
-        var events = new List<Event>();
         var snapshot = new EmptySnapshot { AggregateId = aggregate.Id, AggregateType = nameof(EmptyAggregate)};
         var snapshot2 = new EmptySnapshot { AggregateId = aggregate.Id, AggregateType = nameof(EmptyAggregate), Index = 1};
         var projection = new EmptyProjection { AggregateId = aggregate.Id, AggregateType = nameof(EmptyAggregate), Hash = "RANDOM"};
 
-        for (var i = 0; i < 3; i++)
-            events.Add(aggregate.Apply(new EmptyEvent()));
-    
-    
+        var events = Enumerable
+            .Range(0, 3)
+            .Select(_ => aggregate.Apply(new EmptyEvent()))
+            .ToArray();
+
         await RecordStore.AddEventsAsync(events);
         await RecordStore.AddSnapshotAsync(snapshot);
         await RecordStore.AddSnapshotAsync(snapshot2);
@@ -85,7 +85,7 @@ public abstract partial class EventSourcingTests
         foreach (var _ in Enumerable.Range(0, 3))
         {
             var e = aggregate.Apply(new SnapshotEvent());
-            await store.AddEventsAsync(new List<Event> { e });
+            await store.AddEventsAsync(new [] { e });
             var snapshot = factory.CreateSnapshot(aggregate);
             await store.AddSnapshotAsync(snapshot);
         }

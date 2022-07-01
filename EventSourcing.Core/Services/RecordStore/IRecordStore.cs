@@ -14,7 +14,7 @@ public interface IRecordStore
   /// and use <c>System.Linq.Async</c>'s extension methods to get the results of your query
   /// </remarks>
   /// <seealso cref="Event"/>
-  IQueryable<Event> GetEvents<TAggregate>() where TAggregate : Aggregate, new();
+  IQueryable<Event> GetEvents<TAggregate>() where TAggregate : Aggregate<TAggregate>, new();
   
   /// <summary>
   /// Queryable and AsyncEnumerable Collection of <see cref="Snapshot"/>s
@@ -24,7 +24,7 @@ public interface IRecordStore
   /// and use <c>System.Linq.Async</c>'s extension methods to get the results of your query
   /// </remarks>
   /// <seealso cref="Snapshot"/>
-  IQueryable<Snapshot> GetSnapshots<TAggregate>() where TAggregate : Aggregate, new();
+  IQueryable<Snapshot> GetSnapshots<TAggregate>() where TAggregate : Aggregate<TAggregate>, new();
 
   /// <summary>
   /// Queryable and AsyncEnumerable Collection of <see cref="Projection"/>s
@@ -57,14 +57,16 @@ public interface IRecordStore
   /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with <see cref="Guid.Empty"/> <see cref="Record.AggregateId"/></exception>
   /// <exception cref="ArgumentException">Thrown when trying to add <see cref="Event"/>s with nonconsecutive <see cref="Event.Index"/></exception>
   /// <exception cref="RecordStoreException">Thrown when conflicts occur when storing <see cref="Event"/>s</exception>
-  Task AddEventsAsync(IList<Event> events, CancellationToken cancellationToken = default);
+  Task AddEventsAsync<TAggregate>(IReadOnlyCollection<Event<TAggregate>> events, CancellationToken cancellationToken = default)
+    where TAggregate : Aggregate<TAggregate>, new();
   
   /// <summary>
   /// Store <see cref="Snapshot"/> to the <see cref="IRecordStore"/>
   /// </summary>
   /// <param name="snapshot"><see cref="Snapshot"/> to add</param>
   /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
-  Task AddSnapshotAsync(Snapshot snapshot, CancellationToken cancellationToken = default);
+  Task AddSnapshotAsync<TAggregate>(Snapshot<TAggregate> snapshot, CancellationToken cancellationToken = default)
+    where TAggregate : Aggregate<TAggregate>, new();
   
   /// <summary>
   /// Store <see cref="Projection"/> to the <see cref="IRecordStore"/>
@@ -80,7 +82,7 @@ public interface IRecordStore
   /// <param name="aggregateId">Aggregate Id</param>
   /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
   /// <exception cref="RecordStoreException">Thrown when conflicts occur when deleting <see cref="Event"/>s</exception>
-  Task<int> DeleteAllEventsAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new();
+  Task<int> DeleteAllEventsAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate<TAggregate>, new();
 
   /// <summary>
   /// Delete <see cref="Snapshot"/>s for an <see cref="Aggregate{TAggregate}"/> from the <see cref="IRecordStore"/>
@@ -89,7 +91,7 @@ public interface IRecordStore
   /// <param name="aggregateId">Aggregate Id</param>
   /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
   /// <exception cref="RecordStoreException">Thrown when conflicts occur when deleting <see cref="Snapshot"/>s</exception>
-  Task<int> DeleteAllSnapshotsAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new();
+  Task<int> DeleteAllSnapshotsAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate<TAggregate>, new();
 
   /// <summary>
   /// Delete <see cref="Snapshot"/>s for an <see cref="Aggregate{TAggregate}"/> from the <see cref="IRecordStore"/>
@@ -99,7 +101,7 @@ public interface IRecordStore
   /// <param name="index"><see cref="Snapshot"/> <see cref="Snapshot.Index"/></param>
   /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
   /// <exception cref="RecordStoreException">Thrown when conflicts occur when deleting <see cref="Snapshot"/>s</exception>
-  Task DeleteSnapshotAsync<TAggregate>(Guid partitionId, Guid aggregateId, long index, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new();
+  Task DeleteSnapshotAsync<TAggregate>(Guid partitionId, Guid aggregateId, long index, CancellationToken cancellationToken = default) where TAggregate : Aggregate<TAggregate>, new();
 
   /// <summary>
   /// Delete <see cref="Projection"/>s for an <see cref="Aggregate{TAggregate}"/> from the <see cref="IRecordStore"/>
@@ -114,7 +116,7 @@ public interface IRecordStore
   /// Delete all <see cref="Event"/>s, <see cref="Snapshot"/>s and <see cref="Projection"/>s for an <see cref="Aggregate{TAggregate}"/>
   /// </summary>
   /// <returns>Number of items deleted from <see cref="IRecordStore"/></returns>
-  Task<int> DeleteAggregateAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new();
+  Task<int> DeleteAggregateAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate<TAggregate>, new();
 
   /// <summary>
   /// Create Record Transaction
@@ -140,7 +142,7 @@ public interface IRecordStore
   /// </summary>
   /// <param name="aggregateId">Aggregate Id</param>
   /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
-  async Task<int> DeleteAllEventsAsync<TAggregate>(Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new() =>
+  async Task<int> DeleteAllEventsAsync<TAggregate>(Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate<TAggregate>, new() =>
     await DeleteAllEventsAsync<TAggregate>(Guid.Empty, aggregateId, cancellationToken);
 
   /// <summary>
@@ -148,7 +150,7 @@ public interface IRecordStore
   /// </summary>
   /// <param name="aggregateId">Aggregate Id</param>
   /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
-  async Task<int> DeleteAllSnapshotsAsync<TAggregate>(Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new() =>
+  async Task<int> DeleteAllSnapshotsAsync<TAggregate>(Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate<TAggregate>, new() =>
     await DeleteAllSnapshotsAsync<TAggregate>(Guid.Empty, aggregateId, cancellationToken);
 
   /// <summary>
@@ -157,7 +159,7 @@ public interface IRecordStore
   /// <param name="aggregateId">Aggregate Id</param>
   /// <param name="index"><see cref="Snapshot"/> <see cref="Snapshot.Index"/></param>
   /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
-  async Task DeleteSnapshotAsync<TAggregate>(Guid aggregateId, long index, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new() =>
+  async Task DeleteSnapshotAsync<TAggregate>(Guid aggregateId, long index, CancellationToken cancellationToken = default) where TAggregate : Aggregate<TAggregate>, new() =>
     await DeleteSnapshotAsync<TAggregate>(Guid.Empty, aggregateId, index, cancellationToken);
 
   /// <summary>

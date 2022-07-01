@@ -64,14 +64,6 @@ public abstract class Aggregate : IHashable
   /// The number of <see cref="Event"/>s applied to this Aggregate.
   /// </summary>
   public long Version { get; protected set; }
-  
-  /// <summary>
-  /// <see cref="Event"/>s that are not yet committed to the <see cref="IRecordStore"/>.
-  /// </summary>
-  /// <remarks>
-  /// To commit these <see cref="Event"/>s, call <see cref="IAggregateService"/>.<see cref="IAggregateService.PersistAsync{TAggregate}"/>
-  /// </remarks>
-  [JsonIgnore] internal readonly List<Event> UncommittedEvents = new();
 
   /// <summary>
   /// Create new Aggregate with <c>Id = </c><see cref="Guid"/>.<see cref="Guid.NewGuid"/>
@@ -87,7 +79,7 @@ public abstract class Aggregate : IHashable
     Type = GetType().Name;
   }
 
-  internal abstract Task RehydrateAsync(Snapshot? snapshot, IAsyncEnumerable<Event> events, CancellationToken cancellationToken = default);
+  internal abstract void ClearUncommittedEvents();
   
   /// <summary>
   /// Compute Hash representing the logic of the Apply methods (Event and Snapshot).
@@ -105,15 +97,25 @@ public abstract class Aggregate : IHashable
 }
 
 /// <inheritdoc />
-public abstract class Aggregate<TAggregate> : Aggregate where TAggregate : Aggregate, new()
+public abstract class Aggregate<TAggregate> : Aggregate where TAggregate : Aggregate<TAggregate>, new()
 {
-  internal override async Task RehydrateAsync(Snapshot? snapshot, IAsyncEnumerable<Event> events, CancellationToken cancellationToken = default)
+  /// <summary>
+  /// <see cref="Event"/>s that are not yet committed to the <see cref="IRecordStore"/>.
+  /// </summary>
+  /// <remarks>
+  /// To commit these <see cref="Event"/>s, call <see cref="IAggregateService"/>.<see cref="IAggregateService.PersistAsync{TAggregate}"/>
+  /// </remarks>
+  [JsonIgnore] internal readonly List<Event<TAggregate>> UncommittedEvents = new();
+
+  internal override void ClearUncommittedEvents() => UncommittedEvents.Clear();
+
+  internal async Task RehydrateAsync(Snapshot? snapshot, IAsyncEnumerable<Event<TAggregate>> events, CancellationToken cancellationToken = default)
   {
     if (snapshot != null) 
       ValidateAndApply((Snapshot<TAggregate>) snapshot);
     
     await foreach (var @event in events.WithCancellation(cancellationToken))
-      ValidateAndApply((Event<TAggregate>) @event);
+      ValidateAndApply(@event);
   }
   
   /// <summary>

@@ -8,7 +8,7 @@ public abstract partial class EventSourcingTests
         var aggregateId = Guid.NewGuid();
         
         var events = Enumerable.Range(0, 5)
-            .Select<int, Event>( i => new EmptyEvent
+            .Select<int, Event<EmptyAggregate>>(i => new EmptyEvent
             {
                 AggregateId = aggregateId,
                 AggregateType = nameof(EmptyAggregate),
@@ -46,7 +46,7 @@ public abstract partial class EventSourcingTests
             }).ToList();
 
         var transaction = RecordStore.CreateTransaction()
-            .AddEvents(new List<Event>
+            .AddEvents(new List<Event<EmptyAggregate>>
             {
                 new EmptyEvent
                 {

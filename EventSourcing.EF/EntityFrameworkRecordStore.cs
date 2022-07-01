@@ -18,10 +18,10 @@ public class EntityFrameworkRecordStore : IRecordStore
   public EntityFrameworkRecordStore(RecordContext context) => Context = context;
 
   /// <inheritdoc />
-  public IQueryable<Event> GetEvents<TAggregate>() where TAggregate : Aggregate, new() => Context.Set<Event<TAggregate>>();
+  public IQueryable<Event> GetEvents<TAggregate>() where TAggregate : Aggregate<TAggregate>, new() => Context.Set<Event<TAggregate>>();
 
   /// <inheritdoc />
-  public IQueryable<Snapshot> GetSnapshots<TAggregate>() where TAggregate : Aggregate, new() => Context.Set<Snapshot<TAggregate>>();
+  public IQueryable<Snapshot> GetSnapshots<TAggregate>() where TAggregate : Aggregate<TAggregate>, new() => Context.Set<Snapshot<TAggregate>>();
 
   /// <inheritdoc />
   public IQueryable<TProjection> GetProjections<TProjection>() where TProjection : Projection => Context.Set<TProjection>();
@@ -32,7 +32,8 @@ public class EntityFrameworkRecordStore : IRecordStore
     await Context.Set<TProjection>().FindAsync(new object?[] { partitionId, aggregateId }, cancellationToken);
 
   /// <inheritdoc />
-  public async Task AddEventsAsync(IList<Event> events, CancellationToken cancellationToken = default)
+  public async Task AddEventsAsync<TAggregate>(IReadOnlyCollection<Event<TAggregate>> events, CancellationToken cancellationToken = default)
+    where TAggregate : Aggregate<TAggregate>, new()
   {
     if (events == null) throw new ArgumentNullException(nameof(events));
     if (events.Count == 0) return;
@@ -43,7 +44,8 @@ public class EntityFrameworkRecordStore : IRecordStore
   }
 
   /// <inheritdoc />
-  public async Task AddSnapshotAsync(Snapshot snapshot, CancellationToken cancellationToken = default) =>
+  public async Task AddSnapshotAsync<TAggregate>(Snapshot<TAggregate> snapshot, CancellationToken cancellationToken = default)
+    where TAggregate : Aggregate<TAggregate>, new() =>
     await CreateTransaction(snapshot.PartitionId)
       .AddSnapshot(snapshot)
       .CommitAsync(cancellationToken);
@@ -55,25 +57,30 @@ public class EntityFrameworkRecordStore : IRecordStore
       .CommitAsync(cancellationToken);
 
   /// <inheritdoc />
-  public async Task<int> DeleteAllEventsAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new() =>
+  public async Task<int> DeleteAllEventsAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
+    where TAggregate : Aggregate<TAggregate>, new() =>
     await Context.DeleteWhereAsync(typeof(TAggregate).EventTable(), partitionId, aggregateId, cancellationToken);
 
   /// <inheritdoc />
-  public async Task<int> DeleteAllSnapshotsAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new() =>
+  public async Task<int> DeleteAllSnapshotsAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
+    where TAggregate : Aggregate<TAggregate>, new() =>
     await Context.DeleteWhereAsync(typeof(TAggregate).SnapshotTable(), partitionId, aggregateId, cancellationToken);
 
   /// <inheritdoc />
-  public async Task DeleteSnapshotAsync<TAggregate>(Guid partitionId, Guid aggregateId, long index, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new() =>
+  public async Task DeleteSnapshotAsync<TAggregate>(Guid partitionId, Guid aggregateId, long index, CancellationToken cancellationToken = default)
+    where TAggregate : Aggregate<TAggregate>, new() =>
     await Context.DeleteWhereAsync(typeof(TAggregate).SnapshotTable(), partitionId, aggregateId, index, cancellationToken);
 
   /// <inheritdoc />
-  public async Task DeleteProjectionAsync<TProjection>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection
+  public async Task DeleteProjectionAsync<TProjection>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
+    where TProjection : Projection
   {
     await Context.DeleteWhereAsync(typeof(TProjection).Name, partitionId, aggregateId, cancellationToken);
   }
 
   /// <inheritdoc />
-  public async Task<int> DeleteAggregateAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
+  public async Task<int> DeleteAggregateAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
+    where TAggregate : Aggregate<TAggregate>, new()
   {
     var count = 0;
     

@@ -29,7 +29,7 @@ public abstract record Snapshot : Record
 }
 
 /// <inheritdoc />
-public record Snapshot<TAggregate> : Snapshot where TAggregate : Aggregate, new()
+public record Snapshot<TAggregate> : Snapshot where TAggregate : Aggregate<TAggregate>, new()
 {
   /// <inheritdoc />
   public Snapshot() => AggregateType = typeof(TAggregate).Name;

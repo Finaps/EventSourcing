@@ -11,7 +11,7 @@ public abstract partial class EventSourcingTests
             { AggregateId = e.AggregateId, AggregateType = nameof(SnapshotAggregate), Index = 0, Counter = 10};
         
         await RecordStore.CreateTransaction()
-            .AddEvents(new Event[] { e })
+            .AddEvents(new List<Event<SnapshotAggregate>> { e })
             .AddSnapshot(s)
             .CommitAsync();
 
