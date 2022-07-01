@@ -16,7 +16,7 @@ public class AggregateTransaction : IAggregateTransaction
   }
 
   /// <inheritdoc />
-  public IAggregateTransaction Add(Aggregate aggregate)
+  public virtual async Task<IAggregateTransaction> AddAggregateAsync(Aggregate aggregate)
   {
     if (aggregate.Id == Guid.Empty)
       throw new ArgumentException(
@@ -26,25 +26,46 @@ public class AggregateTransaction : IAggregateTransaction
       throw new ArgumentException(
         $"Error adding {aggregate} to {nameof(AggregateTransaction)}. Aggregate already added.", nameof(aggregate));
 
-    _recordTransaction.AddEvents(aggregate.UncommittedEvents);
+    await AddEventsAsync(aggregate.UncommittedEvents);
 
     foreach (var snapshot in Cache
                .GetSnapshotFactories(aggregate.GetType())
                .Where(x => x.IsSnapshotIntervalExceeded(aggregate))
                .Select(x => x.CreateSnapshot(aggregate)))
-      _recordTransaction.AddSnapshot(snapshot);
+      await AddSnapshotAsync(snapshot);
 
     foreach (var projection in Cache
                .GetProjectionFactories(aggregate.GetType())
                .Select(x => x.CreateProjection(aggregate))
                .OfType<Projection>())
-      _recordTransaction.UpsertProjection(projection);
+      await UpsertProjectionAsync(projection);
 
     return this;
   }
 
+  /// <summary>
+  /// Add Events to RecordTransaction
+  /// </summary>
+  /// <param name="events"></param>
+  protected virtual Task AddEventsAsync(List<Event> events) =>
+    Task.FromResult(_recordTransaction.AddEvents(events));
+  
+  /// <summary>
+  /// Add Snapshot to RecordTransaction
+  /// </summary>
+  /// <param name="snapshot"></param>
+  protected virtual Task AddSnapshotAsync(Snapshot snapshot) =>
+    Task.FromResult(_recordTransaction.AddSnapshot(snapshot));
+  
+  /// <summary>
+  /// Add Projection to RecordTransaction
+  /// </summary>
+  /// <param name="projection"></param>
+  protected virtual Task UpsertProjectionAsync(Projection projection) =>
+    Task.FromResult(_recordTransaction.UpsertProjection(projection));
+
   /// <inheritdoc />
-  public async Task CommitAsync(CancellationToken cancellationToken)
+  public virtual async Task CommitAsync(CancellationToken cancellationToken = default)
   {
     await _recordTransaction.CommitAsync(cancellationToken);
 

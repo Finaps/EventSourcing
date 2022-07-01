@@ -11,13 +11,13 @@ public abstract partial class EventSourcingTests
     foreach (var _ in new int[3])
       aggregate1.Apply(new SimpleEvent());
 
-    transaction.Add(aggregate1);
+    await transaction.AddAggregateAsync(aggregate1);
 
     var aggregate2 = new SimpleAggregate();
     foreach (var _ in new int[4])
       aggregate2.Apply(new SimpleEvent());
     
-    transaction.Add(aggregate2);
+    await transaction.AddAggregateAsync(aggregate2);
 
     await transaction.CommitAsync();
 
@@ -38,13 +38,13 @@ public abstract partial class EventSourcingTests
     aggregate1.Apply(new SimpleEvent());
     aggregate1.Apply(new SimpleEvent());
     
-    transaction.Add(aggregate1);
+    await transaction.AddAggregateAsync(aggregate1);
 
     var aggregate2 = new SimpleAggregate();
     foreach (var _ in new int[4])
       aggregate2.Apply(new SimpleEvent());
     
-    transaction.Add(aggregate2);
+    await transaction.AddAggregateAsync(aggregate2);
 
     // Sneakily commit first event of first aggregate before committing transaction
     await RecordStore.AddEventsAsync(new List<Event> { e });
@@ -68,7 +68,7 @@ public abstract partial class EventSourcingTests
     foreach (var _ in new int[3])
       aggregate.Apply(new SimpleEvent());
 
-    Assert.Throws<RecordValidationException>(() => transaction.Add(aggregate));
+    await Assert.ThrowsAsync<RecordValidationException>(async () => await transaction.AddAggregateAsync(aggregate));
 
     await transaction.CommitAsync();
 
@@ -77,7 +77,7 @@ public abstract partial class EventSourcingTests
   }
   
   [Fact]
-  public Task AggregateTransaction_Cannot_Add_Aggregate_Twice_In_Transaction()
+  public async Task AggregateTransaction_Cannot_Add_Aggregate_Twice_In_Transaction()
   {
     var transaction = AggregateService.CreateTransaction();
     
@@ -85,12 +85,28 @@ public abstract partial class EventSourcingTests
     foreach (var _ in new int[3])
       aggregate.Apply(new SimpleEvent());
 
-    transaction.Add(aggregate);
+    await transaction.AddAggregateAsync(aggregate);
 
-    Assert.Throws<ArgumentException>(() => transaction.Add(aggregate));
-    
-    return Task.CompletedTask;
+    await Assert.ThrowsAsync<ArgumentException>(async () => await transaction.AddAggregateAsync(aggregate));
   }
-  
 
+  [Fact]
+  public async Task AggregateTransaction_AddAggregateAsync_Override_Methods_Are_Called()
+  {
+    var aggregate = new BankAccount();
+    aggregate.Apply(new BankAccountCreatedEvent("I. Ban", "NP37BANK012345678910"));
+
+    foreach (var _ in new int[10])
+      aggregate.Apply(new BankAccountFundsDepositedEvent(10));
+
+    var transaction = new MockAggregateTransactionSubclass(RecordStore.CreateTransaction());
+    await transaction.AddAggregateAsync(aggregate);
+    await transaction.CommitAsync();
+    
+    Assert.Equal(1, transaction.AddAggregateAsyncCallCount);
+    Assert.Equal(1, transaction.AddEventsAsyncCallCount);
+    Assert.Equal(1, transaction.AddSnapshotAsyncCallCount);
+    Assert.Equal(1, transaction.UpsertProjectionAsyncCallCount);
+    Assert.Equal(1, transaction.CommitAsyncCallCount);
+  }
 }

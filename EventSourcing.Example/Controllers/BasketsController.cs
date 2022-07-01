@@ -23,7 +23,8 @@ public class BasketsController : Controller
     {
         var basket = new Basket();
         basket.Create();
-        return await _aggregateService.PersistAsync(basket);
+        await _aggregateService.PersistAsync(basket);
+        return basket;
     }
     
     [HttpGet("{basketId:guid}")]
@@ -89,7 +90,7 @@ public class BasketsController : Controller
                 return BadRequest($"Purchase of product {item.ProductId} failed: Insufficient stock");
             
             // Add the product to the transaction
-            transaction.Add(product);
+            await transaction.AddAggregateAsync(product);
         }
         // Checkout the basket and create an order
         basket.CheckoutBasket();
@@ -98,8 +99,10 @@ public class BasketsController : Controller
         
         // Add the checked out basket and the newly created order to the transaction which already contains all the 
         // product changes. Persisting will only succeed if every change on every aggregate in the transaction succeeds
-        await transaction.Add(basket).Add(order).CommitAsync();
-        
+        await transaction.AddAggregateAsync(basket);
+        await transaction.AddAggregateAsync(order);
+        await transaction.CommitAsync();
+
         return order;
     }
 }

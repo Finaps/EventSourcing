@@ -27,7 +27,7 @@ public interface IAggregateService
   /// <returns><see cref="Aggregate{TAggregate}"/> of type <c>TAggregate</c> as it was on <c>date</c> or null when not found</returns>
   Task<TAggregate?> RehydrateAsync<TAggregate>(Guid partitionId, Guid aggregateId, DateTimeOffset date,
     CancellationToken cancellationToken = default) where TAggregate : Aggregate, new();
-  
+
   /// <summary>
   /// Persist <see cref="Aggregate{TAggregate}"/>
   /// </summary>
@@ -38,7 +38,7 @@ public interface IAggregateService
   /// <param name="cancellationToken">Cancellation Token</param>
   /// <typeparam name="TAggregate">Type of <see cref="Aggregate{TAggregate}"/></typeparam>
   /// <returns>Persisted <see cref="Aggregate{TAggregate}"/></returns>
-  Task<TAggregate> PersistAsync<TAggregate>(TAggregate aggregate, CancellationToken cancellationToken = default)
+  Task PersistAsync<TAggregate>(TAggregate aggregate, CancellationToken cancellationToken = default)
     where TAggregate : Aggregate, new();
   
   /// <summary>
@@ -105,7 +105,8 @@ public interface IAggregateService
       throw new ArgumentException($"Cannot Rehydrate and Persist Aggregate with PartitionId '{partitionId}' and Id '{aggregateId}': Aggregate does not exist.");
     
     action.Invoke(aggregate);
-    return await PersistAsync(aggregate, cancellationToken);
+    await PersistAsync(aggregate, cancellationToken);
+    return aggregate;
   }
 
   /// <summary>

@@ -1,7 +1,13 @@
 namespace Finaps.EventSourcing.Core;
 
+/// <summary>
+/// Cache for <see cref="Record"/>, <see cref="SnapshotFactory{TAggregate,TSnapshot}"/>, <see cref="ProjectionFactory{TAggregate,TProjection}"/>
+/// </summary>
 public static class Cache
 {
+  /// <summary>
+  /// All <see cref="Record"/> types in the Assembly
+  /// </summary>
   public static List<Type> RecordTypes { get; } = new();
   
   private static readonly Dictionary<Type, List<ISnapshotFactory>> SnapshotFactories = new();
@@ -47,31 +53,54 @@ public static class Cache
         factory.ComputeHash(), aggregateHashes[factory.AggregateType]);
   }
   
+  /// <summary>
+  /// Get <see cref="SnapshotFactory{TAggregate,TSnapshot}"/>s for <see cref="Aggregate"/> type
+  /// </summary>
+  /// <param name="aggregateType"><see cref="Aggregate"/> type</param>
+  /// <returns><see cref="SnapshotFactory{TAggregate,TSnapshot}"/>s</returns>
   public static IEnumerable<ISnapshotFactory> GetSnapshotFactories(Type aggregateType) =>
     SnapshotFactories.TryGetValue(aggregateType, out var factories)
       ? factories
       : Array.Empty<ISnapshotFactory>();
 
+  /// <summary>
+  /// Get <see cref="ProjectionFactory{TAggregate,TProjection}"/> for <see cref="Aggregate"/> and <see cref="Projection"/>
+  /// </summary>
+  /// <typeparam name="TAggregate"><see cref="Aggregate"/> type</typeparam>
+  /// <typeparam name="TProjection"><see cref="Projection"/> type</typeparam>
+  /// <returns><see cref="ProjectionFactory{TAggregate,TProjection}"/> if defined</returns>
   public static IProjectionFactory? GetProjectionFactory<TAggregate, TProjection>()
     where TAggregate : Aggregate where TProjection : Projection => 
     ProjectionFactories.TryGetValue(typeof(TAggregate), out var factories)
       ? factories.TryGetValue(typeof(TProjection), out var factory) ? factory : null
       : null;
 
+  /// <summary>
+  /// Get <see cref="ProjectionFactory{TAggregate,TProjection}"/>s for <see cref="Aggregate"/> type
+  /// </summary>
+  /// <param name="aggregateType"><see cref="Aggregate"/> type</param>
+  /// <returns><see cref="ProjectionFactory{TAggregate,TProjection}"/>s</returns>
   public static IEnumerable<IProjectionFactory> GetProjectionFactories(Type aggregateType) =>
     ProjectionFactories.TryGetValue(aggregateType, out var factories)
       ? factories.Values
       : Array.Empty<IProjectionFactory>();
 
-  public static IEnumerable<IProjectionFactory> GetProjectionFactories() =>
-    ProjectionFactories.Values.SelectMany(x => x.Values);
-
+  /// <summary>
+  /// Get Hash for <see cref="ProjectionFactory{TAggregate,TProjection}"/> type name
+  /// </summary>
+  /// <param name="projectionFactoryTypeName"><see cref="ProjectionFactory{TAggregate,TProjection}"/> type name</param>
+  /// <returns>Hash if defined</returns>
   public static string? GetProjectionFactoryHash(string projectionFactoryTypeName) =>
     ProjectionFactoryHashes.TryGetValue(projectionFactoryTypeName, out var hash)
       ? hash
       : null;
 
-  public static Type GetProjectionBaseType(Type type) => ProjectionBaseTypes[type];
+  /// <summary>
+  /// Get Base Type of <see cref="Projection"/> hierarchy
+  /// </summary>
+  /// <param name="projectionType"><see cref="Projection"/> type</param>
+  /// <returns></returns>
+  public static Type GetProjectionBaseType(Type projectionType) => ProjectionBaseTypes[projectionType];
 
   private static Type GetBaseType(Type type)
   {
