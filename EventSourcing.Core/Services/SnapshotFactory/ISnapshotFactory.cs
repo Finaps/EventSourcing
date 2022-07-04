@@ -1,5 +1,8 @@
 namespace Finaps.EventSourcing.Core;
 
+/// <summary>
+/// Create <see cref="Snapshot"/> for <see cref="Aggregate{TAggregate}"/>
+/// </summary>
 public interface ISnapshotFactory
 {
   /// <summary>
@@ -18,17 +21,14 @@ public interface ISnapshotFactory
   public long SnapshotInterval { get; }
 }
 
-/// <summary>
-/// Create <see cref="Snapshot"/> for <see cref="Aggregate{TAggregate}"/>
-/// </summary>
-public interface ISnapshotFactory<TAggregate> : ISnapshotFactory
-  where TAggregate : Aggregate<TAggregate>, new()
+/// <inheritdoc />
+public interface ISnapshotFactory<TAggregate> : ISnapshotFactory where TAggregate : Aggregate<TAggregate>, new()
 {
   /// <summary>
-  /// Calculates if the <see cref="SnapshotInterval"/> has been exceeded (and a <see cref="Snapshot"/> thus has to be created)
+  /// Calculates if the <see cref="ISnapshotFactory.SnapshotInterval"/> has been exceeded (and a <see cref="Snapshot"/> thus has to be created)
   /// </summary>
   /// <param name="aggregate">The <see cref="Aggregate{TAggregate}"/> to check</param>
-  /// <returns>True if <see cref="SnapshotInterval"/> has been exceeded</returns>
+  /// <returns>True if <see cref="ISnapshotFactory.SnapshotInterval"/> has been exceeded</returns>
   bool IsSnapshotIntervalExceeded(TAggregate aggregate);
   
   /// <summary>
@@ -36,5 +36,5 @@ public interface ISnapshotFactory<TAggregate> : ISnapshotFactory
   /// </summary>
   /// <param name="aggregate">Source <see cref="Aggregate{TAggregate}"/></param>
   /// <returns>Resulting <see cref="Snapshot"/>s of <see cref="Aggregate{TAggregate}"/></returns>
-  Snapshot<TAggregate> CreateSnapshot(Aggregate aggregate);
+  Snapshot<TAggregate> CreateSnapshot(Aggregate<TAggregate> aggregate);
 }

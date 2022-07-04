@@ -5,6 +5,9 @@ namespace Finaps.EventSourcing.Core;
 /// <inheritdoc />
 public class AggregateService : IAggregateService
 {
+  /// <summary>
+  /// <see cref="IRecordStore"/>
+  /// </summary>
   protected readonly IRecordStore Store;
   
   /// <summary>
@@ -54,7 +57,7 @@ public class AggregateService : IAggregateService
   /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
   /// <typeparam name="TAggregate"><see cref="Aggregate"/> type</typeparam>
   /// <returns><see cref="Snapshot"/> or <c>null</c></returns>
-  protected virtual async Task<Snapshot?> GetLatestSnapshotAsync<TAggregate>(
+  protected virtual async Task<Snapshot<TAggregate>?> GetLatestSnapshotAsync<TAggregate>(
     Guid partitionId, Guid aggregateId, DateTimeOffset date, CancellationToken cancellationToken = default)
     where TAggregate : Aggregate<TAggregate>, new()
   {
@@ -68,6 +71,7 @@ public class AggregateService : IAggregateService
       .Where(filter)
       .OrderByDescending(x => x.Index)
       .AsAsyncEnumerable()
+      .Cast<Snapshot<TAggregate>>()
       .FirstOrDefaultAsync(cancellationToken);
   }
 
@@ -77,7 +81,8 @@ public class AggregateService : IAggregateService
   /// <param name="partitionId"><see cref="Event"/>.<see cref="Record.PartitionId"/> to query</param>
   /// <param name="aggregateId"><see cref="Event"/>.<see cref="Record.AggregateId"/> to query</param>
   /// <param name="date">latest <see cref="DateTimeOffset"/> to query</param>
-  /// <param name="after"><see cref="Event"/>.<see cref="Event.Index"/> should be greater then (not equal to) <paramref name="after"/></param>
+  /// <param name="after"><see cref="Event"/>.<see cref="Event.Index"/> should be greater then (NOT equal to) <paramref name="after"/></param>
+  /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
   /// <typeparam name="TAggregate"><see cref="Aggregate"/> type</typeparam>
   /// <returns><see cref="IAsyncEnumerable{T}"/> of <see cref="Event"/></returns>
   protected virtual IAsyncEnumerable<Event<TAggregate>> GetEventStream<TAggregate>(

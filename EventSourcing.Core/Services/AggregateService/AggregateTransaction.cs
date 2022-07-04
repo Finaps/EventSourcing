@@ -3,6 +3,9 @@ namespace Finaps.EventSourcing.Core;
 /// <inheritdoc />
 public class AggregateTransaction : IAggregateTransaction
 {
+  /// <summary>
+  /// <see cref="IRecordTransaction"/>
+  /// </summary>
   protected readonly IRecordTransaction RecordTransaction;
   private readonly HashSet<Aggregate> _aggregates = new();
 
@@ -48,20 +51,23 @@ public class AggregateTransaction : IAggregateTransaction
   /// Add Events to RecordTransaction
   /// </summary>
   /// <param name="events"></param>
+  /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
   protected virtual Task AddEventsAsync<TAggregate>(List<Event<TAggregate>> events, CancellationToken cancellationToken = default)
     where TAggregate : Aggregate<TAggregate>, new() => Task.FromResult(RecordTransaction.AddEvents(events));
-  
+
   /// <summary>
   /// Add Snapshot to RecordTransaction
   /// </summary>
   /// <param name="snapshot"></param>
+  /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
   protected virtual Task AddSnapshotAsync<TAggregate>(Snapshot<TAggregate> snapshot, CancellationToken cancellationToken = default)
     where TAggregate : Aggregate<TAggregate>, new() => Task.FromResult(RecordTransaction.AddSnapshot(snapshot));
-  
+
   /// <summary>
   /// Add Projection to RecordTransaction
   /// </summary>
   /// <param name="projection"></param>
+  /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
   protected virtual Task UpsertProjectionAsync(Projection projection, CancellationToken cancellationToken = default) =>
     Task.FromResult(RecordTransaction.UpsertProjection(projection));
 

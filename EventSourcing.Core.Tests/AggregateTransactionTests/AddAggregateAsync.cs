@@ -47,7 +47,7 @@ public abstract partial class EventSourcingTests
     await transaction.AddAggregateAsync(aggregate2);
 
     // Sneakily commit first event of first aggregate before committing transaction
-    await RecordStore.AddEventsAsync(new List<Event<SimpleAggregate>> { e });
+    await RecordStore.AddEventsAsync(new [] { e });
 
     await Assert.ThrowsAsync<RecordStoreException>(async () => await transaction.CommitAsync());
 

@@ -36,7 +36,7 @@ public static class Cache
       }
       else if (typeof(ISnapshotFactory).IsAssignableFrom(type))
       {
-        var factory = (ISnapshotFactory)Activator.CreateInstance(type)!;
+        var factory = (ISnapshotFactory) Activator.CreateInstance(type)!;
         SnapshotFactories.TryAdd(factory.AggregateType, new List<ISnapshotFactory>());
         SnapshotFactories[factory.AggregateType].Add(factory);
       }

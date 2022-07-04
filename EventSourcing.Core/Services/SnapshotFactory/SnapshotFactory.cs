@@ -25,7 +25,7 @@ public abstract class SnapshotFactory<TAggregate, TSnapshot> : ISnapshotFactory<
     (aggregate.UncommittedEvents.Last().Index + 1) / SnapshotInterval;
 
   /// <inheritdoc />
-  public Snapshot<TAggregate> CreateSnapshot(Aggregate aggregate)
+  public Snapshot<TAggregate> CreateSnapshot(Aggregate<TAggregate> aggregate)
   {
     if (aggregate.Version == 0)
       throw new InvalidOperationException(
