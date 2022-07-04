@@ -7,7 +7,9 @@ namespace Finaps.EventSourcing.Core;
 /// </summary>
 /// <typeparam name="TAggregate"><see cref="Aggregate{TAggregate}"/> type</typeparam>
 /// <typeparam name="TProjection"><see cref="Projection"/> type</typeparam>
-public abstract class ProjectionFactory<TAggregate, TProjection> : IProjectionFactory where TAggregate : Aggregate where TProjection : Projection
+public abstract class ProjectionFactory<TAggregate, TProjection> : IProjectionFactory
+  where TAggregate : Aggregate<TAggregate>, new()
+  where TProjection : Projection
 {
   /// <inheritdoc />
   public Type AggregateType => typeof(TAggregate);

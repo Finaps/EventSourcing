@@ -5,32 +5,31 @@ public abstract partial class EventSourcingTests
   [Fact]
   public async Task RecordStore_AddEventsAsync_Can_Add_Single_Event()
   {
-    await RecordStore.AddEventsAsync(new Event[] { new EmptyAggregate().Apply(new EmptyEvent()) });
+    await RecordStore.AddEventsAsync(new [] { new EmptyAggregate().Apply(new EmptyEvent()) });
   }
 
   [Fact]
   public async Task RecordStore_AddEventsAsync_Can_Add_Multiple_Events()
   {
     var aggregate = new EmptyAggregate();
-    var events = new List<Event>();
-
-    for (var i = 0; i < 10; i++)
-      events.Add(aggregate.Apply(new EmptyEvent()));
-
+    var events = Enumerable
+      .Range(0, 10)
+      .Select(_ => aggregate.Apply(new EmptyEvent()))
+      .ToArray();
     await RecordStore.AddEventsAsync(events);
   }
 
   [Fact]
   public async Task RecordStore_AddEventsAsync_Can_Add_Empty_List()
   {
-    await RecordStore.AddEventsAsync(Array.Empty<Event>());
+    await RecordStore.AddEventsAsync(Array.Empty<Event<EmptyAggregate>>());
   }
 
   [Fact]
   public async Task RecordStore_AddEventsAsync_Cannot_Add_Null()
   {
     await Assert.ThrowsAsync<ArgumentNullException>(async () =>
-      await RecordStore.AddEventsAsync(null!));
+      await RecordStore.AddEventsAsync<EmptyAggregate>(null!));
   }
   
   [Fact]
@@ -43,7 +42,7 @@ public abstract partial class EventSourcingTests
     e2 = e2 with { Index = 0 };
 
     await Assert.ThrowsAnyAsync<RecordValidationException>(
-      async () => await RecordStore.AddEventsAsync(new Event[] { e1, e2 }));
+      async () => await RecordStore.AddEventsAsync(new [] { e1, e2 }));
   }
   
   [Fact]
@@ -52,12 +51,12 @@ public abstract partial class EventSourcingTests
     var aggregate = new EmptyAggregate();
     var e1 = aggregate.Apply(new EmptyEvent());
 
-    await RecordStore.AddEventsAsync(new Event[] { e1 });
+    await RecordStore.AddEventsAsync(new [] { e1 });
     
     var e2 = aggregate.Apply(new EmptyEvent()) with { Index = 0 };
 
     await Assert.ThrowsAnyAsync<RecordStoreException>(
-      async () => await RecordStore.AddEventsAsync(new Event[] { e2 }));
+      async () => await RecordStore.AddEventsAsync(new [] { e2 }));
   }
 
   [Fact]
@@ -70,7 +69,7 @@ public abstract partial class EventSourcingTests
     var event2 = aggregate2.Apply(new EmptyEvent());
 
     await Assert.ThrowsAnyAsync<RecordValidationException>(
-      async () => await RecordStore.AddEventsAsync(new Event[] { event1, event2 }));
+      async () => await RecordStore.AddEventsAsync(new [] { event1, event2 }));
   }
 
   [Fact]
@@ -81,7 +80,7 @@ public abstract partial class EventSourcingTests
     var e2 = aggregate.Apply(new EmptyEvent()) with { Index = 2 };
 
     await Assert.ThrowsAnyAsync<RecordValidationException>(
-      async () => await RecordStore.AddEventsAsync(new Event[] { e1, e2 }));
+      async () => await RecordStore.AddEventsAsync(new [] { e1, e2 }));
   }
   
   [Fact]
@@ -90,12 +89,12 @@ public abstract partial class EventSourcingTests
     var aggregate = new EmptyAggregate();
     var e1 = aggregate.Apply(new EmptyEvent());
 
-    await RecordStore.AddEventsAsync(new Event[] { e1 });
+    await RecordStore.AddEventsAsync(new Event<EmptyAggregate>[] { e1 });
     
     var e2 = aggregate.Apply(new EmptyEvent()) with { Index = 2 };
 
     await Assert.ThrowsAnyAsync<RecordStoreException>(
-      async () => await RecordStore.AddEventsAsync(new Event[] { e2 }));
+      async () => await RecordStore.AddEventsAsync(new [] { e2 }));
   }
   
   [Fact]
@@ -105,7 +104,7 @@ public abstract partial class EventSourcingTests
     var e = aggregate.Apply(new EmptyEvent()) with { Index = -1 };
     
     await Assert.ThrowsAnyAsync<RecordValidationException>(
-      async () => await RecordStore.AddEventsAsync(new Event[] { e }));
+      async () => await RecordStore.AddEventsAsync(new [] { e }));
   }
   
   [Fact]
@@ -115,7 +114,7 @@ public abstract partial class EventSourcingTests
     var e = aggregate.Apply(new EmptyEvent()) with { Type = null! };
     
     await Assert.ThrowsAnyAsync<RecordValidationException>(
-      async () => await RecordStore.AddEventsAsync(new Event[] { e }));
+      async () => await RecordStore.AddEventsAsync(new [] { e }));
   }
   
   [Fact]
@@ -125,6 +124,6 @@ public abstract partial class EventSourcingTests
     var e = aggregate.Apply(new EmptyEvent()) with { AggregateType = null };
     
     await Assert.ThrowsAnyAsync<RecordValidationException>(
-      async () => await RecordStore.AddEventsAsync(new Event[] { e }));
+      async () => await RecordStore.AddEventsAsync(new [] { e }));
   }
 }

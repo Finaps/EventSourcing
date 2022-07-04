@@ -31,7 +31,7 @@ public abstract class Aggregate : IHashable
   /// <remarks>
   /// All <see cref="Event"/>s added to this Aggregate will have set <c>Event.AggregateType = Aggregate.Type</c>
   /// </remarks>
-  public string Type { get; init; }
+  public string Type { get; }
   
   /// <summary>
   /// Unique Partition identifier. Defaults to <see cref="Guid"/>.<see cref="Guid.Empty"/>.
@@ -64,14 +64,6 @@ public abstract class Aggregate : IHashable
   /// The number of <see cref="Event"/>s applied to this Aggregate.
   /// </summary>
   public long Version { get; protected set; }
-  
-  /// <summary>
-  /// <see cref="Event"/>s that are not yet committed to the <see cref="IRecordStore"/>.
-  /// </summary>
-  /// <remarks>
-  /// To commit these <see cref="Event"/>s, call <see cref="IAggregateService"/>.<see cref="IAggregateService.PersistAsync{TAggregate}"/>
-  /// </remarks>
-  [JsonIgnore] internal readonly List<Event> UncommittedEvents = new();
 
   /// <summary>
   /// Create new Aggregate with <c>Id = </c><see cref="Guid"/>.<see cref="Guid.NewGuid"/>
@@ -87,7 +79,7 @@ public abstract class Aggregate : IHashable
     Type = GetType().Name;
   }
 
-  internal abstract Task RehydrateAsync(Snapshot? snapshot, IAsyncEnumerable<Event> events, CancellationToken cancellationToken = default);
+  internal abstract void ClearUncommittedEvents();
   
   /// <summary>
   /// Compute Hash representing the logic of the Apply methods (Event and Snapshot).
@@ -105,15 +97,25 @@ public abstract class Aggregate : IHashable
 }
 
 /// <inheritdoc />
-public abstract class Aggregate<TAggregate> : Aggregate where TAggregate : Aggregate, new()
+public abstract class Aggregate<TAggregate> : Aggregate where TAggregate : Aggregate<TAggregate>, new()
 {
-  internal override async Task RehydrateAsync(Snapshot? snapshot, IAsyncEnumerable<Event> events, CancellationToken cancellationToken = default)
+  /// <summary>
+  /// <see cref="Event"/>s that are not yet committed to the <see cref="IRecordStore"/>.
+  /// </summary>
+  /// <remarks>
+  /// To commit these <see cref="Event"/>s, call <see cref="IAggregateService"/>.<see cref="IAggregateService.PersistAsync{TAggregate}"/>
+  /// </remarks>
+  [JsonIgnore] internal readonly List<Event<TAggregate>> UncommittedEvents = new();
+
+  internal override void ClearUncommittedEvents() => UncommittedEvents.Clear();
+
+  internal async Task RehydrateAsync(Snapshot<TAggregate>? snapshot, IAsyncEnumerable<Event<TAggregate>> events, CancellationToken cancellationToken = default)
   {
-    if (snapshot != null) 
-      ValidateAndApply((Snapshot<TAggregate>) snapshot);
+    if (snapshot != null)
+      ValidateAndApply(snapshot);
     
     await foreach (var @event in events.WithCancellation(cancellationToken))
-      ValidateAndApply((Event<TAggregate>) @event);
+      ValidateAndApply(@event);
   }
   
   /// <summary>
@@ -142,7 +144,7 @@ public abstract class Aggregate<TAggregate> : Aggregate where TAggregate : Aggre
       
       // Set Previous Event Reference to convince EF Core about Event consecutiveness
       // See https://github.com/Finaps/EventSourcing/issues/72
-      _previousEvent = UncommittedEvents.Cast<Event<TAggregate>>().LastOrDefault()
+      _previousEvent = UncommittedEvents.LastOrDefault()
     };
     
     ValidateAndApply(e);
@@ -195,25 +197,18 @@ public abstract class Aggregate<TAggregate> : Aggregate where TAggregate : Aggre
     return factory.CreateProjection(this) as TProjection;
   }
   
-  private void ValidateAndApply(Event e)
+  private void ValidateAndApply(Event<TAggregate> @event)
   {
-    if (e is not Event<TAggregate> @event)
-      throw new RecordValidationException($"{e} does not derive from {typeof(Event<TAggregate>)}");
-    
-    RecordValidation.ValidateEventForAggregate(this, e);
-    
+    RecordValidation.ValidateEventForAggregate(this, @event);
     Apply(@event);
     Version++;
   }
 
-  private void ValidateAndApply(Snapshot s)
+  private void ValidateAndApply(Snapshot<TAggregate> snapshot)
   {
-    if (s is not Snapshot<TAggregate> snapshot)
-      throw new RecordValidationException($"{s} does not derive from {typeof(Event<TAggregate>)}");
-    
-    RecordValidation.ValidateSnapshotForAggregate(this, s);
+    RecordValidation.ValidateSnapshotForAggregate(this, snapshot);
     Apply(snapshot);
-    Version = s.Index + 1;
+    Version = snapshot.Index + 1;
   }
 
   /// <inheritdoc />

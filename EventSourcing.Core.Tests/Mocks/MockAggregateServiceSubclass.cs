@@ -12,28 +12,28 @@ public class MockAggregateTransactionSubclass : AggregateTransaction
   
   public MockAggregateTransactionSubclass(IRecordTransaction recordTransaction) : base(recordTransaction) { }
 
-  public override Task<IAggregateTransaction> AddAggregateAsync(Aggregate aggregate)
+  public override Task<IAggregateTransaction> AddAggregateAsync<TAggregate>(TAggregate aggregate, CancellationToken cancellationToken = default)
   {
     AddAggregateAsyncCallCount++;
-    return base.AddAggregateAsync(aggregate);
+    return base.AddAggregateAsync(aggregate, cancellationToken);
   }
 
-  protected override Task AddEventsAsync(List<Event> events)
+  protected override Task AddEventsAsync<TAggregate>(List<Event<TAggregate>> events, CancellationToken cancellationToken = default)
   {
     AddEventsAsyncCallCount++;
-    return base.AddEventsAsync(events);
+    return base.AddEventsAsync(events, cancellationToken);
   }
 
-  protected override Task AddSnapshotAsync(Snapshot snapshot)
+  protected override Task AddSnapshotAsync<TAggregate>(Snapshot<TAggregate> snapshot, CancellationToken cancellationToken = default)
   {
     AddSnapshotAsyncCallCount++;
-    return base.AddSnapshotAsync(snapshot);
+    return base.AddSnapshotAsync(snapshot, cancellationToken);
   }
 
-  protected override Task UpsertProjectionAsync(Projection projection)
+  protected override Task UpsertProjectionAsync(Projection projection, CancellationToken cancellationToken = default)
   {
     UpsertProjectionAsyncCallCount++;
-    return base.UpsertProjectionAsync(projection);
+    return base.UpsertProjectionAsync(projection, cancellationToken);
   }
 
   public override Task CommitAsync(CancellationToken cancellationToken = default)

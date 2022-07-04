@@ -36,7 +36,7 @@ public static class Cache
       }
       else if (typeof(ISnapshotFactory).IsAssignableFrom(type))
       {
-        var factory = (ISnapshotFactory)Activator.CreateInstance(type)!;
+        var factory = (ISnapshotFactory) Activator.CreateInstance(type)!;
         SnapshotFactories.TryAdd(factory.AggregateType, new List<ISnapshotFactory>());
         SnapshotFactories[factory.AggregateType].Add(factory);
       }
@@ -52,16 +52,16 @@ public static class Cache
       ProjectionFactoryHashes[factory.AggregateType.Name] = IHashable.CombineHashes(
         factory.ComputeHash(), aggregateHashes[factory.AggregateType]);
   }
-  
+
   /// <summary>
   /// Get <see cref="SnapshotFactory{TAggregate,TSnapshot}"/>s for <see cref="Aggregate"/> type
   /// </summary>
-  /// <param name="aggregateType"><see cref="Aggregate"/> type</param>
+  /// <typeparam name="TAggregate"><see cref="Aggregate"/> type</typeparam>
   /// <returns><see cref="SnapshotFactory{TAggregate,TSnapshot}"/>s</returns>
-  public static IEnumerable<ISnapshotFactory> GetSnapshotFactories(Type aggregateType) =>
-    SnapshotFactories.TryGetValue(aggregateType, out var factories)
-      ? factories
-      : Array.Empty<ISnapshotFactory>();
+  public static IEnumerable<ISnapshotFactory<TAggregate>> GetSnapshotFactories<TAggregate>() where TAggregate : Aggregate<TAggregate>, new() =>
+    SnapshotFactories.TryGetValue(typeof(TAggregate), out var factories)
+      ? factories.Cast<ISnapshotFactory<TAggregate>>()
+      : Array.Empty<ISnapshotFactory<TAggregate>>();
 
   /// <summary>
   /// Get <see cref="ProjectionFactory{TAggregate,TProjection}"/> for <see cref="Aggregate"/> and <see cref="Projection"/>
@@ -70,7 +70,7 @@ public static class Cache
   /// <typeparam name="TProjection"><see cref="Projection"/> type</typeparam>
   /// <returns><see cref="ProjectionFactory{TAggregate,TProjection}"/> if defined</returns>
   public static IProjectionFactory? GetProjectionFactory<TAggregate, TProjection>()
-    where TAggregate : Aggregate where TProjection : Projection => 
+    where TAggregate : Aggregate<TAggregate>, new() where TProjection : Projection => 
     ProjectionFactories.TryGetValue(typeof(TAggregate), out var factories)
       ? factories.TryGetValue(typeof(TProjection), out var factory) ? factory : null
       : null;
@@ -78,10 +78,11 @@ public static class Cache
   /// <summary>
   /// Get <see cref="ProjectionFactory{TAggregate,TProjection}"/>s for <see cref="Aggregate"/> type
   /// </summary>
-  /// <param name="aggregateType"><see cref="Aggregate"/> type</param>
+  /// <typeparam name="TAggregate"><see cref="Aggregate"/> type</typeparam>
   /// <returns><see cref="ProjectionFactory{TAggregate,TProjection}"/>s</returns>
-  public static IEnumerable<IProjectionFactory> GetProjectionFactories(Type aggregateType) =>
-    ProjectionFactories.TryGetValue(aggregateType, out var factories)
+  public static IEnumerable<IProjectionFactory> GetProjectionFactories<TAggregate>()
+    where TAggregate : Aggregate<TAggregate>, new() => 
+    ProjectionFactories.TryGetValue(typeof(TAggregate), out var factories)
       ? factories.Values
       : Array.Empty<IProjectionFactory>();
 

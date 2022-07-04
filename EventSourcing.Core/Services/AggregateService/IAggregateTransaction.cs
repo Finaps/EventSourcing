@@ -12,8 +12,10 @@ public interface IAggregateTransaction
   /// When all <see cref="Aggregate{TAggregate}"/>s have been added, call <see cref="CommitAsync"/> to commit them
   /// </remarks>
   /// <param name="aggregate"><see cref="Aggregate{TAggregate}"/></param>
+  /// <param name="cancellationToken"><see cref="CancellationToken"/></param>
   /// <returns><see cref="IAggregateTransaction"/></returns>
-  Task<IAggregateTransaction> AddAggregateAsync(Aggregate aggregate);
+  Task<IAggregateTransaction> AddAggregateAsync<TAggregate>(TAggregate aggregate, CancellationToken cancellationToken = default)
+    where TAggregate : Aggregate<TAggregate>, new();
 
   /// <summary>
   /// Commit <see cref="Aggregate{TAggregate}"/>s to the <see cref="IRecordStore"/> in an ACID transaction.

@@ -19,7 +19,7 @@ public abstract record Event : Record
 }
 
 /// <inheritdoc />
-public record Event<TAggregate> : Event where TAggregate : Aggregate, new()
+public record Event<TAggregate> : Event where TAggregate : Aggregate<TAggregate>, new()
 {
   /// <inheritdoc />
   public Event() => AggregateType = typeof(TAggregate).Name;

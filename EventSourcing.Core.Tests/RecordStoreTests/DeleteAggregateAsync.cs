@@ -6,7 +6,7 @@ public abstract partial class EventSourcingTests
   public async Task RecordStore_DeleteAggregateAsync_Can_Delete_Events_With_DeleteAggregateAll()
   {
     var aggregate = new EmptyAggregate();
-    var events = new List<Event>();
+    var events = new List<Event<EmptyAggregate>>();
 
     for (var i = 0; i < 3; i++)
       events.Add(aggregate.Apply(new EmptyEvent()));
@@ -32,7 +32,7 @@ public abstract partial class EventSourcingTests
 
     // Store event
     var e = aggregate.Apply(new EmptyEvent());
-    await RecordStore.AddEventsAsync(new List<Event> { e });
+    await RecordStore.AddEventsAsync(new Event<EmptyAggregate>[] { e });
     Assert.NotNull(await RecordStore
       .GetEvents<EmptyAggregate>()
       .Where(x => x.AggregateId == e.AggregateId)
@@ -85,10 +85,11 @@ public abstract partial class EventSourcingTests
     var store = RecordStore;
     
     var aggregate = new EmptyAggregate();
-    var events = new List<Event>();
 
-    for (var i = 0; i < 100; i++)
-      events.Add(aggregate.Apply(new EmptyEvent()));
+    var events = Enumerable
+      .Range(0, 100)
+      .Select(_ => aggregate.Apply(new EmptyEvent()))
+      .ToList();
 
     await store.AddEventsAsync(events);
     events.Clear();

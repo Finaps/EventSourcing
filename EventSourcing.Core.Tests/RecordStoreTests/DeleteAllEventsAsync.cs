@@ -6,10 +6,11 @@ public abstract partial class EventSourcingTests
   public async Task RecordStore_DeleteAllEventsAsync_Can_Delete_Events()
   {
     var aggregate = new EmptyAggregate();
-    var events = new List<Event>();
-
-    for (var i = 0; i < 10; i++)
-      events.Add(aggregate.Apply(new EmptyEvent()));
+    
+    var events = Enumerable
+      .Range(0, 10)
+      .Select(_ => aggregate.Apply(new EmptyEvent()))
+      .ToArray();
 
     await RecordStore.AddEventsAsync(events);
 
@@ -28,12 +29,13 @@ public abstract partial class EventSourcingTests
   public async Task RecordStore_DeleteAllEventsAsync_Deleting_Events_Does_Not_Delete_Projection()
   {
     var aggregate = new EmptyAggregate();
-    var events = new List<Event>();
     var snapshot = new EmptySnapshot { AggregateId = aggregate.Id, AggregateType = nameof(EmptyAggregate)};
     var projection = new EmptyProjection { AggregateId = aggregate.Id, AggregateType = nameof(EmptyAggregate), Hash = "RANDOM"};
 
-    for (var i = 0; i < 3; i++)
-      events.Add(aggregate.Apply(new EmptyEvent()));
+    var events = Enumerable
+      .Range(0, 3)
+      .Select(_ => aggregate.Apply(new EmptyEvent()))
+      .ToArray();
     
     await RecordStore.AddEventsAsync(events);
     await RecordStore.AddSnapshotAsync(snapshot);
@@ -57,11 +59,12 @@ public abstract partial class EventSourcingTests
   public async Task RecordStore_DeleteAllEventsAsync_Correctly_Returns_Deleted_Count()
   {
     var aggregate = new EmptyAggregate();
-    var events = new List<Event>();
-
-    for (var i = 0; i < 10; i++)
-      events.Add(aggregate.Apply(new EmptyEvent()));
-
+    
+    var events = Enumerable
+      .Range(0, 10)
+      .Select(_ => aggregate.Apply(new EmptyEvent()))
+      .ToArray();
+    
     await RecordStore.AddEventsAsync(events);
 
     var deleted = await RecordStore.DeleteAllEventsAsync<EmptyAggregate>(aggregate.Id);
@@ -73,6 +76,6 @@ public abstract partial class EventSourcingTests
       .CountAsync();
     
     Assert.Equal(0, count);
-    Assert.Equal(events.Count, deleted);
+    Assert.Equal(events.Length, deleted);
   }
 }

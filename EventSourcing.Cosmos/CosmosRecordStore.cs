@@ -49,12 +49,12 @@ public class CosmosRecordStore : IRecordStore
   }
 
   /// <inheritdoc />
-  public IQueryable<Event> GetEvents<TAggregate>() where TAggregate : Aggregate, new() => _container
+  public IQueryable<Event> GetEvents<TAggregate>() where TAggregate : Aggregate<TAggregate>, new() => _container
     .AsCosmosAsyncQueryable<Event>()
     .Where(x => x.AggregateType == typeof(TAggregate).Name && x.Kind == RecordKind.Event && x.Type != ReservationToken);
 
   /// <inheritdoc />
-  public IQueryable<Snapshot> GetSnapshots<TAggregate>() where TAggregate : Aggregate, new() => _container
+  public IQueryable<Snapshot> GetSnapshots<TAggregate>() where TAggregate : Aggregate<TAggregate>, new() => _container
     .AsCosmosAsyncQueryable<Snapshot>()
     .Where(x => x.AggregateType == typeof(TAggregate).Name && x.Kind == RecordKind.Snapshot);
 
@@ -87,7 +87,8 @@ public class CosmosRecordStore : IRecordStore
   }
 
   /// <inheritdoc />
-  public async Task AddEventsAsync(IList<Event> events, CancellationToken cancellationToken = default)
+  public async Task AddEventsAsync<TAggregate>(IReadOnlyCollection<Event<TAggregate>> events, CancellationToken cancellationToken = default)
+    where TAggregate : Aggregate<TAggregate>, new()
   {
     if (events == null) throw new ArgumentNullException(nameof(events));
     if (events.Count == 0) return;
@@ -98,7 +99,8 @@ public class CosmosRecordStore : IRecordStore
   }
 
   /// <inheritdoc />
-  public async Task AddSnapshotAsync(Snapshot snapshot, CancellationToken cancellationToken = default) =>
+  public async Task AddSnapshotAsync<TAggregate>(Snapshot<TAggregate> snapshot, CancellationToken cancellationToken = default)
+    where TAggregate : Aggregate<TAggregate>, new() =>
     await CreateTransaction(snapshot.PartitionId)
       .AddSnapshot(snapshot)
       .CommitAsync(cancellationToken);
@@ -110,7 +112,8 @@ public class CosmosRecordStore : IRecordStore
       .CommitAsync(cancellationToken);
 
   /// <inheritdoc />
-  public async Task<int> DeleteAllEventsAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
+  public async Task<int> DeleteAllEventsAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
+    where TAggregate : Aggregate<TAggregate>, new()
   {
     if (!_isDeleteAllEventsProcedureInitialized)
     {
@@ -122,7 +125,8 @@ public class CosmosRecordStore : IRecordStore
   }
 
   /// <inheritdoc />
-  public async Task<int> DeleteAllSnapshotsAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
+  public async Task<int> DeleteAllSnapshotsAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
+    where TAggregate : Aggregate<TAggregate>, new()
   {
     if (!_isDeleteAllSnapshotsProcedureInitialized)
     {
@@ -134,19 +138,22 @@ public class CosmosRecordStore : IRecordStore
   }
 
   /// <inheritdoc />
-  public async Task DeleteSnapshotAsync<TAggregate>(Guid partitionId, Guid aggregateId, long index, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new() =>
+  public async Task DeleteSnapshotAsync<TAggregate>(Guid partitionId, Guid aggregateId, long index, CancellationToken cancellationToken = default)
+    where TAggregate : Aggregate<TAggregate>, new() =>
     await CreateTransaction(partitionId)
       .DeleteSnapshot<TAggregate>(aggregateId, index)
       .CommitAsync(cancellationToken);
 
   /// <inheritdoc />
-  public async Task DeleteProjectionAsync<TProjection>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TProjection : Projection =>
+  public async Task DeleteProjectionAsync<TProjection>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
+    where TProjection : Projection =>
     await CreateTransaction(partitionId)
       .DeleteProjection<TProjection>(aggregateId)
       .CommitAsync(cancellationToken);
 
   /// <inheritdoc />
-  public async Task<int> DeleteAggregateAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default) where TAggregate : Aggregate, new()
+  public async Task<int> DeleteAggregateAsync<TAggregate>(Guid partitionId, Guid aggregateId, CancellationToken cancellationToken = default)
+    where TAggregate : Aggregate<TAggregate>, new()
   {
     if (!_isDeleteAggregateProcedureInitialized)
     {

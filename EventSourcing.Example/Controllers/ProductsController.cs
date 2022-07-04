@@ -1,3 +1,4 @@
+using System.Threading;
 using Finaps.EventSourcing.Example.Domain.Products;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,18 +20,18 @@ public class ProductsController : Controller
     }
 
     [HttpPost]
-    public async Task<ActionResult<Product>> CreateProduct([FromBody] CreateProduct request)
+    public async Task<ActionResult<Product>> CreateProduct([FromBody] CreateProduct request, CancellationToken cancellationToken = default)
     {
         var product = new Product();
         product.Create(request.Name, request.Quantity);
-        await _aggregateService.PersistAsync(product);
+        await _aggregateService.PersistAsync(product, cancellationToken);
         return product;
     }
     
     [HttpGet("{id:Guid}")]
-    public async Task<ActionResult<Product>> GetProduct([FromRoute] Guid id)
+    public async Task<ActionResult<Product>> GetProduct([FromRoute] Guid id, CancellationToken cancellationToken = default)
     {
-        var product = await _aggregateService.RehydrateAsync<Product>(id);
+        var product = await _aggregateService.RehydrateAsync<Product>(id, cancellationToken);
         if(product == null)
             return BadRequest($"Product with id {id} not found");
         
@@ -38,9 +39,9 @@ public class ProductsController : Controller
     }
     
     [HttpPost("{id:Guid}/addStock")]
-    public async Task<ActionResult<Product>> AddStock([FromRoute] Guid id, [FromBody] AddStock request)
+    public async Task<ActionResult<Product>> AddStock([FromRoute] Guid id, [FromBody] AddStock request, CancellationToken cancellationToken = default)
     {
         return await _aggregateService.RehydrateAndPersistAsync<Product>(id, 
-            product => product.AddStock(request.Quantity));
+            product => product.AddStock(request.Quantity), cancellationToken);
     }
 }

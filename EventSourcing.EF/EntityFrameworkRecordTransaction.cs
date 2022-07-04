@@ -10,7 +10,7 @@ public class EntityFrameworkRecordTransaction : IRecordTransaction
 {
   private record TransactionAction;
 
-  private record AddEventsAction(IList<Event> Events) : TransactionAction;
+  private record AddEventsAction(IReadOnlyCollection<Event> Events) : TransactionAction;
 
   private record AddSnapshotAction(Snapshot Snapshot) : TransactionAction;
 
@@ -41,7 +41,8 @@ public class EntityFrameworkRecordTransaction : IRecordTransaction
   }
 
   /// <inheritdoc />
-  public IRecordTransaction AddEvents(IList<Event> events)
+  public IRecordTransaction AddEvents<TAggregate>(IReadOnlyCollection<Event<TAggregate>> events)
+    where TAggregate : Aggregate<TAggregate>, new()
   {
     RecordValidation.ValidateEventSequence(PartitionId, events);
     _actions.Add(new AddEventsAction(events));
@@ -49,7 +50,8 @@ public class EntityFrameworkRecordTransaction : IRecordTransaction
   }
 
   /// <inheritdoc />
-  public IRecordTransaction AddSnapshot(Snapshot snapshot)
+  public IRecordTransaction AddSnapshot<TAggregate>(Snapshot<TAggregate> snapshot)
+    where TAggregate : Aggregate<TAggregate>, new()
   {
     RecordValidation.ValidateSnapshot(PartitionId, snapshot);
     _actions.Add(new AddSnapshotAction(snapshot));
@@ -65,7 +67,7 @@ public class EntityFrameworkRecordTransaction : IRecordTransaction
 
   /// <inheritdoc />
   public IRecordTransaction DeleteAllEvents<TAggregate>(Guid aggregateId, long index)
-    where TAggregate : Aggregate, new()
+    where TAggregate : Aggregate<TAggregate>, new()
   {
     _actions.Add(new DeleteAllEventsAction(new Event<TAggregate>
       { PartitionId = PartitionId, AggregateId = aggregateId, Index = index }));
@@ -73,7 +75,8 @@ public class EntityFrameworkRecordTransaction : IRecordTransaction
   }
 
   /// <inheritdoc />
-  public IRecordTransaction DeleteSnapshot<TAggregate>(Guid aggregateId, long index) where TAggregate : Aggregate, new()
+  public IRecordTransaction DeleteSnapshot<TAggregate>(Guid aggregateId, long index)
+    where TAggregate : Aggregate<TAggregate>, new()
   {
     _actions.Add(new DeleteSnapshotAction(new Snapshot<TAggregate>
       { PartitionId = PartitionId, AggregateId = aggregateId, Index = index }));

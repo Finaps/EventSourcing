@@ -6,7 +6,7 @@ public abstract partial class EventSourcingTests
   public async Task RecordStore_GetEvents_Can_Query_Events_By_PartitionId()
   {
     var aggregate1 = new EmptyAggregate { PartitionId = Guid.NewGuid() };
-    var events1 = new List<Event>
+    var events1 = new []
     {
       aggregate1.Apply(new EmptyEvent()),
       aggregate1.Apply(new EmptyEvent()),
@@ -22,14 +22,14 @@ public abstract partial class EventSourcingTests
       .AsAsyncEnumerable()
       .CountAsync();
 
-    Assert.Equal(events1.Count, count);
+    Assert.Equal(events1.Length, count);
   }
   
   [Fact]
   public async Task RecordStore_GetEvents_Can_Query_Events_By_AggregateId()
   {
     var aggregate = new EmptyAggregate();
-    var events = new List<Event>
+    var events = new []
     {
       aggregate.Apply(new EmptyEvent()),
       aggregate.Apply(new EmptyEvent()),
@@ -45,21 +45,21 @@ public abstract partial class EventSourcingTests
       .AsAsyncEnumerable()
       .CountAsync();
 
-    Assert.Equal(events.Count, count);
+    Assert.Equal(events.Length, count);
   }
 
   [Fact]
   public async Task RecordStore_GetEvents_Can_Query_Events_By_AggregateVersion()
   {
     var aggregate = new EmptyAggregate();
-    var events = new List<Event>
+    var events = new []
     {
       aggregate.Apply(new EmptyEvent()),
       aggregate.Apply(new EmptyEvent())
     };
 
     var aggregate2 = new EmptyAggregate();
-    var events2 = new List<Event>
+    var events2 = new []
     {
       aggregate2.Apply(new EmptyEvent()),
       aggregate2.Apply(new EmptyEvent())
@@ -82,14 +82,14 @@ public abstract partial class EventSourcingTests
   public async Task RecordStore_GetEvents_Can_Query_Events_By_AggregateType()
   {
     var aggregate = new EmptyAggregate();
-    var events = new List<Event>
+    var events = new []
     {
       aggregate.Apply(new EmptyEvent()),
       aggregate.Apply(new EmptyEvent())
     };
 
     var aggregate2 = new SimpleAggregate();
-    var events2 = new List<Event>
+    var events2 = new []
     {
       aggregate2.Apply(new SimpleEvent()),
       aggregate2.Apply(new SimpleEvent())
@@ -142,7 +142,7 @@ public abstract partial class EventSourcingTests
       MockStringSet = new List<string> { "A", "B", "C", "C" }
     });
 
-    await RecordStore.AddEventsAsync(new List<Event> { e });
+    await RecordStore.AddEventsAsync(new [] { e });
 
     var result = (await RecordStore
         .GetEvents<MockAggregate>()
@@ -151,26 +151,7 @@ public abstract partial class EventSourcingTests
         .ToListAsync())
       .Cast<MockEvent>()
       .Single();
-
-    Assert.Equal(e.MockBoolean, result.MockBoolean);
-    Assert.Equal(e.MockString, result.MockString);
-    Assert.Equal(e.MockDecimal, result.MockDecimal);
-    Assert.Equal(e.MockDouble, result.MockDouble);
-    Assert.Equal(e.MockEnum, result.MockEnum);
-    Assert.Equal(e.MockFlagEnum, result.MockFlagEnum);
-    Assert.Equal(e.MockNestedRecord.MockBoolean, result.MockNestedRecord.MockBoolean);
-    Assert.Equal(e.MockNestedRecord.MockString, result.MockNestedRecord.MockString);
-    Assert.Equal(e.MockNestedRecord.MockDecimal, result.MockNestedRecord.MockDecimal);
-    Assert.Equal(e.MockNestedRecord.MockDouble, result.MockNestedRecord.MockDouble);
-    Assert.Equal(e.MockNestedRecordList.Single().MockBoolean, result.MockNestedRecordList.Single().MockBoolean);
-    Assert.Equal(e.MockNestedRecordList.Single().MockString, result.MockNestedRecordList.Single().MockString);
-    Assert.Equal(e.MockNestedRecordList.Single().MockDecimal, result.MockNestedRecordList.Single().MockDecimal);
-    Assert.Equal(e.MockNestedRecordList.Single().MockDouble, result.MockNestedRecordList.Single().MockDouble);
-    Assert.Equal(e.MockFloatList[0], result.MockFloatList[0]);
-    Assert.Equal(e.MockFloatList[1], result.MockFloatList[1]);
-    Assert.Equal(e.MockFloatList[2], result.MockFloatList[2]);
-    Assert.Contains(e.MockStringSet, x => x == "A");
-    Assert.Contains(e.MockStringSet, x => x == "B");
-    Assert.Contains(e.MockStringSet, x => x == "C");
+    
+    IMock.AssertEqual(e, result);
   }
 }
