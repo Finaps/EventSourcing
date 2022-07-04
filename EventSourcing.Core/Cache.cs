@@ -70,7 +70,7 @@ public static class Cache
   /// <typeparam name="TProjection"><see cref="Projection"/> type</typeparam>
   /// <returns><see cref="ProjectionFactory{TAggregate,TProjection}"/> if defined</returns>
   public static IProjectionFactory? GetProjectionFactory<TAggregate, TProjection>()
-    where TAggregate : Aggregate where TProjection : Projection => 
+    where TAggregate : Aggregate<TAggregate>, new() where TProjection : Projection => 
     ProjectionFactories.TryGetValue(typeof(TAggregate), out var factories)
       ? factories.TryGetValue(typeof(TProjection), out var factory) ? factory : null
       : null;
