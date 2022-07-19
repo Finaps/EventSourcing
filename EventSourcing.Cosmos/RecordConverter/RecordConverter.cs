@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Finaps.EventSourcing.Cosmos;
 
 namespace Finaps.EventSourcing.Core;
 
@@ -34,8 +35,17 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
   /// <summary>
   /// Serialize Record
   /// </summary>
-  public override void Write(Utf8JsonWriter writer, TRecord value, JsonSerializerOptions options) =>
-    JsonSerializer.Serialize(writer, value with { Type = RecordTypeCache.GetRecordTypeString(value.GetType()) }, value.GetType());
+  public override void Write(Utf8JsonWriter writer, TRecord value, JsonSerializerOptions options)
+  {
+    var dictionary = new Dictionary<string, object?>();
+    foreach (var property in value.GetType().GetProperties())
+      dictionary.Add(property.Name, property.GetValue(value));
+    
+    dictionary[nameof(Record.Type)] = RecordTypeCache.GetRecordTypeString(value.GetType());
+    dictionary["id"] = value.GetId();
+    
+    JsonSerializer.Serialize(writer, dictionary);
+  }
 
   /// <summary>
   /// Deserialize Record
@@ -62,10 +72,10 @@ public class RecordConverter<TRecord> : JsonConverter<TRecord> where TRecord : R
 
     if (!_throwOnMissingNonNullableProperties) return type;
 
-      var missing = RecordTypeCache.GetNonNullableProperties(type)
-      .Where(property => !json.TryGetValue(property.Name, out var value) || value.ValueKind == JsonValueKind.Null)
-      .Select(property => property.Name)
-      .ToList();
+    var missing = RecordTypeCache.GetNonNullableProperties(type)
+    .Where(property => !json.TryGetValue(property.Name, out var value) || value.ValueKind == JsonValueKind.Null)
+    .Select(property => property.Name)
+    .ToList();
     
     if (missing.Count > 0)
       throw new RecordValidationException(

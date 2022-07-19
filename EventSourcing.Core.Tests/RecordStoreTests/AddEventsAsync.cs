@@ -126,4 +126,40 @@ public abstract partial class EventSourcingTests
     await Assert.ThrowsAnyAsync<RecordValidationException>(
       async () => await RecordStore.AddEventsAsync(new [] { e }));
   }
+  
+  [Fact] // Tests issue https://github.com/Finaps/EventSourcing/issues/72
+  public async Task RecordStore_AddEventsAsync_NonAlphabetical_Events_Persisted_In_Order()
+  {
+    var id = Guid.NewGuid();
+    
+    { // Create BankAccount and Persist 
+      var bankAccount = new BankAccount { Id = id };
+      var bankAccount2 = new BankAccount();
+
+      bankAccount.Apply(new BankAccountCreatedEvent("E. Sourcing", "Some IBAN"));
+      bankAccount2.Apply(new BankAccountCreatedEvent("Other Person", "Some other IBAN"));
+    
+      bankAccount.Apply(new BankAccountFundsDepositedEvent(500));
+      bankAccount.Apply(new BankAccountFundsWithdrawnEvent(100));
+      bankAccount.Apply(new BankAccountFundsTransferredEvent(50, bankAccount.Id, bankAccount2.Id));
+      bankAccount.Apply(new BankAccountFundsWithdrawnEvent(20));
+      bankAccount.Apply(new BankAccountFundsDepositedEvent(500));
+      await AggregateService.PersistAsync(bankAccount);
+    }
+
+    { // Get Events and upload Modified ones
+
+      var events = await RecordStore.GetEvents<BankAccount>()
+        .Where(x => x.AggregateId == id)
+        .OrderBy(x => x.Index)
+        .AsAsyncEnumerable()
+        .Cast<Event<BankAccount>>()
+        .ToListAsync();
+
+      var transaction = RecordStore.CreateTransaction();
+      transaction.DeleteAllEvents<BankAccount>(id, events.Count - 1);
+      transaction.AddEvents(events);
+      await transaction.CommitAsync();
+    }
+  }
 }

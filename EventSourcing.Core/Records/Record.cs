@@ -92,12 +92,6 @@ public abstract record Record
   /// Record creation/update time. Defaults to <see cref="DateTimeOffset"/>.<see cref="DateTimeOffset.UtcNow"/> on creation.
   /// </summary>
   public DateTimeOffset Timestamp { get; init; }
-  
-  /// <summary>
-  /// Unique Cosmos Database identifier.
-  /// </summary>
-  // ReSharper disable once InconsistentNaming
-  public abstract string id { get; }
 
   /// <summary>
   /// Create new <see cref="Record"/>
