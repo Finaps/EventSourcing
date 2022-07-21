@@ -46,7 +46,4 @@ public abstract record Projection : Record
   /// </summary>
   /// <remarks>To update projections, refer to the <see cref="ProjectionUpdateService"/></remarks>
   public bool IsUpToDate => FactoryType != null && Cache.GetProjectionFactoryHash(FactoryType) == Hash;
-
-  /// <inheritdoc />
-  public override string id => $"{Kind}|{BaseType}|{AggregateId}";
 }

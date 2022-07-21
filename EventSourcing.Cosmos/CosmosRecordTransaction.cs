@@ -60,7 +60,7 @@ public class CosmosRecordTransaction : IRecordTransaction
         Index = first.Index - 1
       };
       
-      _batch.ReadItem(check.id, CosmosRecordStore.BatchItemRequestOptions);
+      _batch.ReadItem(check.GetId(), CosmosRecordStore.BatchItemRequestOptions);
       _actions.Add((CosmosEventTransactionAction.ReadEvent, check));
     }
     
@@ -114,11 +114,11 @@ public class CosmosRecordTransaction : IRecordTransaction
     for (var i = 0; i <= index; i++)
     {
       var deletion = new CheckEvent { PartitionId = PartitionId, AggregateId = aggregateId, Index = i };
-      _batch.DeleteItem(deletion.id, CosmosRecordStore.BatchItemRequestOptions);
+      _batch.DeleteItem(deletion.GetId(), CosmosRecordStore.BatchItemRequestOptions);
       _actions.Add((CosmosEventTransactionAction.DeleteEvent, deletion));
     }
 
-    _batch.DeleteItem(reservation.id, CosmosRecordStore.BatchItemRequestOptions);
+    _batch.DeleteItem(reservation.GetId(), CosmosRecordStore.BatchItemRequestOptions);
     _actions.Add((CosmosEventTransactionAction.DeleteEvent, reservation));
     
     return this;
@@ -129,7 +129,7 @@ public class CosmosRecordTransaction : IRecordTransaction
     where TAggregate : Aggregate<TAggregate>, new()
   {
     var snapshot = new CheckSnapshot { PartitionId = PartitionId, AggregateId = aggregateId, Index = index };
-    _batch.DeleteItem(snapshot.id, CosmosRecordStore.BatchItemRequestOptions);
+    _batch.DeleteItem(snapshot.GetId(), CosmosRecordStore.BatchItemRequestOptions);
     _actions.Add((CosmosEventTransactionAction.DeleteSnapshot, snapshot));
 
     return this;

@@ -21,11 +21,6 @@ public abstract record Snapshot : Record
   /// The index of this <see cref="Event"/> with respect to <see cref="Record.AggregateId"/>
   /// </summary>
   public long Index { get; init; }
-
-  /// <summary>
-  /// Unique Database identifier
-  /// </summary>
-  public override string id => $"{Kind.ToString()}|{AggregateId}[{Index}]";
 }
 
 /// <inheritdoc />
