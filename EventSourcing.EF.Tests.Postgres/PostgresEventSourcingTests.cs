@@ -5,6 +5,6 @@ namespace Finaps.EventSourcing.EF.Tests.Postgres;
 
 public class PostgresEventSourcingTests : EntityFrameworkEventSourcingTests
 {
-  protected override IRecordStore RecordStore => new EntityFrameworkRecordStore(RecordContext);
-  public override RecordContext RecordContext => new TestContextFactory().CreateDbContext(Array.Empty<string>());
+  protected override IRecordStore GetRecordStore() => new EntityFrameworkRecordStore(GetRecordContext());
+  public override RecordContext GetRecordContext() => new TestContextFactory().CreateDbContext(Array.Empty<string>());
 }

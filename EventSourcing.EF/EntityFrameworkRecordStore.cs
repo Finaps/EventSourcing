@@ -9,7 +9,7 @@ public class EntityFrameworkRecordStore : IRecordStore
 {
   internal static List<Type> ProjectionTypes { get; } = new();
 
-  internal RecordContext Context { get; set; }
+  public RecordContext Context { get; }
 
   /// <summary>
   /// Initialize Entity Framework Record Store

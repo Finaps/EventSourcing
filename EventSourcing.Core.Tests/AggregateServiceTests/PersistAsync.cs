@@ -8,9 +8,9 @@ public abstract partial class EventSourcingTests
     var aggregate = new SimpleAggregate();
     aggregate.Apply(new SimpleEvent());
 
-    await AggregateService.PersistAsync(aggregate);
+    await GetAggregateService().PersistAsync(aggregate);
 
-    var result = await RecordStore
+    var result = await GetRecordStore()
       .GetEvents<SimpleAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
@@ -30,9 +30,9 @@ public abstract partial class EventSourcingTests
       aggregate.Apply(new SimpleEvent())
     };
 
-    await AggregateService.PersistAsync(aggregate);
+    await GetAggregateService().PersistAsync(aggregate);
 
-    var eventCount = await RecordStore
+    var eventCount = await GetRecordStore()
       .GetEvents<SimpleAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
@@ -51,15 +51,15 @@ public abstract partial class EventSourcingTests
     foreach (var _ in new int[eventsCount])
       aggregate.Apply(new SnapshotEvent());
 
-    await AggregateService.PersistAsync(aggregate);
+    await GetAggregateService().PersistAsync(aggregate);
 
-    var snapshotResult = await RecordStore
+    var snapshotResult = await GetRecordStore()
       .GetSnapshots<SnapshotAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .SingleOrDefaultAsync();
 
-    var eventCount = await RecordStore
+    var eventCount = await GetRecordStore()
       .GetEvents<SnapshotAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
@@ -79,15 +79,15 @@ public abstract partial class EventSourcingTests
     foreach (var _ in new int[eventsCount])
       aggregate.Apply(new SnapshotEvent());
 
-    await AggregateService.PersistAsync(aggregate);
+    await GetAggregateService().PersistAsync(aggregate);
 
-    var snapshotCount = await RecordStore
+    var snapshotCount = await GetRecordStore()
       .GetSnapshots<SnapshotAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
     
-    var eventCount = await RecordStore
+    var eventCount = await GetRecordStore()
       .GetEvents<SnapshotAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
@@ -107,15 +107,15 @@ public abstract partial class EventSourcingTests
     foreach (var _ in new int[eventsCount])
       aggregate.Apply(new SnapshotEvent());
 
-    await AggregateService.PersistAsync(aggregate);
+    await GetAggregateService().PersistAsync(aggregate);
     
-    var snapshotCount = await RecordStore
+    var snapshotCount = await GetRecordStore()
       .GetSnapshots<SnapshotAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
     
-    var eventCount = await RecordStore
+    var eventCount = await GetRecordStore()
       .GetEvents<SnapshotAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
@@ -136,16 +136,16 @@ public abstract partial class EventSourcingTests
     foreach (var _ in new int[eventsCount])
     {
       aggregate.Apply(new SnapshotEvent());
-      await AggregateService.PersistAsync(aggregate);
+      await GetAggregateService().PersistAsync(aggregate);
     }
 
-    var snapshotResult = await RecordStore
+    var snapshotResult = await GetRecordStore()
       .GetSnapshots<SnapshotAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .SingleOrDefaultAsync();
 
-    var eventCount = await RecordStore
+    var eventCount = await GetRecordStore()
       .GetEvents<SnapshotAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
@@ -169,7 +169,7 @@ public abstract partial class EventSourcingTests
     bankAccount.Apply(new BankAccountFundsTransferredEvent(50, bankAccount.Id, bankAccount2.Id));
     bankAccount.Apply(new BankAccountFundsWithdrawnEvent(20));
     bankAccount.Apply(new BankAccountFundsDepositedEvent(500));
-    await AggregateService.PersistAsync(bankAccount);
+    await GetAggregateService().PersistAsync(bankAccount);
   }
 
   [Fact]
@@ -177,11 +177,11 @@ public abstract partial class EventSourcingTests
   {
     var empty = new EmptyAggregate();
     empty.Apply(new EmptyEvent());
-    await AggregateService.PersistAsync(empty);
+    await GetAggregateService().PersistAsync(empty);
     
-    var emptyProjection = await RecordStore.GetProjectionByIdAsync<EmptyProjection>(empty.Id);
-    var anotherEmptyProjection = await RecordStore.GetProjectionByIdAsync<AnotherEmptyProjection>(empty.Id);
-    var nullProjection = await RecordStore.GetProjectionByIdAsync<NullProjection>(empty.Id);
+    var emptyProjection = await GetRecordStore().GetProjectionByIdAsync<EmptyProjection>(empty.Id);
+    var anotherEmptyProjection = await GetRecordStore().GetProjectionByIdAsync<AnotherEmptyProjection>(empty.Id);
+    var nullProjection = await GetRecordStore().GetProjectionByIdAsync<NullProjection>(empty.Id);
     
     Assert.NotNull(emptyProjection);
     Assert.NotNull(anotherEmptyProjection);
@@ -193,24 +193,24 @@ public abstract partial class EventSourcingTests
   {
     var aggregate = new HierarchyAggregate();
     aggregate.Apply(new HierarchyEvent("Long String", "Tiny", "Small"));
-    await AggregateService.PersistAsync(aggregate);
+    await GetAggregateService().PersistAsync(aggregate);
 
-    var projectionA = await RecordStore.GetProjectionByIdAsync<HierarchyProjection>(aggregate.Id);
+    var projectionA = await GetRecordStore().GetProjectionByIdAsync<HierarchyProjection>(aggregate.Id);
     Assert.IsType<HierarchyProjectionA>(projectionA);
     
-    var projectionALiteral = await RecordStore.GetProjectionByIdAsync<HierarchyProjectionA>(aggregate.Id);
+    var projectionALiteral = await GetRecordStore().GetProjectionByIdAsync<HierarchyProjectionA>(aggregate.Id);
     Assert.IsType<HierarchyProjectionA>(projectionALiteral);
 
     aggregate.Apply(new HierarchyEvent("Tiny", "Long String", "Small"));
-    await AggregateService.PersistAsync(aggregate);
+    await GetAggregateService().PersistAsync(aggregate);
     
-    var projectionB = await RecordStore.GetProjectionByIdAsync<HierarchyProjection>(aggregate.Id);
+    var projectionB = await GetRecordStore().GetProjectionByIdAsync<HierarchyProjection>(aggregate.Id);
     Assert.IsType<HierarchyProjectionB>(projectionB);
 
     aggregate.Apply(new HierarchyEvent("Small", "Tiny", "Long String"));
-    await AggregateService.PersistAsync(aggregate);
+    await GetAggregateService().PersistAsync(aggregate);
     
-    var projectionC = await RecordStore.GetProjectionByIdAsync<HierarchyProjection>(aggregate.Id);
+    var projectionC = await GetRecordStore().GetProjectionByIdAsync<HierarchyProjection>(aggregate.Id);
     Assert.IsType<HierarchyProjectionC>(projectionC);
   }
 }

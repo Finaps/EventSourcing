@@ -11,11 +11,11 @@ public abstract partial class EventSourcingTests
     for (var i = 0; i < 3; i++)
       events.Add(aggregate.Apply(new EmptyEvent()));
 
-    await RecordStore.AddEventsAsync(events);
+    await GetRecordStore().AddEventsAsync(events);
 
-    var deleted = await RecordStore.DeleteAggregateAsync<EmptyAggregate>(Guid.Empty, aggregate.Id);
+    var deleted = await GetRecordStore().DeleteAggregateAsync<EmptyAggregate>(Guid.Empty, aggregate.Id);
 
-    var count = await RecordStore
+    var count = await GetRecordStore()
       .GetEvents<EmptyAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
@@ -32,8 +32,8 @@ public abstract partial class EventSourcingTests
 
     // Store event
     var e = aggregate.Apply(new EmptyEvent());
-    await RecordStore.AddEventsAsync(new Event<EmptyAggregate>[] { e });
-    Assert.NotNull(await RecordStore
+    await GetRecordStore().AddEventsAsync(new Event<EmptyAggregate>[] { e });
+    Assert.NotNull(await GetRecordStore()
       .GetEvents<EmptyAggregate>()
       .Where(x => x.AggregateId == e.AggregateId)
       .AsAsyncEnumerable()
@@ -41,8 +41,8 @@ public abstract partial class EventSourcingTests
 
     // Store snapshot
     var snapshot = new EmptySnapshot { AggregateId = aggregate.Id, AggregateType = nameof(EmptyAggregate) };
-    await RecordStore.AddSnapshotAsync(snapshot);
-    Assert.NotNull(await RecordStore
+    await GetRecordStore().AddSnapshotAsync(snapshot);
+    Assert.NotNull(await GetRecordStore()
       .GetSnapshots<EmptyAggregate>()
       .Where(x => x.AggregateId == snapshot.AggregateId)
       .AsAsyncEnumerable()
@@ -51,25 +51,25 @@ public abstract partial class EventSourcingTests
     // Store projection
     var projection = new EmptyProjection
       { AggregateId = aggregate.Id, AggregateType = nameof(EmptyAggregate), Hash = "RANDOM" };
-    await RecordStore.UpsertProjectionAsync(projection);
-    Assert.NotNull(await RecordStore.GetProjectionByIdAsync<EmptyProjection>(projection.AggregateId));
+    await GetRecordStore().UpsertProjectionAsync(projection);
+    Assert.NotNull(await GetRecordStore().GetProjectionByIdAsync<EmptyProjection>(projection.AggregateId));
 
     // Delete all items created
-    await RecordStore.DeleteAggregateAsync<EmptyAggregate>(Guid.Empty, aggregate.Id);
+    await GetRecordStore().DeleteAggregateAsync<EmptyAggregate>(Guid.Empty, aggregate.Id);
     
-    var eventsCount = await RecordStore
+    var eventsCount = await GetRecordStore()
       .GetEvents<EmptyAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
 
-    var snapshotsCount = await RecordStore
+    var snapshotsCount = await GetRecordStore()
       .GetSnapshots<EmptyAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
 
-    var projectionsCount = await RecordStore.GetProjections<EmptyProjection>()
+    var projectionsCount = await GetRecordStore().GetProjections<EmptyProjection>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
@@ -82,7 +82,7 @@ public abstract partial class EventSourcingTests
   [Fact]
   public async Task RecordStore_DeleteAggregateAsync_Can_Delete_More_Than_100_Events()
   {
-    var store = RecordStore;
+    var store = GetRecordStore();
     
     var aggregate = new EmptyAggregate();
 

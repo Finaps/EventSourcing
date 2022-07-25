@@ -13,7 +13,7 @@ public abstract partial class EntityFrameworkEventSourcingTests
   [Fact]
   public async Task EventIntegrityTests_Can_Insert_Event()
   {
-    var context = RecordContext;
+    var context = GetRecordContext();
     
     var entry = context.Add(new SimpleEvent
     {
@@ -36,9 +36,9 @@ public abstract partial class EntityFrameworkEventSourcingTests
       .Select(_ => aggregate.Apply(new SimpleEvent()))
       .ToList();
     
-    await AggregateService.PersistAsync(aggregate);
+    await GetAggregateService().PersistAsync(aggregate);
     
-    var context = RecordContext;
+    var context = GetRecordContext();
     
     Assert.True(await context.Set<SimpleEvent>().AnyAsync(x => x.AggregateId == aggregate.Id && x.Index == 9));
 
@@ -51,7 +51,7 @@ public abstract partial class EntityFrameworkEventSourcingTests
   [Fact]
   public async Task EventIntegrityTests_Cannot_Insert_Event_With_Null_AggregateType()
   {
-    var context = RecordContext;
+    var context = GetRecordContext();
     
     context.Add(new SimpleEvent
     {
@@ -65,7 +65,7 @@ public abstract partial class EntityFrameworkEventSourcingTests
   [Fact]
   public async Task EventIntegrityTests_Cannot_Insert_Nonconsecutive_Event()
   {
-    var context = RecordContext;
+    var context = GetRecordContext();
     
     context.Add(new SimpleEvent
     {
@@ -87,9 +87,9 @@ public abstract partial class EntityFrameworkEventSourcingTests
       .Select(_ => aggregate.Apply(new SimpleEvent()))
       .ToList();
     
-    await AggregateService.PersistAsync(aggregate);
+    await GetAggregateService().PersistAsync(aggregate);
 
-    var context = RecordContext;
+    var context = GetRecordContext();
 
     context.Remove(events[5]);
     await Assert.ThrowsAsync<DbUpdateException>(async () => await context.SaveChangesAsync());
@@ -98,7 +98,7 @@ public abstract partial class EntityFrameworkEventSourcingTests
   [Fact]
   public async Task EventIntegrityTests_Cannot_Create_Event_With_Negative_Index()
   {
-    var context = RecordContext;
+    var context = GetRecordContext();
     
     context.Add(new SimpleEvent
     {
@@ -120,9 +120,9 @@ public abstract partial class EntityFrameworkEventSourcingTests
       .Select(_ => aggregate.Apply(new SnapshotEvent()))
       .ToList();
     
-    await AggregateService.PersistAsync(aggregate);
+    await GetAggregateService().PersistAsync(aggregate);
 
-    var context = RecordContext;
+    var context = GetRecordContext();
 
     Assert.True(await context.Set<SnapshotSnapshot>().AnyAsync(x => x.AggregateId == aggregate.Id));
 
@@ -136,6 +136,6 @@ public abstract partial class EntityFrameworkEventSourcingTests
   public async Task EventIntegrityTests_Cannot_Add_Snapshot_Without_Corresponding_Event()
   {
     var snapshot = new SnapshotSnapshot { AggregateId = Guid.NewGuid(), Index = 0 };
-    await Assert.ThrowsAsync<RecordStoreException>(async () => await RecordStore.AddSnapshotAsync(snapshot));
+    await Assert.ThrowsAsync<RecordStoreException>(async () => await GetRecordStore().AddSnapshotAsync(snapshot));
   }
 }

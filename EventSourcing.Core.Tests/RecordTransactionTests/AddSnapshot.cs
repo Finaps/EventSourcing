@@ -10,12 +10,12 @@ public abstract partial class EventSourcingTests
         var s = new SnapshotSnapshot 
             { AggregateId = e.AggregateId, AggregateType = nameof(SnapshotAggregate), Index = 0, Counter = 10};
         
-        await RecordStore.CreateTransaction()
+        await GetRecordStore().CreateTransaction()
             .AddEvents(new List<Event<SnapshotAggregate>> { e })
             .AddSnapshot(s)
             .CommitAsync();
 
-        var snapshot = await RecordStore
+        var snapshot = await GetRecordStore()
             .GetSnapshots<SnapshotAggregate>()
             .Where(x => x.AggregateId == s.AggregateId)
             .AsAsyncEnumerable()
@@ -30,10 +30,10 @@ public abstract partial class EventSourcingTests
     {
         var s = new SnapshotSnapshot { AggregateId = Guid.NewGuid(), AggregateType = nameof(SnapshotAggregate) , Index = -1};
 
-        var transaction = RecordStore.CreateTransaction();
+        var transaction = GetRecordStore().CreateTransaction();
         Assert.Throws<RecordValidationException>(() => transaction.AddSnapshot(s));
 
-        var count = await RecordStore
+        var count = await GetRecordStore()
             .GetSnapshots<SnapshotAggregate>()
             .Where(x => x.AggregateId == s.AggregateId)
             .AsAsyncEnumerable()

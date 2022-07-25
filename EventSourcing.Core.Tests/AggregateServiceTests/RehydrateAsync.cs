@@ -13,9 +13,9 @@ public abstract partial class EventSourcingTests
       aggregate.Apply(new SimpleEvent())
     };
 
-    await AggregateService.PersistAsync(aggregate);
+    await GetAggregateService().PersistAsync(aggregate);
 
-    var rehydrated = await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate.Id);
+    var rehydrated = await GetAggregateService().RehydrateAsync<SimpleAggregate>(aggregate.Id);
 
     Assert.Equal(events.Count, rehydrated?.Counter);
   }
@@ -28,9 +28,9 @@ public abstract partial class EventSourcingTests
     aggregate.Apply(new SimpleEvent());
     aggregate.Apply(new SimpleEvent { Timestamp = DateTimeOffset.UtcNow.AddYears(1) });
 
-    await AggregateService.PersistAsync(aggregate);
+    await GetAggregateService().PersistAsync(aggregate);
 
-    var rehydrated = await AggregateService.RehydrateAsync<SimpleAggregate>(aggregate.Id, DateTimeOffset.UtcNow);
+    var rehydrated = await GetAggregateService().RehydrateAsync<SimpleAggregate>(aggregate.Id, DateTimeOffset.UtcNow);
 
     Assert.Equal(2, rehydrated?.Counter);
   }
@@ -38,7 +38,7 @@ public abstract partial class EventSourcingTests
   [Fact]
   public async Task AggregateService_RehydrateAsync_Rehydrating_Aggregate_Returns_Null_When_No_Events_Are_Found()
   {
-    Assert.Null(await AggregateService.RehydrateAsync<EmptyAggregate>(Guid.NewGuid()));
+    Assert.Null(await GetAggregateService().RehydrateAsync<EmptyAggregate>(Guid.NewGuid()));
   }
 
   [Fact]
@@ -51,8 +51,8 @@ public abstract partial class EventSourcingTests
     foreach (var _ in new int[eventsCount])
       aggregate.Apply(new SnapshotEvent());
 
-    await AggregateService.PersistAsync(aggregate);
-    var result = await AggregateService.RehydrateAsync<SnapshotAggregate>(aggregate.Id);
+    await GetAggregateService().PersistAsync(aggregate);
+    var result = await GetAggregateService().RehydrateAsync<SnapshotAggregate>(aggregate.Id);
 
     Assert.NotNull(result);
     Assert.Equal((int)eventsCount, result?.Counter);
@@ -68,11 +68,11 @@ public abstract partial class EventSourcingTests
 
     foreach (var _ in new int[factory.SnapshotInterval])
       aggregate.Apply(new SnapshotEvent());
-    await AggregateService.PersistAsync(aggregate);
+    await GetAggregateService().PersistAsync(aggregate);
 
     foreach (var _ in new int[3])
       aggregate.Apply(new SnapshotEvent());
-    await AggregateService.PersistAsync(aggregate);
+    await GetAggregateService().PersistAsync(aggregate);
 
     await Task.Delay(100);
     var date = DateTimeOffset.UtcNow;
@@ -80,17 +80,17 @@ public abstract partial class EventSourcingTests
 
     foreach (var _ in new int[factory.SnapshotInterval])
       aggregate.Apply(new SnapshotEvent());
-    await AggregateService.PersistAsync(aggregate);
+    await GetAggregateService().PersistAsync(aggregate);
 
-    var result = await AggregateService.RehydrateAsync<SnapshotAggregate>(aggregate.Id, date);
+    var result = await GetAggregateService().RehydrateAsync<SnapshotAggregate>(aggregate.Id, date);
 
-    var snapshotCount = await RecordStore
+    var snapshotCount = await GetRecordStore()
       .GetSnapshots<SnapshotAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
 
-    var eventsCount = await RecordStore
+    var eventsCount = await GetRecordStore()
       .GetEvents<SnapshotAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
@@ -114,19 +114,19 @@ public abstract partial class EventSourcingTests
 
     foreach (var _ in new int[eventsCount])
       aggregate.Apply(new SnapshotEvent());
-    await AggregateService.PersistAsync(aggregate);
+    await GetAggregateService().PersistAsync(aggregate);
 
     foreach (var _ in new int[eventsCount])
       aggregate.Apply(new SnapshotEvent());
-    await AggregateService.PersistAsync(aggregate);
+    await GetAggregateService().PersistAsync(aggregate);
 
     foreach (var _ in new int[eventsCount - 1])
       aggregate.Apply(new SnapshotEvent());
-    await AggregateService.PersistAsync(aggregate);
+    await GetAggregateService().PersistAsync(aggregate);
 
-    var result = await AggregateService.RehydrateAsync<SnapshotAggregate>(aggregate.Id);
+    var result = await GetAggregateService().RehydrateAsync<SnapshotAggregate>(aggregate.Id);
 
-    var snapshotCount = await RecordStore
+    var snapshotCount = await GetRecordStore()
       .GetSnapshots<SnapshotAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
@@ -149,15 +149,15 @@ public abstract partial class EventSourcingTests
 
     foreach (var _ in new int[eventsCount])
       aggregate.Apply(new SnapshotEvent());
-    await AggregateService.PersistAsync(aggregate);
+    await GetAggregateService().PersistAsync(aggregate);
 
     foreach (var _ in new int[eventsCount - 1])
       aggregate.Apply(new SnapshotEvent());
-    await AggregateService.PersistAsync(aggregate);
+    await GetAggregateService().PersistAsync(aggregate);
 
-    var result = await AggregateService.RehydrateAsync<SnapshotAggregate>(aggregate.Id);
+    var result = await GetAggregateService().RehydrateAsync<SnapshotAggregate>(aggregate.Id);
 
-    var snapshotCount = await RecordStore
+    var snapshotCount = await GetRecordStore()
       .GetSnapshots<SnapshotAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()

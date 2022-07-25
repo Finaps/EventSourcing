@@ -14,8 +14,12 @@ namespace Finaps.EventSourcing.Cosmos.Tests;
 public partial class CosmosEventSourcingTests : EventSourcingTests
 {
   private readonly IOptions<CosmosRecordStoreOptions> _options;
+  private readonly IRecordStore _recordStore;
 
-  protected override IRecordStore RecordStore { get; }
+  protected override IRecordStore GetRecordStore()
+  {
+    return _recordStore;
+  }
 
   public CosmosEventSourcingTests()
   {
@@ -32,7 +36,7 @@ public partial class CosmosEventSourcingTests : EventSourcingTests
       Container = configuration["Cosmos:Container"]
     });
 
-    RecordStore = new CosmosRecordStore(_options);
+    _recordStore = new CosmosRecordStore(_options);
   }
 
   [Fact]

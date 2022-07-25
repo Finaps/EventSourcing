@@ -7,7 +7,7 @@ public abstract partial class EventSourcingTests
   {
     var aggregate = MockAggregate.Create();
 
-    await AggregateService.PersistAsync(aggregate);
+    await GetAggregateService().PersistAsync(aggregate);
 
     var defaultProjection = new MockAggregateProjection
     {
@@ -25,9 +25,9 @@ public abstract partial class EventSourcingTests
       MockStringSet = new List<string>()
     };
 
-    await RecordStore.UpsertProjectionAsync(defaultProjection);
+    await GetRecordStore().UpsertProjectionAsync(defaultProjection);
     
-    var before = await RecordStore
+    var before = await GetRecordStore()
       .GetProjections<MockAggregateProjection>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
@@ -35,9 +35,9 @@ public abstract partial class EventSourcingTests
     
     IMock.AssertDefault(before);
 
-    await ProjectionUpdateService.UpdateAllProjectionsAsync<MockAggregate, MockAggregateProjection>();
+    await GetProjectionUpdateService().UpdateAllProjectionsAsync<MockAggregate, MockAggregateProjection>();
 
-    var after = await RecordStore
+    var after = await GetRecordStore()
       .GetProjections<MockAggregateProjection>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()

@@ -7,9 +7,9 @@ public abstract partial class EventSourcingTests
   {
     var aggregate = MockAggregate.Create();
 
-    await AggregateService.PersistAsync(aggregate);
+    await GetAggregateService().PersistAsync(aggregate);
 
-    var projection = await RecordStore
+    var projection = await GetRecordStore()
       .GetProjections<MockAggregateProjection>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
@@ -23,9 +23,9 @@ public abstract partial class EventSourcingTests
   {
     var aggregate = MockAggregate.Create();
 
-    await AggregateService.PersistAsync(aggregate);
+    await GetAggregateService().PersistAsync(aggregate);
 
-    var projection = await RecordStore.GetProjectionByIdAsync<MockAggregateProjection>(aggregate.Id);
+    var projection = await GetRecordStore().GetProjectionByIdAsync<MockAggregateProjection>(aggregate.Id);
     
     IMock.AssertEqual(aggregate, projection!);
   }
@@ -45,10 +45,10 @@ public abstract partial class EventSourcingTests
           _ => new HierarchyEvent("A", "B", "CC")
         }
       );
-      await AggregateService.PersistAsync(aggregate);
+      await GetAggregateService().PersistAsync(aggregate);
     }
     
-    var projections = await RecordStore.GetProjections<HierarchyProjection>()
+    var projections = await GetRecordStore().GetProjections<HierarchyProjection>()
       .Where(x => x.PartitionId == partitionId)
       .AsAsyncEnumerable()
       .ToListAsync();

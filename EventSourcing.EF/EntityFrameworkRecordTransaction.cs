@@ -20,7 +20,7 @@ public class EntityFrameworkRecordTransaction : IRecordTransaction
 
   private record DeleteSnapshotAction(Snapshot Snapshot) : TransactionAction;
 
-  private record DeleteProjectionAction(Type Type, Guid AggregateId) : TransactionAction;
+  private record DeleteProjectionAction(Type Type, Guid PartitionId, Guid AggregateId) : TransactionAction;
 
   private readonly List<TransactionAction> _actions = new();
 
@@ -86,64 +86,76 @@ public class EntityFrameworkRecordTransaction : IRecordTransaction
   /// <inheritdoc />
   public IRecordTransaction DeleteProjection<TProjection>(Guid aggregateId) where TProjection : Projection
   {
-    _actions.Add(new DeleteProjectionAction(typeof(TProjection), aggregateId));
+    _actions.Add(new DeleteProjectionAction(typeof(TProjection), PartitionId, aggregateId));
     return this;
   }
 
   /// <inheritdoc />
   public async Task CommitAsync(CancellationToken cancellationToken = default)
   {
-    await using var transaction = await _store.Context.Database.BeginTransactionAsync(cancellationToken);
-
-    foreach (var action in _actions)
-    {
-      switch (action)
-      {
-        case AddEventsAction(var events):
-          _store.Context.AddRange(events);
-          break;
-
-        case AddSnapshotAction(var snapshot):
-          _store.Context.Add(snapshot);
-          break;
-
-        case UpsertProjectionAction(var projection):
-          // Since EF Core has no Upsert functionality, we have to first query the original Projection :(
-          var existing = await _store.Context.FindAsync(
-            Cache.GetProjectionBaseType(projection.GetType()), 
-            projection.PartitionId, projection.AggregateId);
-
-          // Remove instead of update: this fixes problems with owned entities
-          if (existing != null) _store.Context.Remove(existing);
-
-          _store.Context.Add(projection);
-
-          break;
-
-        case DeleteAllEventsAction(var e):
-          await _store.Context.DeleteWhereAsync($"{e.AggregateType}{nameof(Event)}s", PartitionId, e.AggregateId,
-            cancellationToken);
-          break;
-
-        case DeleteSnapshotAction(var snapshot):
-          _store.Context.Attach(snapshot);
-          _store.Context.Remove(snapshot);
-          break;
-
-        case DeleteProjectionAction(var type, var aggregateId):
-          await _store.Context.DeleteWhereAsync($"{type.Name}", PartitionId, aggregateId, cancellationToken);
-          break;
-      }
-    }
-
     try
     {
-      await _store.Context.SaveChangesAsync(cancellationToken);
-      await transaction.CommitAsync(cancellationToken);
+      // If no current transaction exists, wrap commit in new transaction
+      if (_store.Context.Database.CurrentTransaction == null)
+      {
+        await using var transaction = await _store.Context.Database.BeginTransactionAsync(cancellationToken);
+        await CommitAsync(_store.Context, _actions, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+      }
+      else
+      {
+        await CommitAsync(_store.Context, _actions, cancellationToken);
+      }
     }
     catch (DbUpdateException e)
     {
       throw new RecordStoreException(e.Message, e);
+    }
+  }
+
+  private static async Task CommitAsync(RecordContext context, IEnumerable<TransactionAction> actions, CancellationToken cancellationToken = default)
+  {
+    foreach (var action in actions)
+    {
+      switch (action)
+      {
+        case AddEventsAction(var events):
+          context.AddRange(events);
+          break;
+
+        case AddSnapshotAction(var snapshot):
+          context.Add(snapshot);
+          break;
+
+        case UpsertProjectionAction(var projection):
+          // Since EF Core has no Upsert functionality, we have to first query the original Projection :(
+          var existing = await context.FindAsync(
+            Cache.GetProjectionBaseType(projection.GetType()), 
+            projection.PartitionId, projection.AggregateId);
+
+          // Remove instead of update: this fixes problems with owned entities
+          if (existing != null) context.Remove(existing);
+
+          context.Add(projection);
+
+          break;
+
+        case DeleteAllEventsAction(var e):
+          await context.DeleteWhereAsync($"{e.AggregateType}{nameof(Event)}s", e.PartitionId, e.AggregateId,
+            cancellationToken);
+          break;
+
+        case DeleteSnapshotAction(var snapshot):
+          context.Attach(snapshot);
+          context.Remove(snapshot);
+          break;
+
+        case DeleteProjectionAction(var type, var partitionId, var aggregateId):
+          await context.DeleteWhereAsync($"{type.Name}", partitionId, aggregateId, cancellationToken);
+          break;
+      }
+      
+      await context.SaveChangesAsync(cancellationToken);
     }
   }
 }

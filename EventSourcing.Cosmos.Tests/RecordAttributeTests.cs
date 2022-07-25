@@ -17,8 +17,8 @@ public partial class CosmosEventSourcingTests
     var e = new EmptyAggregate().Apply(new AttributeEvent("something"));
     var recordType = e.GetType().GetCustomAttribute<RecordTypeAttribute>()!.Type;
 
-    await RecordStore.AddEventsAsync(new [] { e });
-    var result = await RecordStore
+    await GetRecordStore().AddEventsAsync(new [] { e });
+    var result = await GetRecordStore()
       .GetEvents<EmptyAggregate>()
       .Where(x => x.Type == recordType && x.AggregateId == e.AggregateId)
       .AsAsyncEnumerable()
@@ -33,9 +33,9 @@ public partial class CosmosEventSourcingTests
     var e = new EmptyAggregate().Apply(new AttributeEvent("something"));
     var recordType = e.GetType().GetCustomAttribute<RecordTypeAttribute>()!.Type;
 
-    await RecordStore.AddEventsAsync(new [] { e });
+    await GetRecordStore().AddEventsAsync(new [] { e });
 
-    var result = await RecordStore
+    var result = await GetRecordStore()
       .GetEvents<EmptyAggregate>()
       .Where(x => x.Type == recordType && x.AggregateId == e.AggregateId)
       .AsAsyncEnumerable()

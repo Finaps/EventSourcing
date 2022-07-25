@@ -7,21 +7,21 @@ public abstract partial class EventSourcingTests
   {
     var aggregate = new SnapshotAggregate();
     var e = aggregate.Apply(new SnapshotEvent());
-    await RecordStore.AddEventsAsync(new [] { e });
+    await GetRecordStore().AddEventsAsync(new [] { e });
 
     var factory = new SimpleSnapshotFactory();
     var snapshot = factory.CreateSnapshot(aggregate);
-    await RecordStore.AddSnapshotAsync(snapshot);
+    await GetRecordStore().AddSnapshotAsync(snapshot);
 
-    Assert.NotNull(await RecordStore
+    Assert.NotNull(await GetRecordStore()
       .GetSnapshots<SnapshotAggregate>()
       .Where(x => x.AggregateId == snapshot.AggregateId)
       .AsAsyncEnumerable()
       .SingleAsync());
 
-    await RecordStore.DeleteSnapshotAsync<SnapshotAggregate>(snapshot.AggregateId, snapshot.Index);
+    await GetRecordStore().DeleteSnapshotAsync<SnapshotAggregate>(snapshot.AggregateId, snapshot.Index);
 
-    Assert.False(await RecordStore
+    Assert.False(await GetRecordStore()
       .GetSnapshots<SnapshotAggregate>()
       .Where(x => x.AggregateId == snapshot.AggregateId)
       .AsAsyncEnumerable()

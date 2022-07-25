@@ -8,9 +8,9 @@ public abstract partial class EventSourcingTests
         var e = new EmptyEvent();
         var a = new EmptyAggregate();
         a.Apply(e);
-        await AggregateService.PersistAsync(a);
+        await GetAggregateService().PersistAsync(a);
 
-        var projectionBefore = await RecordStore
+        var projectionBefore = await GetRecordStore()
             .GetProjections<EmptyProjection>()
             .Where(x => x.AggregateId == a.Id)
             .AsAsyncEnumerable()
@@ -20,11 +20,11 @@ public abstract partial class EventSourcingTests
         
         Assert.NotEqual(projectionBefore.Timestamp, updatedProjection.Timestamp);
         
-        await RecordStore.CreateTransaction()
+        await GetRecordStore().CreateTransaction()
             .UpsertProjection(updatedProjection)
             .CommitAsync();
 
-        var result = await RecordStore
+        var result = await GetRecordStore()
             .GetProjections<EmptyProjection>()
             .Where(x => x.AggregateId == a.Id)
             .AsAsyncEnumerable()

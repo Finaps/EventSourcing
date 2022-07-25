@@ -12,11 +12,11 @@ public abstract partial class EventSourcingTests
       aggregate.Apply(new SimpleEvent()),
     };
 
-    await AggregateService.PersistAsync(aggregate);
-    await AggregateService.RehydrateAndPersistAsync<SimpleAggregate>(aggregate.Id,
+    await GetAggregateService().PersistAsync(aggregate);
+    await GetAggregateService().RehydrateAndPersistAsync<SimpleAggregate>(aggregate.Id,
       a => a.Apply(new SimpleEvent()));
 
-    var count = await RecordStore
+    var count = await GetRecordStore()
       .GetEvents<SimpleAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
@@ -51,9 +51,9 @@ public abstract partial class EventSourcingTests
       MockStringSet = new List<string> { "A", "B", "C", "C" }
     });
 
-    await AggregateService.PersistAsync(aggregate);
+    await GetAggregateService().PersistAsync(aggregate);
 
-    var result = await AggregateService.RehydrateAsync<MockAggregate>(aggregate.Id);
+    var result = await GetAggregateService().RehydrateAsync<MockAggregate>(aggregate.Id);
 
     IMock.AssertEqual(e, result!);
   }
@@ -68,11 +68,11 @@ public abstract partial class EventSourcingTests
       aggregate.Apply(new SimpleEvent()),
     };
 
-    await AggregateService.PersistAsync(aggregate);
-    await AggregateService.RehydrateAndPersistAsync<SimpleAggregate>(aggregate.PartitionId, aggregate.Id,
+    await GetAggregateService().PersistAsync(aggregate);
+    await GetAggregateService().RehydrateAndPersistAsync<SimpleAggregate>(aggregate.PartitionId, aggregate.Id,
       a => a.Apply(new SimpleEvent()));
 
-    var count = await RecordStore
+    var count = await GetRecordStore()
       .GetEvents<SimpleAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
