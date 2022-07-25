@@ -7,12 +7,12 @@ public abstract partial class EventSourcingTests
   {
     var aggregate = new SnapshotAggregate { PartitionId = Guid.NewGuid() };
     var e = aggregate.Apply(new SnapshotEvent());
-    await RecordStore.AddEventsAsync(new [] { e });
+    await GetRecordStore().AddEventsAsync(new [] { e });
     
     var factory = new SimpleSnapshotFactory();
-    await RecordStore.AddSnapshotAsync(factory.CreateSnapshot(aggregate));
+    await GetRecordStore().AddSnapshotAsync(factory.CreateSnapshot(aggregate));
 
-    var count = await RecordStore
+    var count = await GetRecordStore()
       .GetSnapshots<SnapshotAggregate>()
       .Where(x => x.PartitionId == aggregate.PartitionId)
       .AsAsyncEnumerable()
@@ -26,12 +26,12 @@ public abstract partial class EventSourcingTests
   {
     var aggregate = new SnapshotAggregate();
     var e = aggregate.Apply(new SnapshotEvent());
-    await RecordStore.AddEventsAsync(new [] { e });
+    await GetRecordStore().AddEventsAsync(new [] { e });
 
     var factory = new SimpleSnapshotFactory();
-    await RecordStore.AddSnapshotAsync(factory.CreateSnapshot(aggregate));
+    await GetRecordStore().AddSnapshotAsync(factory.CreateSnapshot(aggregate));
 
-    var count = await RecordStore
+    var count = await GetRecordStore()
       .GetSnapshots<SnapshotAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
@@ -46,7 +46,7 @@ public abstract partial class EventSourcingTests
     var aggregate = new SnapshotAggregate();
     var e1 = aggregate.Apply(new SnapshotEvent());
 
-    var store = RecordStore;
+    var store = GetRecordStore();
 
     await store.AddEventsAsync(new [] { e1 });
     
@@ -64,7 +64,7 @@ public abstract partial class EventSourcingTests
     await store.AddSnapshotAsync(snapshot1);
     await store.AddSnapshotAsync(snapshot2);
 
-    var result = await RecordStore
+    var result = await GetRecordStore()
       .GetSnapshots<SnapshotAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .OrderByDescending(x => x.Index)

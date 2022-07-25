@@ -15,19 +15,19 @@ public abstract partial class EventSourcingTests
         foreach (var snapshotEvent in events)
             a.Apply(snapshotEvent);
         
-        await AggregateService.PersistAsync(a);
+        await GetAggregateService().PersistAsync(a);
         
-        await RecordStore
+        await GetRecordStore()
             .GetSnapshots<SnapshotAggregate>()
             .Where(x => x.AggregateId == a.Id)
             .AsAsyncEnumerable()
             .SingleAsync();
         
-        await RecordStore.CreateTransaction()
+        await GetRecordStore().CreateTransaction()
             .DeleteSnapshot<SnapshotAggregate>(a.Id, events.Count - 1)
             .CommitAsync();
 
-        var countAfter = await RecordStore
+        var countAfter = await GetRecordStore()
             .GetSnapshots<SnapshotAggregate>()
             .Where(x => x.AggregateId == a.Id)
             .AsAsyncEnumerable()

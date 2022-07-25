@@ -5,7 +5,7 @@ public abstract partial class EventSourcingTests
     [Fact]
     public async Task RecordStore_DeleteAllSnapshotsAsync_Can_Delete_Snapshots()
     {
-        var store = RecordStore;
+        var store = GetRecordStore();
         
         var aggregate = new SnapshotAggregate();
         var factory = new SimpleSnapshotFactory();
@@ -49,26 +49,26 @@ public abstract partial class EventSourcingTests
             .Select(_ => aggregate.Apply(new EmptyEvent()))
             .ToArray();
 
-        await RecordStore.AddEventsAsync(events);
-        await RecordStore.AddSnapshotAsync(snapshot);
-        await RecordStore.AddSnapshotAsync(snapshot2);
-        await RecordStore.UpsertProjectionAsync(projection);
+        await GetRecordStore().AddEventsAsync(events);
+        await GetRecordStore().AddSnapshotAsync(snapshot);
+        await GetRecordStore().AddSnapshotAsync(snapshot2);
+        await GetRecordStore().UpsertProjectionAsync(projection);
     
-        await RecordStore.DeleteAllSnapshotsAsync<EmptyAggregate>(aggregate.Id);
+        await GetRecordStore().DeleteAllSnapshotsAsync<EmptyAggregate>(aggregate.Id);
 
-        var eventCount = await RecordStore
+        var eventCount = await GetRecordStore()
             .GetEvents<EmptyAggregate>()
             .Where(x => x.AggregateId == aggregate.Id)
             .AsAsyncEnumerable()
             .CountAsync();
 
-        var snapshotCount = await RecordStore
+        var snapshotCount = await GetRecordStore()
             .GetSnapshots<EmptyAggregate>()
             .Where(x => x.AggregateId == aggregate.Id)
             .AsAsyncEnumerable()
             .CountAsync();
     
-        var projectionResult = await RecordStore.GetProjectionByIdAsync<EmptyProjection>(aggregate.Id);
+        var projectionResult = await GetRecordStore().GetProjectionByIdAsync<EmptyProjection>(aggregate.Id);
     
         Assert.Equal(3, eventCount);
         Assert.Equal(0, snapshotCount);
@@ -78,7 +78,7 @@ public abstract partial class EventSourcingTests
     [Fact]
     public async Task RecordStore_DeleteAllSnapshotsAsync_Correctly_Returns_Deleted_Count()
     {
-        var store = RecordStore;
+        var store = GetRecordStore();
         
         var aggregate = new SnapshotAggregate();
         var factory = new SimpleSnapshotFactory();

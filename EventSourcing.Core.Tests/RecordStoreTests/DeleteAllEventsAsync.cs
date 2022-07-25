@@ -12,11 +12,11 @@ public abstract partial class EventSourcingTests
       .Select(_ => aggregate.Apply(new EmptyEvent()))
       .ToArray();
 
-    await RecordStore.AddEventsAsync(events);
+    await GetRecordStore().AddEventsAsync(events);
 
-    await RecordStore.DeleteAllEventsAsync<EmptyAggregate>(aggregate.Id);
+    await GetRecordStore().DeleteAllEventsAsync<EmptyAggregate>(aggregate.Id);
 
-    var count = await RecordStore
+    var count = await GetRecordStore()
       .GetEvents<EmptyAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
@@ -37,19 +37,19 @@ public abstract partial class EventSourcingTests
       .Select(_ => aggregate.Apply(new EmptyEvent()))
       .ToArray();
     
-    await RecordStore.AddEventsAsync(events);
-    await RecordStore.AddSnapshotAsync(snapshot);
-    await RecordStore.UpsertProjectionAsync(projection);
+    await GetRecordStore().AddEventsAsync(events);
+    await GetRecordStore().AddSnapshotAsync(snapshot);
+    await GetRecordStore().UpsertProjectionAsync(projection);
     
-    await RecordStore.DeleteAllEventsAsync<EmptyAggregate>(aggregate.Id);
+    await GetRecordStore().DeleteAllEventsAsync<EmptyAggregate>(aggregate.Id);
 
-    var eventCount = await RecordStore
+    var eventCount = await GetRecordStore()
       .GetEvents<EmptyAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()
       .CountAsync();
 
-    var projectionResult = await RecordStore.GetProjectionByIdAsync<EmptyProjection>(aggregate.Id);
+    var projectionResult = await GetRecordStore().GetProjectionByIdAsync<EmptyProjection>(aggregate.Id);
     
     Assert.Equal(0, eventCount);
     Assert.NotNull(projectionResult);
@@ -65,11 +65,11 @@ public abstract partial class EventSourcingTests
       .Select(_ => aggregate.Apply(new EmptyEvent()))
       .ToArray();
     
-    await RecordStore.AddEventsAsync(events);
+    await GetRecordStore().AddEventsAsync(events);
 
-    var deleted = await RecordStore.DeleteAllEventsAsync<EmptyAggregate>(aggregate.Id);
+    var deleted = await GetRecordStore().DeleteAllEventsAsync<EmptyAggregate>(aggregate.Id);
 
-    var count = await RecordStore
+    var count = await GetRecordStore()
       .GetEvents<EmptyAggregate>()
       .Where(x => x.AggregateId == aggregate.Id)
       .AsAsyncEnumerable()

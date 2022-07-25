@@ -15,15 +15,15 @@ public abstract partial class EventSourcingTests
                 Index = i
             }).ToList();
 
-        await RecordStore.CreateTransaction()
+        await GetRecordStore().CreateTransaction()
           .AddEvents(events)
           .CommitAsync();
         
-        await RecordStore.CreateTransaction()
+        await GetRecordStore().CreateTransaction()
             .DeleteAllEvents<EmptyAggregate>(aggregateId, events.Count - 1)
             .CommitAsync();
 
-        var count = await RecordStore
+        var count = await GetRecordStore()
             .GetEvents<EmptyAggregate>()
             .Where(x => x.AggregateId == aggregateId)
             .AsAsyncEnumerable()
@@ -45,7 +45,7 @@ public abstract partial class EventSourcingTests
                 Index = i
             }).ToList();
 
-        var transaction = RecordStore.CreateTransaction()
+        var transaction = GetRecordStore().CreateTransaction()
             .AddEvents(new List<Event<EmptyAggregate>>
             {
                 new EmptyEvent
@@ -59,7 +59,7 @@ public abstract partial class EventSourcingTests
 
         await Assert.ThrowsAsync<RecordStoreException>(async () => await transaction.CommitAsync());
         
-        var count = await RecordStore
+        var count = await GetRecordStore()
             .GetEvents<EmptyAggregate>()
             .Where(x => x.AggregateId == aggregateId)
             .AsAsyncEnumerable()

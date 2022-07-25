@@ -7,11 +7,11 @@ public abstract partial class EventSourcingTests
   {
     var aggregate = new SnapshotAggregate();
     var e = aggregate.Apply(new SnapshotEvent());
-    await RecordStore.AddEventsAsync(new [] { e });
+    await GetRecordStore().AddEventsAsync(new [] { e });
     
     var factory = new SimpleSnapshotFactory();
     
-    await RecordStore.AddSnapshotAsync(factory.CreateSnapshot(aggregate));
+    await GetRecordStore().AddSnapshotAsync(factory.CreateSnapshot(aggregate));
   }
   
   [Fact]
@@ -19,14 +19,14 @@ public abstract partial class EventSourcingTests
   {
     var aggregate = new SnapshotAggregate();
     var e = aggregate.Apply(new SnapshotEvent());
-    await RecordStore.AddEventsAsync(new [] { e });
+    await GetRecordStore().AddEventsAsync(new [] { e });
 
     var factory = new SimpleSnapshotFactory();
 
     var snapshot = factory.CreateSnapshot(aggregate);
-    await RecordStore.AddSnapshotAsync(snapshot);
+    await GetRecordStore().AddSnapshotAsync(snapshot);
 
     await Assert.ThrowsAsync<RecordStoreException>(async () => 
-      await RecordStore.AddSnapshotAsync(snapshot));
+      await GetRecordStore().AddSnapshotAsync(snapshot));
   }
 }

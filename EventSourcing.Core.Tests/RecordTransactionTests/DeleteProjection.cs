@@ -8,9 +8,9 @@ public abstract partial class EventSourcingTests
         var e = new EmptyEvent();
         var a = new EmptyAggregate();
         a.Apply(e);
-        await AggregateService.PersistAsync(a);
+        await GetAggregateService().PersistAsync(a);
         
-        var countBefore = await RecordStore
+        var countBefore = await GetRecordStore()
             .GetProjections<EmptyProjection>()
             .Where(x => x.AggregateId == a.Id)
             .AsAsyncEnumerable()
@@ -18,11 +18,11 @@ public abstract partial class EventSourcingTests
     
         Assert.Equal(1, countBefore);
         
-        await RecordStore.CreateTransaction()
+        await GetRecordStore().CreateTransaction()
             .DeleteProjection<EmptyProjection>(a.Id)
             .CommitAsync();
 
-        var countAfter = await RecordStore
+        var countAfter = await GetRecordStore()
             .GetProjections<EmptyProjection>()
             .Where(x => x.AggregateId == a.Id)
             .AsAsyncEnumerable()

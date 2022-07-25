@@ -19,7 +19,7 @@ public abstract partial class EventSourcingTests
     Assert.Equal("SOME IBAN", account.Iban);
     Assert.Equal(100, account.Balance);
     
-    await AggregateService.PersistAsync(account);
+    await GetAggregateService().PersistAsync(account);
   }
 
   [Fact]
@@ -28,11 +28,11 @@ public abstract partial class EventSourcingTests
     var account = new BankAccount();
     account.Apply(new BankAccountCreatedEvent("E. Sourcing", "SOME IBAN"));
     account.Apply(new BankAccountFundsDepositedEvent(100));
-    await AggregateService.PersistAsync(account);
+    await GetAggregateService().PersistAsync(account);
 
-    var aggregate = await AggregateService.RehydrateAsync<BankAccount>(account.Id);
+    var aggregate = await GetAggregateService().RehydrateAsync<BankAccount>(account.Id);
     aggregate!.Apply(new BankAccountFundsDepositedEvent(50));
-    await AggregateService.PersistAsync(aggregate);
+    await GetAggregateService().PersistAsync(aggregate);
   }
 
   [Fact]
@@ -41,9 +41,9 @@ public abstract partial class EventSourcingTests
     var account = new BankAccount();
     account.Apply(new BankAccountCreatedEvent("E. Sourcing", "SOME IBAN"));
     account.Apply(new BankAccountFundsDepositedEvent(100));
-    await AggregateService.PersistAsync(account);
+    await GetAggregateService().PersistAsync(account);
 
-    await AggregateService.RehydrateAndPersistAsync<BankAccount>(account.Id, 
+    await GetAggregateService().RehydrateAndPersistAsync<BankAccount>(account.Id, 
       x => x.Apply(new BankAccountFundsDepositedEvent(50)));
   }
 
@@ -53,7 +53,7 @@ public abstract partial class EventSourcingTests
     var account = new BankAccount();
     account.Apply(new BankAccountCreatedEvent("E. Sourcing", "SOME IBAN"));
     account.Apply(new BankAccountFundsDepositedEvent(100));
-    await AggregateService.PersistAsync(account);
+    await GetAggregateService().PersistAsync(account);
 
     var anotherAccount = new BankAccount();
     anotherAccount.Apply(new BankAccountCreatedEvent("E. Sourcing", "SOME OTHER IBAN"));
@@ -63,13 +63,13 @@ public abstract partial class EventSourcingTests
     account.Apply(transfer);
     anotherAccount.Apply(transfer);
 
-    var transaction = AggregateService.CreateTransaction();
+    var transaction = GetAggregateService().CreateTransaction();
     await transaction.AddAggregateAsync(account);
     await transaction.AddAggregateAsync(anotherAccount);
     await transaction.CommitAsync();
 
-    var result1 = await AggregateService.RehydrateAsync<BankAccount>(account.Id);
-    var result2 = await AggregateService.RehydrateAsync<BankAccount>(anotherAccount.Id);
+    var result1 = await GetAggregateService().RehydrateAsync<BankAccount>(account.Id);
+    var result2 = await GetAggregateService().RehydrateAsync<BankAccount>(anotherAccount.Id);
 
     Assert.Equal(account.Name, result1?.Name);
     Assert.Equal(account.Iban, result1?.Iban);

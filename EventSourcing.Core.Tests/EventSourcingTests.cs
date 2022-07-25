@@ -2,7 +2,9 @@ namespace Finaps.EventSourcing.Core.Tests;
 
 public abstract partial class EventSourcingTests
 {
-  protected abstract IRecordStore RecordStore { get; }
-  protected IAggregateService AggregateService => new AggregateService(RecordStore);
-  protected IProjectionUpdateService ProjectionUpdateService => new ProjectionUpdateService(AggregateService, RecordStore);
+  protected abstract IRecordStore GetRecordStore();
+  protected IAggregateService GetAggregateService() => new AggregateService(GetRecordStore());
+
+  protected IProjectionUpdateService GetProjectionUpdateService() => 
+    new ProjectionUpdateService(GetAggregateService(), GetRecordStore());
 }
