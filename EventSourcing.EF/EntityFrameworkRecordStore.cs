@@ -9,6 +9,9 @@ public class EntityFrameworkRecordStore : IRecordStore
 {
   internal static List<Type> ProjectionTypes { get; } = new();
 
+  /// <summary>
+  /// <see cref="RecordContext"/>
+  /// </summary>
   public RecordContext Context { get; }
 
   /// <summary>
