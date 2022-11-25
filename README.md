@@ -7,8 +7,6 @@
 Event Sourcing for .NET 6!
 --------------------------
 
-**This repository is WIP**. Breaking API changes are likely to occur before version 1.0.0.
-
 ```Finaps.EventSourcing``` is an implementation of the [Event Sourcing Pattern](https://docs.microsoft.com/en-us/azure/architecture/patterns/event-sourcing) in .NET 6
 with a focus on _Validity_, _Clarity_ & _Performance_.
 
